@@ -1,0 +1,18 @@
+{
+  "name": "mercy-email",
+  "version": "0.1.0",
+  "description": "Quill -- Meera's email client -- one container in the MERCY: AI Judgement game",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "gen:images": "node scripts/generate-placeholder-images.js",
+    "gen:attachments": "node scripts/generate-attachment-images.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0"
+  }
+}

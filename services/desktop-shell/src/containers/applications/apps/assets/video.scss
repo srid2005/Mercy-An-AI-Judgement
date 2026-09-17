@@ -1,0 +1,107 @@
+.moviesApp {
+  .toolbar {
+    background: #141414;
+  }
+  .mvBody {
+    background: #0e0e0e;
+    color: #eee;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    video {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      background: #000;
+      outline: none;
+    }
+    .mvMeta {
+      display: flex;
+      gap: 14px;
+      align-items: baseline;
+      padding: 6px 12px;
+      font-size: 12px;
+      background: #141414;
+      .mvName {
+        font-weight: 600;
+      }
+      .mvPath {
+        opacity: 0.55;
+        font-family: Consolas, monospace;
+        font-size: 11px;
+      }
+    }
+    .mvEmpty {
+      margin: auto;
+      text-align: center;
+      opacity: 0.7;
+      .mvEmptyTitle {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+    }
+  }
+}
+
+// Explorer: the locked-folder panel
+.msfiles .lockPanel {
+  margin: auto;
+  width: 340px;
+  text-align: center;
+  padding: 26px 22px;
+  border-radius: 8px;
+  background: var(--bg1, #f7f7f7);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+  color: var(--txt-col, #222);
+  .lkIcon {
+    font-size: 34px;
+    margin-bottom: 6px;
+  }
+  .lkTitle {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .lkSub {
+    font-size: 12px;
+    opacity: 0.7;
+    margin: 4px 0 14px;
+  }
+  input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #bbb;
+    border-bottom: 2px solid #0067c0;
+    border-radius: 3px;
+    padding: 6px 10px;
+    font-size: 14px;
+    letter-spacing: 2px;
+    color: #222;
+    background: #fff;
+  }
+  .lkErr {
+    color: #c00;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  .lkBtn {
+    margin-top: 14px;
+    display: inline-block;
+    padding: 5px 22px;
+    border-radius: 4px;
+    background: #0067c0;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    &:hover {
+      background: #005ba8;
+    }
+  }
+}
+.msfiles .conticon[data-locked="true"] .lockBadge {
+  position: absolute;
+  margin-top: 30px;
+  margin-left: 26px;
+  font-size: 13px;
+}

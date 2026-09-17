@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MERCY · City Model</title>
+  <link rel="icon" href="/images/mercy-map.svg">
+  <link rel="stylesheet" href="/css/style.css">
+  <script type="importmap">
+    { "imports": { "three": "/vendor/three/build/three.module.js", "three/addons/": "/vendor/three/examples/jsm/" } }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><img src="/images/mercy-map.svg" alt=""><span>MERCY</span><em>City Model · Blueprint</em></div>
+    <div class="search-wrap">
+      <input id="search" type="search" placeholder="Search the model — places, districts, buildings, towers, CCTV" autocomplete="off">
+      <ul id="results" hidden></ul>
+    </div>
+    <label class="toggle"><input id="props-toggle" type="checkbox" checked> Trees &amp; props</label>
+    <label class="toggle"><input id="cctv-toggle" type="checkbox" checked> CCTV</label>
+    <label class="toggle"><input id="labels-toggle" type="checkbox" checked> Labels</label>
+    <button id="keys-toggle" class="chip small">Controls</button>
+  </header>
+
+  <main class="stage">
+    <div id="view3d"><canvas></canvas></div>
+
+    <div class="hud-left">
+      <button id="jump-tower" class="chip tower">Police HQ</button>
+      <button id="jump-you" class="chip you">You</button>
+      <button id="jump-fit" class="chip">City</button>
+      <button id="jump-overview" class="chip">Whole basin</button>
+    </div>
+    <div class="mission-row">
+      <div id="mission" class="mission" data-state="idle">Right-click any building, or enter coordinates, to send the drones.</div>
+      <button id="speed" class="chip small" hidden>▶▶ ×4</button>
+    </div>
+    <div id="keys" class="keys" hidden>
+      <div><b>W A S D</b> / arrows — move</div>
+      <div><b>Q E</b> — turn · <b>R F</b> — zoom · <b>Shift</b> — faster</div>
+      <div><b>Left-drag</b> — orbit · <b>Right-drag</b> — slide · <b>Scroll</b> — zoom</div>
+      <div><b>Double-click</b> — jump there · <b>Right-click</b> — send drones</div>
+    </div>
+    <div id="readout" class="readout"><span>Move over the model</span></div>
+    <div id="legend" class="legend">
+      <div><i style="background:#fff"></i>Police HQ</div><div><i style="background:#8fdcff"></i>Buildings</div>
+      <div><i style="background:#c7a6ff"></i>Pylons &amp; power</div><div><i style="background:#ffffff;border-color:#8fdcff"></i>Masts &amp; relays</div>
+      <div><i style="background:#7fd3ff"></i>Water towers</div><div><i style="background:#f5d76e"></i>CCTV camera</div>
+      <div><i style="background:#ff2a1e;box-shadow:0 0 6px #ff2a1e"></i>You</div><div><i style="border:1px dashed #ff3b30;background:transparent"></i>No CCTV coverage</div>
+      <div><i style="border:1px dashed #8fdcff;background:transparent"></i>Flight route</div><div><i style="background:#39ff88"></i>Drone scan / found</div>
+      <div><i style="background:#ff9f43"></i>Caves · searched</div><div><i style="background:#33c39a;opacity:.7"></i>Trees</div>
+      <div><i style="background:#7fb6e0"></i>Lamps · cars · props</div><div><i style="background:#39ff88;opacity:.5"></i>Bus route 7</div>
+    </div>
+
+    <aside class="rail">
+      <section>
+        <h3>Drone search</h3>
+        <p class="hint">Enter the coordinates you have found and send the flight, or right-click any building on the model. Four drones lift off the Police HQ roof, thread between the buildings to the point, search 60 m around it and report back.</p>
+        <div class="coords">
+          <label>Lat <input id="lat" type="text" inputmode="decimal" placeholder="13.00000"></label>
+          <label>Lng <input id="lng" type="text" inputmode="decimal" placeholder="77.50000"></label>
+        </div>
+        <div class="row"><button id="launch" class="danger">Launch drones</button></div>
+        <ul id="search-log"></ul>
+      </section>
+      <section id="info" class="info" hidden></section>
+      <section>
+        <h3>Places</h3>
+        <ul id="places"></ul>
+      </section>
+      <section class="about">
+        <div id="city"></div>
+        <div>Left-click for details · right-click to search · double-click to jump · WASD to move</div>
+      </section>
+    </aside>
+  </main>
+
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

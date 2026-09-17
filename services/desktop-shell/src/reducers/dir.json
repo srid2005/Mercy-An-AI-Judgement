@@ -1,0 +1,341 @@
+{
+  "C:": {
+    "type": "folder",
+    "name": "C:",
+    "info": {
+      "size": "256000000000",
+      "used": "171000000000",
+      "spid": "%cdrive%"
+    },
+    "data": {
+      "Program Files": {
+        "data": {
+          "Common Files": {},
+          "Orbit Browser": {},
+          "PulseFit": {},
+          "Quill Mail": {},
+          "Windows Defender": {},
+          "Windows Mail": {},
+          "Windows NT": {}
+        }
+      },
+      "Users": {
+        "type": "folder",
+        "name": "Users",
+        "data": {
+          "Public": {
+            "data": {
+              "Public Documents": {},
+              "Public Pictures": {}
+            }
+          },
+          "Meera": {
+            "type": "folder",
+            "name": "Meera",
+            "info": {
+              "spid": "%user%",
+              "icon": "user"
+            },
+            "data": {
+              "Desktop": {
+                "info": {
+                  "spid": "%desktop%",
+                  "icon": "desk"
+                },
+                "data": {
+                  "todo.txt": {
+                    "type": "txt",
+                    "info": {
+                      "icon": "txt"
+                    },
+                    "data": "- water bill (due 5th)\n- call Mum re: Sunday\n- Bruno vet, 11am Sat\n- return Priya's dish\n- ask Arjun about Coorg dates\n- CANCEL gym before 30th!!"
+                  }
+                }
+              },
+              "Documents": {
+                "info": {
+                  "spid": "%documents%",
+                  "icon": "docs"
+                },
+                "data": {
+                  "notes.txt": {
+                    "type": "txt",
+                    "info": {
+                      "icon": "txt"
+                    },
+                    "data": "passwords I keep forgetting (DELETE THIS LATER)\n\nwifi: KapoorHome_5G / bruno2019\nprinter: admin / admin\nLIC login: meerak84 / (saved in browser)\nDad's folder: 1708RoseCafe\nHaven: changed it. security qs are the usual three.\n\nrecipes to try\n- bisi bele bath (Mum's proportions!)\n- that lemon cake Priya made\n\nMum's medicines: Telma 40 morning, Ecosprin night"
+                  },
+                  "Insurance": {
+                    "data": {
+                      "LIC_policy_2019.pdf": {
+                        "type": "pdf",
+                        "info": {
+                          "icon": "pdf"
+                        },
+                        "data": "/files/docs/LIC_policy_2019.pdf"
+                      }
+                    }
+                  },
+                  "Office": {
+                    "data": {
+                      "Q2_review_notes.txt": {
+                        "type": "txt",
+                        "info": {
+                          "icon": "txt"
+                        },
+                        "data": "Q2 review -- talking points\n- GreenLeaf account: renewal moved to Aug\n- Kartly onboarding delayed (their side)\n- ask about WFH Fridays\n- appraisal: mention the Stillwell pitch"
+                      }
+                    }
+                  },
+                  "Dad": {
+                    "data": {
+                      "FATHER_DEATH_CASE.pdf": {
+                        "type": "pdf",
+                        "info": {
+                          "icon": "pdf"
+                        },
+                        "data": "/files/FATHER_DEATH_CASE.pdf"
+                      },
+                      "2024-08-02 The box.mp4": {
+                        "type": "vid",
+                        "info": {
+                          "icon": "vid"
+                        },
+                        "data": "/files/videos/2024-08-02%20The%20box.mp4"
+                      }
+                    },
+                    "info": {
+                      "icon": "folder",
+                      "locked": "1708RoseCafe"
+                    }
+                  }
+                }
+              },
+              "Downloads": {
+                "info": {
+                  "spid": "%downloads%",
+                  "icon": "down"
+                },
+                "data": {
+                  "PulseFit-export-Aug.csv": {
+                    "type": "txt",
+                    "info": {
+                      "icon": "txt"
+                    },
+                    "data": "date,steps,resting_hr,sleep_hrs\n2024-08-01,8120,61,6.9\n2024-08-02,6540,62,7.4\n2024-08-03,11230,60,6.1\n2024-08-04,4020,63,5.2\n2024-08-05,7710,61,6.8"
+                  },
+                  "Coorg homestay - Wanderly.pdf": {
+                    "type": "pdf",
+                    "info": {
+                      "icon": "pdf"
+                    },
+                    "data": "/files/docs/Coorg%20homestay%20-%20Wanderly.pdf"
+                  }
+                }
+              },
+              "Pictures": {
+                "info": {
+                  "spid": "%pictures%",
+                  "icon": "pics"
+                },
+                "data": {
+                  "Camera Roll": {
+                    "data": {
+                      "IMG_20181007_073012.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img"
+                        },
+                        "data": "/files/photos/camera/IMG_20181007_073012.jpg"
+                      },
+                      "IMG_20240316_190455.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img"
+                        },
+                        "data": "/files/photos/camera/IMG_20240316_190455.jpg"
+                      },
+                      "IMG_20240505_101233.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img"
+                        },
+                        "data": "/files/photos/camera/IMG_20240505_101233.jpg"
+                      },
+                      "IMG_20240505_101410.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img"
+                        },
+                        "data": "/files/photos/camera/IMG_20240505_101410.jpg"
+                      },
+                      "IMG_20240622_123301.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img"
+                        },
+                        "data": "/files/photos/camera/IMG_20240622_123301.jpg"
+                      },
+                      "IMG_20240817_203344.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img"
+                        },
+                        "data": "/files/photos/camera/IMG_20240817_203344.jpg"
+                      }
+                    }
+                  },
+                  "Wedding": {},
+                  "Bruno": {},
+                  "Dad": {}
+                }
+              },
+              "Videos": {
+                "info": {
+                  "spid": "%videos%",
+                  "icon": "vid"
+                },
+                "data": {
+                  "Diary": {}
+                }
+              },
+              "Music": {
+                "info": {
+                  "spid": "%music%",
+                  "icon": "music"
+                },
+                "data": {}
+              },
+              "AppData": {
+                "info": {
+                  "hidden": true
+                },
+                "data": {
+                  "Local": {
+                    "data": {
+                      "Temp": {},
+                      "Microsoft": {},
+                      "Orbit": {
+                        "data": {
+                          "User Data": {}
+                        }
+                      },
+                      ".n": {
+                        "info": {
+                          "hidden": true
+                        },
+                        "data": {
+                          "IMG-20240614-WA0007.jpg": {
+                            "type": "img",
+                            "info": {
+                              "icon": "img"
+                            },
+                            "data": "/files/photos/hidden/IMG-20240614-WA0007.jpg"
+                          },
+                          "IMG-20240614-WA0009.jpg": {
+                            "type": "img",
+                            "info": {
+                              "icon": "img"
+                            },
+                            "data": "/files/photos/hidden/IMG-20240614-WA0009.jpg"
+                          },
+                          "IMG-20240702-WA0003.jpg": {
+                            "type": "img",
+                            "info": {
+                              "icon": "img"
+                            },
+                            "data": "/files/photos/hidden/IMG-20240702-WA0003.jpg"
+                          },
+                          "IMG-20240702-WA0004.jpg": {
+                            "type": "img",
+                            "info": {
+                              "icon": "img"
+                            },
+                            "data": "/files/photos/hidden/IMG-20240702-WA0004.jpg"
+                          },
+                          "IMG-20240719-WA0011.jpg": {
+                            "type": "img",
+                            "info": {
+                              "icon": "img"
+                            },
+                            "data": "/files/photos/hidden/IMG-20240719-WA0011.jpg"
+                          },
+                          "IMG-20240719-WA0012.jpg": {
+                            "type": "img",
+                            "info": {
+                              "icon": "img"
+                            },
+                            "data": "/files/photos/hidden/IMG-20240719-WA0012.jpg"
+                          },
+                          "IMG-20240811-WA0002.jpg": {
+                            "type": "img",
+                            "info": {
+                              "icon": "img"
+                            },
+                            "data": "/files/photos/hidden/IMG-20240811-WA0002.jpg"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "Roaming": {
+                    "data": {
+                      "Microsoft": {},
+                      "Quill": {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "Windows": {}
+    }
+  },
+  "Recycle Bin": {
+    "type": "folder",
+    "name": "Recycle Bin",
+    "info": {
+      "spid": "%bin%",
+      "icon": "bin"
+    },
+    "data": {
+      "IMG-20240811-WA0005.jpg": {
+        "type": "img",
+        "info": {
+          "icon": "img"
+        },
+        "data": "/files/photos/bin/IMG-20240811-WA0005.jpg"
+      },
+      "IMG-20240824-WA0001.jpg": {
+        "type": "img",
+        "info": {
+          "icon": "img"
+        },
+        "data": "/files/photos/bin/IMG-20240824-WA0001.jpg"
+      },
+      "IMG-20240824-WA0006.jpg": {
+        "type": "img",
+        "info": {
+          "icon": "img"
+        },
+        "data": "/files/photos/bin/IMG-20240824-WA0006.jpg"
+      },
+      "old todo.txt": {
+        "type": "txt",
+        "info": {
+          "icon": "txt"
+        },
+        "data": "- passport renewal\n- Bruno deworming\n- book Coorg (Aug 30-Sep 1?)\n- tell A. about Sunday"
+      },
+      "Coorg homestay - Wanderly (1).pdf": {
+        "type": "pdf",
+        "info": {
+          "icon": "pdf"
+        },
+        "data": "/files/docs/Coorg%20homestay%20-%20Wanderly.pdf"
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#132621"/>
+  <path d="M60 120 a30 30 0 0 1 8-58 a40 40 0 0 1 76 8 a26 26 0 0 1 -4 50 z" fill="#3fa88a"/>
+  <text x="100" y="170" font-family="sans-serif" font-size="16" fill="#8fd9c4" text-anchor="middle">Haven</text>
+</svg>

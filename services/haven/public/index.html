@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sign in to Haven</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="lock-screen">
+    <div class="lock-card">
+      <div class="brand">
+        <img src="/images/haven-logo.svg" alt="" />
+        <span class="wordmark">Haven</span>
+      </div>
+      <div class="tagline">A private space for your thoughts.</div>
+
+      <img id="account-avatar" class="lock-avatar" src="/images/avatars/meera.svg" alt="" />
+      <div id="account-name" class="account-name">Loading…</div>
+      <div id="account-email" class="account-email"></div>
+
+      <section id="step-request">
+        <p class="step-copy">To keep your journal private, we'll email a one-time sign-in code to the address on this account.</p>
+        <button id="send-code-btn" class="primary">Email me a sign-in code</button>
+        <p class="fine-print">Haven never sees your password and can't recover it. Sign-in uses a code plus your security questions.</p>
+      </section>
+
+      <section id="step-code" hidden>
+        <p class="step-copy">Enter the 6-digit code we just sent to <b id="sent-to"></b>.</p>
+        <input id="code" inputmode="numeric" maxlength="6" placeholder="6-digit code" autocomplete="one-time-code" />
+        <button id="verify-code-btn" class="primary">Verify code</button>
+        <button id="resend-btn" class="link" type="button">Didn't get it? Send again</button>
+      </section>
+
+      <section id="step-questions" hidden>
+        <div class="step-label">Code confirmed · Security questions</div>
+        <p class="step-copy">Answer all three to unlock your journal.</p>
+        <div id="questions"></div>
+        <button id="answers-btn" class="primary">Unlock journal</button>
+      </section>
+
+      <div class="error" id="error"></div>
+    </div>
+
+    <ol class="steps" id="steps">
+      <li class="active">Send code</li>
+      <li>Confirm code</li>
+      <li>Security questions</li>
+    </ol>
+  </div>
+  <script src="/js/lock.js"></script>
+    <script>
+      // MERCY desktop shell: tell the Orbit browser where we are so its address bar follows.
+      (function () {
+        if (window.parent === window) return;
+        var send = function () {
+          try { parent.postMessage({ type: 'mercy:route', path: location.pathname + location.search + location.hash, title: document.title }, '*'); } catch (e) {}
+        };
+        send();
+        addEventListener('hashchange', send);
+        addEventListener('popstate', send);
+        var ps = history.pushState, rs = history.replaceState;
+        history.pushState = function () { ps.apply(this, arguments); send(); };
+        history.replaceState = function () { rs.apply(this, arguments); send(); };
+        var t = document.querySelector('title');
+        if (t && window.MutationObserver) new MutationObserver(send).observe(t, { childList: true, characterData: true, subtree: true });
+      })();
+    </script>
+  </body>
+</html>

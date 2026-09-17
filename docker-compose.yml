@@ -1,0 +1,185 @@
+networks:
+  mercy-net:
+    driver: bridge
+
+volumes:
+  social_media_data:
+  whatsapp_data:
+  email_data:
+  haven_data:
+  city_map_data:
+
+services:
+  social-media-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: social_media
+      POSTGRES_USER: mercy
+      POSTGRES_PASSWORD: mercy_dev_pw
+    volumes:
+      - social_media_data:/var/lib/postgresql/data
+      - ./services/social-media/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks: [mercy-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mercy -d social_media"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  social-media:
+    build: ./services/social-media
+    depends_on:
+      social-media-db:
+        condition: service_healthy
+    environment:
+      PORT: 4001
+      DATABASE_URL: postgres://mercy:mercy_dev_pw@social-media-db:5432/social_media
+      JWT_SECRET: dev-only-secret-change-me
+      MERCY_API_KEY: dev-mercy-key
+      INTERNAL_API_KEY: dev-internal-key
+      EMAIL_SERVICE_URL: http://email:4002
+    ports:
+      - "4001:4001"
+    networks: [mercy-net]
+
+  whatsapp-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: whatsapp
+      POSTGRES_USER: mercy
+      POSTGRES_PASSWORD: mercy_dev_pw
+    volumes:
+      - whatsapp_data:/var/lib/postgresql/data
+      - ./services/whatsapp/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks: [mercy-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mercy -d whatsapp"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  whatsapp:
+    build: ./services/whatsapp
+    depends_on:
+      whatsapp-db:
+        condition: service_healthy
+    environment:
+      PORT: 4003
+      DATABASE_URL: postgres://mercy:mercy_dev_pw@whatsapp-db:5432/whatsapp
+      MERCY_API_KEY: dev-mercy-key
+    ports:
+      - "4003:4003"
+    networks: [mercy-net]
+
+  email-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: email
+      POSTGRES_USER: mercy
+      POSTGRES_PASSWORD: mercy_dev_pw
+    volumes:
+      - email_data:/var/lib/postgresql/data
+      - ./services/email/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks: [mercy-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mercy -d email"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  email:
+    build: ./services/email
+    depends_on:
+      email-db:
+        condition: service_healthy
+    environment:
+      PORT: 4002
+      DATABASE_URL: postgres://mercy:mercy_dev_pw@email-db:5432/email
+      JWT_SECRET: dev-only-secret-change-me
+      MERCY_API_KEY: dev-mercy-key
+      INTERNAL_API_KEY: dev-internal-key
+    ports:
+      - "4002:4002"
+    networks: [mercy-net]
+
+  haven-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: haven
+      POSTGRES_USER: mercy
+      POSTGRES_PASSWORD: mercy_dev_pw
+    volumes:
+      - haven_data:/var/lib/postgresql/data
+      - ./services/haven/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks: [mercy-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mercy -d haven"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  haven:
+    build: ./services/haven
+    depends_on:
+      haven-db:
+        condition: service_healthy
+    environment:
+      PORT: 4008
+      DATABASE_URL: postgres://mercy:mercy_dev_pw@haven-db:5432/haven
+      JWT_SECRET: dev-only-secret-change-me
+      MERCY_API_KEY: dev-mercy-key
+      INTERNAL_API_KEY: dev-internal-key
+      EMAIL_SERVICE_URL: http://email:4002
+    ports:
+      - "4008:4008"
+    networks: [mercy-net]
+
+  city-map-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: city_map
+      POSTGRES_USER: mercy
+      POSTGRES_PASSWORD: mercy_dev_pw
+    volumes:
+      - city_map_data:/var/lib/postgresql/data
+      - ./services/city-map/db:/docker-entrypoint-initdb.d:ro
+    networks: [mercy-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mercy -d city_map"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  city-map:
+    build: ./services/city-map
+    depends_on:
+      city-map-db:
+        condition: service_healthy
+    environment:
+      PORT: 4011
+      DATABASE_URL: postgres://mercy:mercy_dev_pw@city-map-db:5432/city_map
+      MERCY_API_KEY: dev-mercy-key
+    ports:
+      - "4011:4011"
+    networks: [mercy-net]
+
+  # Meera's laptop -- the shell the participant works inside. Static React
+  # build behind nginx; it opens the other services on their own ports.
+  desktop-shell:
+    build: ./services/desktop-shell
+    ports:
+      - "3000:80"
+    networks: [mercy-net]
+
+  # -------------------------------------------------------------------------
+  # Everything below is planned but not yet implemented. Each will follow the
+  # same shape as social-media/whatsapp/email: its own container, its own
+  # database, a REST API, a small web UI, and an /api/evidence endpoint
+  # gated by x-mercy-key. See services/<name>/README.md and /ARCHITECTURE.md.
+  # -------------------------------------------------------------------------
+  # notes:
+  # photos:
+  # video-diary:   (the laptop's local copies -- the cloud side is `haven`, above)
+  # smartwatch:
+  # mercy-engine:
+  # (case-files is a PDF, not a service; desktop-shell is above)

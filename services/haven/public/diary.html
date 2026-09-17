@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Haven</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="app-bar">
+    <button class="menu-btn" id="menu-btn" title="Menu">☰</button>
+    <a class="brand" id="home-link" href="#/">
+      <img src="/images/haven-logo.svg" alt="" />
+      <span class="wordmark">Haven</span>
+    </a>
+    <div class="search-box">Search your journal</div>
+    <div class="spacer"></div>
+    <div class="storage-pill" id="storage-pill" title="Storage"></div>
+    <img class="nav-avatar" id="nav-avatar" src="/images/avatars/meera.svg" alt="" title="Sign out" />
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="side-title">Journal</div>
+      <nav class="side-nav" id="year-nav"></nav>
+      <div class="side-title">Tags</div>
+      <div class="tag-cloud" id="tag-nav"></div>
+      <div class="storage-card" id="storage-card"></div>
+    </aside>
+
+    <main class="main" id="main">
+      <div class="loading">Loading…</div>
+    </main>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

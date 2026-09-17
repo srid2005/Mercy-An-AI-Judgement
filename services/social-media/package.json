@@ -1,0 +1,17 @@
+{
+  "name": "mercy-social-media",
+  "version": "0.1.0",
+  "description": "Meera's Social Media app -- one container in the MERCY: AI Judgement game",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "gen:images": "node scripts/generate-placeholder-images.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0"
+  }
+}

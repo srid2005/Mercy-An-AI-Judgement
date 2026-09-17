@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" fill="#2c313c"/>
+  <circle cx="100" cy="78" r="34" fill="#4b5563"/>
+  <rect x="46" y="118" width="108" height="64" rx="32" fill="#4b5563"/>
+  <text x="100" y="192" font-family="sans-serif" font-size="12" fill="#9aa0a6" text-anchor="middle">ravi_sharma</text>
+</svg>

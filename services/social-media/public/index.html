@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Log back in</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="lock-screen">
+    <div class="lock-card">
+      <div class="wordmark">Loop</div>
+      <img id="account-avatar" class="lock-avatar" src="/images/avatars/meera.jpg" alt="" />
+      <div id="account-name" class="account-name">Loading…</div>
+      <input id="password" type="password" placeholder="Password" autocomplete="off" />
+      <button id="unlock-btn" class="primary">Log In</button>
+      <div class="error" id="error"></div>
+      <button class="switch-account" type="button">Not you? Switch account</button>
+
+      <div class="pin-reset" id="pin-reset">
+        <button class="switch-account" id="send-pin-btn" type="button">Email me a verification code instead</button>
+        <div id="pin-section" hidden>
+          <input id="pin-input" type="text" inputmode="numeric" maxlength="4" placeholder="4-digit code" autocomplete="off" />
+          <button id="verify-pin-btn" class="primary">Verify code</button>
+          <div class="error" id="pin-error"></div>
+        </div>
+      </div>
+    </div>
+    <div class="hint-box" id="hint-box" hidden>
+      <b>Forgot password?</b><br />
+      <span id="hint-text"></span>
+    </div>
+    <button class="switch-account" id="show-hint-btn" type="button">Get help logging in</button>
+  </div>
+  <script src="/js/lock.js"></script>
+    <script>
+      // MERCY desktop shell: tell the Orbit browser where we are so its address bar follows.
+      (function () {
+        if (window.parent === window) return;
+        var send = function () {
+          try { parent.postMessage({ type: 'mercy:route', path: location.pathname + location.search + location.hash, title: document.title }, '*'); } catch (e) {}
+        };
+        send();
+        addEventListener('hashchange', send);
+        addEventListener('popstate', send);
+        var ps = history.pushState, rs = history.replaceState;
+        history.pushState = function () { ps.apply(this, arguments); send(); };
+        history.replaceState = function () { rs.apply(this, arguments); send(); };
+        var t = document.querySelector('title');
+        if (t && window.MutationObserver) new MutationObserver(send).observe(t, { childList: true, characterData: true, subtree: true });
+      })();
+    </script>
+  </body>
+</html>

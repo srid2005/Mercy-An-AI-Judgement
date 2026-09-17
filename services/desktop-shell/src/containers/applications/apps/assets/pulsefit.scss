@@ -1,0 +1,274 @@
+.pulsefit {
+  .pfBody {
+    padding: 18px 22px;
+    overflow: auto;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    font-size: 13px;
+    background: #fafafa;
+    color: #222;
+  }
+  .pfHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    .pfDevice {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .pfOwner {
+      color: #666;
+      font-size: 12px;
+    }
+    .pfStatus {
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      background: #eee;
+      &.lost {
+        background: #fde8e8;
+        color: #b3261e;
+      }
+    }
+  }
+  .pfSos {
+    margin-top: 16px;
+    border: 1px solid #f1b8b4;
+    background: #fff5f4;
+    border-radius: 10px;
+    padding: 14px 16px;
+    .pfSosTitle {
+      font-weight: 700;
+      color: #b3261e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+    }
+    .pfDot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #d6343e;
+      box-shadow: 0 0 0 0 rgba(214, 52, 62, 0.6);
+      animation: pfpulse 1.6s infinite;
+    }
+    .pfSosWhen {
+      color: #666;
+      font-size: 12px;
+      margin: 2px 0 8px;
+    }
+    p {
+      margin: 0 0 12px;
+      line-height: 1.45;
+    }
+    .pfCoords {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 10px 12px;
+      .pfVal {
+        font-family: Consolas, monospace;
+        font-size: 17px;
+        font-weight: 600;
+      }
+    }
+  }
+  .pfLbl {
+    color: #777;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .pfSub {
+    color: #888;
+    font-size: 11px;
+  }
+  .pfBtn {
+    border: 1px solid #d6343e;
+    color: #b3261e;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+    &:hover {
+      background: #fde8e8;
+    }
+  }
+  .pfSection {
+    margin: 20px 0 6px;
+    font-weight: 600;
+    color: #444;
+  }
+  .pfLog {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    .pfRow {
+      display: flex;
+      gap: 12px;
+      padding: 7px 12px;
+      border-bottom: 1px solid #f1f1f1;
+      &:last-child {
+        border-bottom: 0;
+      }
+      .pfTime {
+        width: 44px;
+        color: #777;
+        font-family: Consolas, monospace;
+      }
+      .pfWhat {
+        width: 92px;
+        font-weight: 600;
+      }
+      .pfDetail {
+        color: #555;
+      }
+      &.sos {
+        background: #fff5f4;
+        .pfWhat {
+          color: #b3261e;
+        }
+      }
+      &.lost .pfWhat {
+        color: #999;
+      }
+    }
+  }
+  .pfStats {
+    display: flex;
+    gap: 12px;
+    > div {
+      flex: 1;
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 10px 12px;
+      .pfVal {
+        font-size: 18px;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+@keyframes pfpulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(214, 52, 62, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(214, 52, 62, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(214, 52, 62, 0);
+  }
+}
+
+body[data-theme="dark"] .pulsefit .pfBody {
+  background: #1f1f22;
+  color: #eee;
+  .pfLog,
+  .pfStats > div,
+  .pfCoords {
+    background: #2a2a2e;
+    border-color: #3a3a3f;
+  }
+  .pfSos {
+    background: #2e2224;
+    border-color: #5a3335;
+  }
+}
+
+// the SOS toast on the desktop
+.sosToast {
+  position: absolute;
+  right: 16px;
+  bottom: 64px;
+  width: 360px;
+  background: #f3f3f3;
+  color: #222;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  padding: 12px 14px;
+  z-index: 9000;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 13px;
+  animation: toastin 0.4s ease-out;
+  .stHead {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #555;
+    img {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+    }
+    .stClose {
+      margin-left: auto;
+      cursor: pointer;
+      opacity: 0.6;
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+  .stTitle {
+    font-weight: 700;
+    margin-top: 6px;
+    color: #b3261e;
+  }
+  .stBody {
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+  .stCoords {
+    font-family: Consolas, monospace;
+    font-weight: 600;
+  }
+  .stBtns {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    .stBtn {
+      flex: 1;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 5px 0;
+      background: #fff;
+      cursor: pointer;
+      &:hover {
+        background: #e9e9e9;
+      }
+      &.primary {
+        background: #d6343e;
+        color: #fff;
+        border-color: #d6343e;
+      }
+    }
+  }
+}
+body[data-theme="dark"] .sosToast {
+  background: #2b2b2b;
+  color: #eee;
+  .stBtns .stBtn {
+    background: #3a3a3a;
+    border-color: #555;
+    color: #eee;
+  }
+}
+@keyframes toastin {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="640" viewBox="0 0 500 640">
+  <rect width="500" height="640" fill="#eef3fb"/>
+  <rect x="60" y="80" width="380" height="200" rx="14" fill="#ffffff" stroke="#c7d2e3" stroke-width="3"/>
+  <text x="90" y="140" font-family="Verdana, sans-serif" font-size="26" font-weight="700" fill="#1f2d4a">BOARDING PASS</text>
+  <text x="90" y="180" font-family="Verdana, sans-serif" font-size="16" fill="#5c6b85">BLR -&gt; DEL   Booking BX4471</text>
+  <text x="90" y="210" font-family="Verdana, sans-serif" font-size="16" fill="#5c6b85">Gate 14   Seat 22C</text>
+  <path d="M330 90 l60 45 l-60 45 l15 -45 z" fill="#3d67c9"/>
+  <line x1="60" y1="320" x2="440" y2="320" stroke="#c7d2e3" stroke-width="2" stroke-dasharray="8,8"/>
+  <rect x="90" y="350" width="320" height="60" fill="#1f2d4a"/>
+</svg>

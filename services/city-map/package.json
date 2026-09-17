@@ -1,0 +1,17 @@
+{
+  "name": "mercy-city-map",
+  "version": "0.1.0",
+  "description": "MERCY city model -- Meridian in 3D (solid, blueprint, terrain) -- one container in the MERCY: AI Judgement game",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "gen:city": "node scripts/generate-city.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "pg": "^8.12.0",
+    "three": "0.160.0"
+  }
+}

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="24" fill="#131921"/>
+  <text x="100" y="104" font-family="Verdana, Arial, sans-serif" font-size="32" font-weight="700" fill="#ffffff" text-anchor="middle">emazon</text>
+  <path d="M60 122 Q100 148 140 122" stroke="#ff9900" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M132 116 L142 122 L131 129" stroke="#ff9900" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

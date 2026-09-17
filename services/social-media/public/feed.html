@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Loop</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="app-bar">
+    <div class="bar-inner">
+      <div class="wordmark" id="home-link" style="cursor:pointer;">Loop</div>
+      <div class="search-box">Search</div>
+      <div class="nav-icons">
+        <button class="nav-icon-btn" id="home-btn" title="Home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/></svg>
+        </button>
+        <button class="nav-icon-btn" id="messages-btn" title="Messages">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+        </button>
+        <button class="nav-icon-btn" id="new-post-btn" title="New post">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg>
+        </button>
+        <button class="nav-icon-btn" id="notifications-btn" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+        </button>
+        <div style="position:relative;">
+          <button class="nav-avatar-btn" id="account-btn" title="Account">
+            <img class="nav-avatar" id="nav-avatar" src="/images/avatars/meera.jpg" alt="" />
+          </button>
+          <div class="dropdown" id="account-dropdown" hidden>
+            <div class="dropdown-item" id="menu-profile">Profile</div>
+            <div class="dropdown-item" id="menu-saved">Saved</div>
+            <div class="dropdown-item" id="menu-settings">Settings</div>
+            <div class="dropdown-sep"></div>
+            <div class="dropdown-item danger" id="menu-logout">Log Out</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="page">
+    <div class="main-col" id="main-col">
+      <div class="loading">Loading…</div>
+    </div>
+    <aside class="right-rail" id="right-rail"></aside>
+  </div>
+
+  <!-- Create post modal -->
+  <div class="modal-overlay" id="create-post-overlay" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <button class="modal-close-x" id="create-post-cancel" title="Close">✕</button>
+        <span>Create new post</span>
+        <button id="create-post-share" disabled>Share</button>
+      </div>
+      <div class="modal-body">
+        <div class="upload-drop" id="upload-drop">
+          <input type="file" id="file-input" accept="image/*" hidden />
+          <div id="upload-placeholder">Click to select a photo</div>
+          <img id="upload-preview" class="upload-preview" hidden />
+        </div>
+        <textarea class="caption-input" id="caption-input" placeholder="Write a caption..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Post detail modal -->
+  <div class="modal-overlay" id="post-detail-overlay" hidden>
+    <div class="modal-card post-detail" id="post-detail-content"></div>
+  </div>
+
+  <!-- Story viewer -->
+  <div class="story-viewer" id="story-viewer" hidden>
+    <button class="story-viewer-close" id="story-viewer-close">✕</button>
+    <div class="story-progress"><div class="bar" id="story-progress-bar"></div></div>
+    <div class="who"><img id="story-who-avatar" alt="" /><span id="story-who-name"></span></div>
+    <img id="story-viewer-img" alt="" />
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "name": "mercy-haven",
+  "version": "0.1.0",
+  "description": "Haven -- Meera's private cloud video diary -- one container in the MERCY: AI Judgement game",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "gen:images": "node scripts/generate-placeholder-images.js",
+    "gen:videos": "node scripts/generate-sample-videos.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0"
+  }
+}
