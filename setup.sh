@@ -77,7 +77,10 @@ readonly -a REQUIRED_PATHS=(
   'services/whatsapp/db/init.sql'
   'services/email/db/init.sql'
   'services/haven/db/init.sql'
-  'services/city-map/db/init.sql'
+  'services/city-map/db/01_schema.sql'
+  'services/city-map/db/02_city.sql'
+  'services/city-map/db/03_story.sql'
+  'services/city-map/db/04_vehicles.sql'
   'services/mercy-engine/db/init.sql'
   'services/mercy-lobby/db/init.sql'
 )
@@ -119,6 +122,7 @@ GCP_LOCATION='global'
 VERTEX_MODEL='gemini-2.5-flash'
 STAGES='all'
 ASSUME_YES=0
+FORCE=0                  # carry on past preflight failures that would normally stop
 DO_BUILD='auto'          # auto | always | never
 RECREATE=0
 READY_TIMEOUT=900
@@ -144,6 +148,7 @@ HAVE_JQ=0
 NEEDS_RELOGIN=0
 FAILURES=0
 WARNINGS=0
+PREFLIGHT_FATAL=0        # failures that make everything after them pointless
 EXTERNAL_IP=''
 ENV_BACKUP=''
 declare -a ROWS=()
@@ -173,6 +178,11 @@ ok()   { ROWS+=("PASS|$1|${2:-}"); printf '  %sok%s    %s%s\n' "$C_GRN" "$C_OFF"
 warn() { WARNINGS=$(( WARNINGS + 1 )); ROWS+=("WARN|$1|${2:-}"); printf '  %swarn%s  %s%s\n' "$C_YEL" "$C_OFF" "$1" "${2:+  -- $2}"; }
 bad()  { FAILURES=$(( FAILURES + 1 )); ROWS+=("FAIL|$1|${2:-}"); printf '  %sfail%s  %s%s\n' "$C_RED" "$C_OFF" "$1" "${2:+  -- $2}"; }
 remedy() { REMEDIES+=("$1"); }
+# bad(), but for a condition where continuing only wastes the operator's time:
+# no disk, wrong architecture, a checkout with no seed SQL in it. Vertex, the
+# firewall and the scopes are NOT fatal -- the stack builds and runs without
+# them, and they are fixable while it builds.
+fatal() { PREFLIGHT_FATAL=$(( PREFLIGHT_FATAL + 1 )); bad "$@"; }
 
 step() { printf '\n%s%s==>%s %s%s%s\n' "$C_BOLD" "$C_CYN" "$C_OFF" "$C_BOLD" "$*" "$C_OFF"; }
 
@@ -211,6 +221,8 @@ THE ADMIN PASSWORD          (never accepted on the command line -- argv is
   --admin-password-file F   read it from F (first line)
   MERCY_ADMIN_PASSWORD=...  or from the environment
   --force-password          replace the one already in .env
+  --force                   carry on even when preflight found something that
+                            would normally stop the run (no disk, no seed SQL)
   --yes                     non-interactive: generate one and write it to
                             ./admin-password.txt (mode 600) if none was given
 
@@ -290,6 +302,7 @@ parse_args() {
       --color)                  USE_COLOR="$2"; shift ;;
       --color=*)                USE_COLOR="${1#*=}" ;;
       -y|--yes)                 ASSUME_YES=1 ;;
+      --force)                  FORCE=1 ;;
       -h|--help)                usage; exit 0 ;;
       *)                        usage >&2; die "unknown option: $1" ;;
     esac
@@ -488,7 +501,7 @@ stage_preflight() {
   if [[ $arch == 'x86_64' ]]; then
     ok "architecture" "$arch"
   else
-    bad "architecture" "$arch -- every base image here is amd64 only"
+    fatal "architecture" "$arch -- every base image here is amd64 only"
     remedy "Recreate the VM with an x86_64 machine type (e2-standard-4)."
   fi
 
@@ -504,7 +517,7 @@ stage_preflight() {
   local cores; cores="$(nproc 2>/dev/null || printf '0')"
   if   (( cores >= 4 )); then ok   "cpu" "$cores vCPU"
   elif (( cores >= 2 )); then warn "cpu" "$cores vCPU -- the nine images build in parallel; expect a slow first build"
-  else bad "cpu" "$cores vCPU"; fi
+  else fatal "cpu" "$cores vCPU"; fi
 
   local mem_kb mem_gb
   mem_kb="$(awk '/^MemTotal:/ {print $2}' /proc/meminfo 2>/dev/null || printf '0')"
@@ -513,7 +526,7 @@ stage_preflight() {
   # nginx copies at once, roughly 2-3 GB. No single image is memory hungry.
   if   (( mem_gb >= 8 )); then ok   "memory" "${mem_gb} GB"
   elif (( mem_gb >= 4 )); then warn "memory" "${mem_gb} GB -- the parallel build peaks near 3 GB; build with --rebuild well before the event, or add swap"
-  else bad "memory" "${mem_gb} GB -- too little to build the stack"; fi
+  else fatal "memory" "${mem_gb} GB -- too little to build the stack"; fi
 
   # Free space where Docker actually stores images, not where we guess it does.
   local root_dir='/var/lib/docker' avail_kb avail_gb
@@ -528,7 +541,14 @@ stage_preflight() {
   # build cache. 12 GB free is comfortable; under 8 GB the build can wedge.
   if   (( avail_gb >= 12 )); then ok   "disk" "${avail_gb} GB free on $root_dir"
   elif (( avail_gb >= 8 ));  then warn "disk" "${avail_gb} GB free on $root_dir -- tight; docker system prune -f if the build fails"
-  else bad "disk" "${avail_gb} GB free on $root_dir -- the build needs roughly 8 GB"; fi
+  else
+    fatal "disk" "${avail_gb} GB free on $root_dir -- the build needs roughly 8 GB"
+    remedy "Grow the boot disk (the VM can stay running; the resize is online):
+    gcloud compute disks resize <disk-name> --size=40GB --zone=<zone>
+  then, on the VM:
+    sudo growpart /dev/sda 1 && sudo resize2fs /dev/sda1
+  Check the device first with: lsblk"
+  fi
 
   # --- the checkout --------------------------------------------------------
   local missing=() p
@@ -536,7 +556,7 @@ stage_preflight() {
     if [[ ! -e "$REPO_DIR/$p" ]]; then missing+=("$p"); fi
   done
   if (( ${#missing[@]} )); then
-    bad "checkout" "${#missing[@]} required file(s) absent: ${missing[*]}"
+    fatal "checkout" "${#missing[@]} required file(s) absent: ${missing[*]}"
     remedy "This is not a complete checkout. Re-clone, or copy the missing files across."
   else
     ok "checkout" "all seed SQL and the compose file are present"
@@ -580,9 +600,15 @@ stage_preflight() {
 
   # --- the ports -----------------------------------------------------------
   local probe_line port busy=() rival=''
+  if ! have ss; then
+    # Saying "all nine are free" when nothing was looked at is worse than
+    # saying nothing: the operator reads a PASS either way.
+    warn "ports" "ss is not installed, so nothing could be checked (iproute2 provides it)"
+    return 0
+  fi
   for probe_line in "${PROBES[@]}"; do
     IFS='|' read -r port _ _ _ _ <<<"$probe_line"
-    if have ss && ss -ltnH "sport = :$port" 2>/dev/null | grep -q .; then busy+=("$port"); fi
+    if ss -ltnH "sport = :$port" 2>/dev/null | grep -q .; then busy+=("$port"); fi
   done
   if (( ${#busy[@]} )); then
     # Ours, or somebody else's? A second checkout under a different project
@@ -599,7 +625,7 @@ stage_preflight() {
       done < <("${DOCKER[@]}" ps --format '{{.Ports}}'$'\t''{{.Label "com.docker.compose.project"}}' 2>/dev/null || true)
     fi
     if [[ -n $rival ]]; then
-      bad "ports" "${busy[*]} held by another compose project: $rival"
+      fatal "ports" "${busy[*]} held by another compose project: $rival"
       remedy "Stop the other copy of the stack first (this keeps its data): ${DOCKER[*]:-docker} compose -p $rival down"
     else
       info "ports already listening: ${busy[*]}"
@@ -772,19 +798,52 @@ stage_install() {
 
   # The official repository, not get.docker.com: the convenience script is
   # explicitly not recommended for production, and it cannot be re-run safely.
+  #
+  # Docker publishes a separate tree per distribution, and the codename lives
+  # under a different key on each: a Debian image would otherwise be handed
+  # "ubuntu trixie", which does not exist, and apt fails with a Release file
+  # error that says nothing about why.
+  local distro codename arch
+  # shellcheck disable=SC1091
+  distro="$(. /etc/os-release && printf '%s' "${ID:-ubuntu}")"
+  # shellcheck disable=SC1091
+  codename="$(. /etc/os-release && printf '%s' "${UBUNTU_CODENAME:-${VERSION_CODENAME:-}}")"
+  case "$distro" in
+    ubuntu|debian) : ;;
+    linuxmint|pop|neon|zorin|elementary)
+      # Ubuntu derivatives: Docker has no tree of their own, and their own
+      # VERSION_CODENAME is not one Docker knows.
+      # shellcheck disable=SC1091
+      codename="$(. /etc/os-release && printf '%s' "${UBUNTU_CODENAME:-}")"
+      distro=ubuntu ;;
+    *)
+      die "this installs Docker from Docker's apt repository, which covers only Debian and Ubuntu. This VM is '$distro'. Either recreate it from an Ubuntu 24.04 LTS image, or install Docker Engine 24+ and the compose plugin yourself and re-run with --stage=configure,build,start,verify." ;;
+  esac
+  if [[ -z $codename ]]; then
+    die "cannot read the release codename from /etc/os-release, so the Docker apt repository cannot be named"
+  fi
+
+  # Confirm Docker actually publishes for this release BEFORE committing it to
+  # sources.list. A missing tree caught here is a clear message; discovered by
+  # apt-get update it is "does not have a Release file" and a dead end.
+  if ! curl -fsSL -o /dev/null --max-time 15 \
+       "https://download.docker.com/linux/$distro/dists/$codename/Release"; then
+    bad "docker repository" "Docker publishes nothing for $distro $codename"
+    remedy "Recreate the VM from an Ubuntu 24.04 LTS image -- Docker publishes for noble, and that is what this stack was built and rehearsed on. Failing that, install the distribution's own docker.io and docker-compose-v2, but check the engine is 24.0 or newer first: the admin panel calls Docker API v1.43."
+    die "no Docker apt repository for $distro $codename"
+  fi
+  info "Docker repository: $distro $codename"
+
   as_root install -m 0755 -d /etc/apt/keyrings
   if [[ ! -s /etc/apt/keyrings/docker.asc ]]; then
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+    curl -fsSL "https://download.docker.com/linux/$distro/gpg" \
       | as_root tee /etc/apt/keyrings/docker.asc >/dev/null
     as_root chmod a+r /etc/apt/keyrings/docker.asc
   fi
 
-  local codename arch
-  # shellcheck disable=SC1091
-  codename="$(. /etc/os-release && printf '%s' "${UBUNTU_CODENAME:-${VERSION_CODENAME:-noble}}")"
   arch="$(dpkg --print-architecture)"
-  printf 'deb [arch=%s signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu %s stable\n' \
-    "$arch" "$codename" | as_root tee /etc/apt/sources.list.d/docker.list >/dev/null
+  printf 'deb [arch=%s signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/%s %s stable\n' \
+    "$arch" "$distro" "$codename" | as_root tee /etc/apt/sources.list.d/docker.list >/dev/null
 
   apt_get update -qq
   apt_get install -y -qq docker-ce docker-ce-cli containerd.io \
@@ -1522,7 +1581,31 @@ main() {
     validate_provider '.env'
   fi
 
-  if wants 'preflight'; then stage_preflight; fi
+  if wants 'preflight'; then
+    stage_preflight
+    # Installing Docker and running a six-minute build on a VM that cannot
+    # finish is just a slower way to reach the same answer. Vertex, the access
+    # scopes and the firewall are deliberately NOT in this gate: the stack
+    # builds and runs without them, and they are fixable while it builds.
+    if (( PREFLIGHT_FATAL )) && (( ! FORCE )) && { wants 'install' || wants 'build' || wants 'start'; }; then
+      report
+      printf '%s%sStopping here.%s %d preflight check(s) would make everything
+' \
+        "$C_BOLD" "$C_RED" "$C_OFF" "$PREFLIGHT_FATAL"
+      printf '  after them pointless. Fix those and run this again -- nothing has
+'
+      printf '  been installed or changed on this VM.
+
+'
+      printf '  Go ahead anyway:          ./setup.sh --force
+'
+      printf '  Re-check, changing nothing: ./setup.sh --stage=preflight
+
+'
+      trap - ERR
+      exit 1
+    fi
+  fi
 
   if wants 'install'; then stage_install; fi
   resolve_docker
