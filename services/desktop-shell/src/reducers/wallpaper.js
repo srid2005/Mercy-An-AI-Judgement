@@ -1,6 +1,8 @@
 var wps = localStorage.getItem("wps") || 0;
 
 const walls = [
+  // Meera's own desktop: her and her father, the photo the whole case is about
+  "meera/img0.jpg",
   "default/img0.jpg",
   "dark/img0.jpg",
   "ThemeA/img0.jpg",

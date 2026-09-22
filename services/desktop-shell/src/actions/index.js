@@ -231,7 +231,8 @@ export const handleFileOpen = (id) => {
     reportEvidenceSeen(item);
     if (item.type == "folder") {
       store.dispatch({ type: "FILEDIR", payload: item.id });
-    } else if (item.type == "txt") {
+    } else if (item.type == "txt" || item.type == "doc") {
+      // there is no Word on this laptop, so a .docx opens in the text viewer
       store.dispatch({ type: "NOTEPADOPEN", payload: { name: item.name, text: item.data || "" } });
     } else if (item.type == "vid") {
       store.dispatch({ type: "VIDEOOPEN", payload: { name: item.name, src: item.data, folder: files.data.getPath(item.host ? item.host.id : item.id) } });

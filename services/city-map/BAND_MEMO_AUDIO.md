@@ -1,6 +1,6 @@
 # MERCY -- The band memo (SW-06)
 
-_Meera's 41-second voice memo, recorded on her PulseFit band at 02:15 on the floor of the cave on Kettle Hill and recovered by the drones. One file. Saved as **services/city-map/public/audio/SW-06-band-memo.m4a** (or .mp3 / .wav -- the route `GET /audio/SW-06-band-memo` serves the first that exists, in that order). A synthesised placeholder sits there now._
+_Meera's voice memo, recorded on her PulseFit band at 02:15 on the floor of the cave on Kettle Hill and recovered by the drones. One file. Saved as **services/city-map/public/audio/SW-06-band-memo.m4a** (or .mp3 / .wav -- the route `GET /audio/SW-06-band-memo` serves the first that exists, in that order). **The real recording is in place** (`SW-06-band-memo.mp3`, 2 min 7 s); what follows is the brief that made it, kept for a re-take._
 
 
 ## What it is for
@@ -17,7 +17,7 @@ Meera Kapoor (née Sharma), 28, Bengaluru. Indian English with a Bengaluru accen
 Do not let it sound like a performance: no polished diction, no sobbing for effect, no reverb-drenched "dramatic" read. It is someone leaving a note.
 
 
-## The script -- 41 seconds
+## The script
 
 The words are canon (they are the SW-06 transcript in `mercy-engine/db/init.sql`; the console shows them). Say them as written, including the stumbles. Bracketed notes are direction, not spoken. Times are targets; the cues in `SW-06.json` are re-timed to the final take.
 
@@ -72,7 +72,7 @@ From a clean master `memo-clean.wav`, this ffmpeg line does 1, 2 (the boxiness) 
 ffmpeg -i memo-clean.wav -af "highpass=f=300,lowpass=f=3400,acompressor=threshold=-18dB:ratio=3:attack=5:release=80,aecho=0.8:0.4:12:0.25,volume=1.4,alimiter=limit=0.9" -ac 1 -ar 22050 -c:a aac -b:a 64k SW-06-band-memo.m4a
 ```
 
-Export mono, AAC (.m4a) or MP3; a 41-second file lands under 1 MB. Drop it into `services/city-map/public/audio/` and delete the placeholder `.wav`; then re-time the `t` values in `SW-06.json` to the take (or hand the file over and it is re-timed for you), and rebuild `city-map`.
+Export mono, AAC (.m4a) or MP3. Drop it into `services/city-map/public/audio/` and delete the placeholder `.wav`; then re-time the `t` values in `SW-06.json` to the take (or hand the file over and it is re-timed for you), and rebuild `city-map`.
 
 
 ## Negative direction

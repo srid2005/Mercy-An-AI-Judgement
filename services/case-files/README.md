@@ -28,7 +28,7 @@ Dad's pocket diary "Talked to R. again. Warned him off.", the phone note
 
 ## Photographs
 
-The five exhibits are read from `D:/MERCY-AI JUDGEMENT/case photos/`
+The five exhibits are read from `<repo>/source-media/case photos/`
 (jpg or png). Any that are missing are drawn as line art so the file still
 builds.
 

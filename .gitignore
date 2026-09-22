@@ -1,5 +1,16 @@
 node_modules/
 .env
 *.log
-poster assets/
+__pycache__/
+
+# masters, inbox folders and delivered originals -- the services ship the
+# processed copies under each public/, so none of this belongs in an image
+source-media/
+
 secrets/
+
+# what setup.sh leaves behind on a deployed VM
+setup-*.log
+admin-password.txt
+.env.bak.*
+.mercy-deploy.json

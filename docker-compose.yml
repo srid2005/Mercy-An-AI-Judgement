@@ -38,9 +38,9 @@ services:
     environment:
       PORT: 4001
       DATABASE_URL: postgres://mercy:mercy_dev_pw@social-media-db:5432/social_media
-      JWT_SECRET: dev-only-secret-change-me
-      MERCY_API_KEY: dev-mercy-key
-      INTERNAL_API_KEY: dev-internal-key
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me}
+      MERCY_API_KEY: ${MERCY_API_KEY:-dev-mercy-key}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-internal-key}
       EMAIL_SERVICE_URL: http://email:4002
       MERCY_SESSION_SECRET: ${MERCY_SESSION_SECRET:-dev-session-secret-change-me}
       MERCY_SINGLE_PLAYER: ${MERCY_SINGLE_PLAYER:-0}
@@ -75,9 +75,9 @@ services:
     environment:
       PORT: 4003
       DATABASE_URL: postgres://mercy:mercy_dev_pw@whatsapp-db:5432/whatsapp
-      MERCY_API_KEY: dev-mercy-key
+      MERCY_API_KEY: ${MERCY_API_KEY:-dev-mercy-key}
       MERCY_SESSION_SECRET: ${MERCY_SESSION_SECRET:-dev-session-secret-change-me}
-      INTERNAL_API_KEY: dev-internal-key
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-internal-key}
       MERCY_SINGLE_PLAYER: ${MERCY_SINGLE_PLAYER:-0}
     ports:
       - "4003:4003"
@@ -110,9 +110,9 @@ services:
     environment:
       PORT: 4002
       DATABASE_URL: postgres://mercy:mercy_dev_pw@email-db:5432/email
-      JWT_SECRET: dev-only-secret-change-me
-      MERCY_API_KEY: dev-mercy-key
-      INTERNAL_API_KEY: dev-internal-key
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me}
+      MERCY_API_KEY: ${MERCY_API_KEY:-dev-mercy-key}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-internal-key}
       MERCY_SESSION_SECRET: ${MERCY_SESSION_SECRET:-dev-session-secret-change-me}
       MERCY_SINGLE_PLAYER: ${MERCY_SINGLE_PLAYER:-0}
     ports:
@@ -146,9 +146,9 @@ services:
     environment:
       PORT: 4008
       DATABASE_URL: postgres://mercy:mercy_dev_pw@haven-db:5432/haven
-      JWT_SECRET: dev-only-secret-change-me
-      MERCY_API_KEY: dev-mercy-key
-      INTERNAL_API_KEY: dev-internal-key
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me}
+      MERCY_API_KEY: ${MERCY_API_KEY:-dev-mercy-key}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-internal-key}
       EMAIL_SERVICE_URL: http://email:4002
       MERCY_SESSION_SECRET: ${MERCY_SESSION_SECRET:-dev-session-secret-change-me}
       MERCY_SINGLE_PLAYER: ${MERCY_SINGLE_PLAYER:-0}
@@ -183,9 +183,9 @@ services:
     environment:
       PORT: 4011
       DATABASE_URL: postgres://mercy:mercy_dev_pw@city-map-db:5432/city_map
-      MERCY_API_KEY: dev-mercy-key
+      MERCY_API_KEY: ${MERCY_API_KEY:-dev-mercy-key}
       MERCY_SESSION_SECRET: ${MERCY_SESSION_SECRET:-dev-session-secret-change-me}
-      INTERNAL_API_KEY: dev-internal-key
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-internal-key}
       MERCY_SINGLE_PLAYER: ${MERCY_SINGLE_PLAYER:-0}
     ports:
       - "4011:4011"
@@ -240,14 +240,14 @@ services:
     environment:
       PORT: 4010
       DATABASE_URL: postgres://mercy:mercy_dev_pw@mercy-engine-db:5432/mercy_engine
-      MERCY_API_KEY: dev-mercy-key
+      MERCY_API_KEY: ${MERCY_API_KEY:-dev-mercy-key}
       SOCIAL_MEDIA_URL: http://social-media:4001
       EMAIL_URL: http://email:4002
       WHATSAPP_URL: http://whatsapp:4003
       HAVEN_URL: http://haven:4008
       CITY_MAP_URL: http://city-map:4011
       MERCY_SESSION_SECRET: ${MERCY_SESSION_SECRET:-dev-session-secret-change-me}
-      INTERNAL_API_KEY: dev-internal-key
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-internal-key}
       MERCY_SINGLE_PLAYER: ${MERCY_SINGLE_PLAYER:-0}
       LOBBY_URL: http://mercy-lobby:3030
       GAME_MINUTES: ${GAME_MINUTES:-25}
@@ -309,7 +309,7 @@ services:
       PORT: 3030
       DATABASE_URL: postgres://mercy:mercy_dev_pw@lobby-db:5432/lobby
       MERCY_SESSION_SECRET: ${MERCY_SESSION_SECRET:-dev-session-secret-change-me}
-      INTERNAL_API_KEY: dev-internal-key
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-internal-key}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-mercy-admin}
       GAME_MINUTES: ${GAME_MINUTES:-25}
       # the stateful services, as the lobby reaches them inside the network

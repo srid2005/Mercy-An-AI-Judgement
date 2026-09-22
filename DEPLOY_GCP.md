@@ -36,30 +36,68 @@ gcloud compute firewall-rules create mercy-event-ports \
 
 ## 3. On the VM
 
+`setup.sh` at the repo root does the whole of this section. Get the code onto
+the VM **into a directory named `mercy-aijudgement`** and run it:
+
 ```bash
-# Docker + the compose plugin
-sudo apt-get update && sudo apt-get install -y ca-certificates curl git
-curl -fsSL https://get.docker.com | sudo sh
-sudo usermod -aG docker $USER && newgrp docker
-
-# the game
-git clone <your repo> mercy && cd mercy
-cp .env.example .env
-nano .env        # MERCY_SESSION_SECRET, ADMIN_PASSWORD, MERCY_LLM_PROVIDER=vertex
-docker compose up --build -d
+git clone https://github.com/srid2005/Mercy-An-AI-Judgement.git mercy-aijudgement
+cd mercy-aijudgement
+./setup.sh --admin-password-file ~/.mercy-admin
 ```
 
-`.env` is read by Compose automatically. The three lines that matter:
+The directory name matters, and the script also pins it: `mercy-lobby` lists
+the stack through the Docker socket by the label
+`com.docker.compose.project=mercy-aijudgement`, which Compose derives from the
+directory name. Get it wrong and the admin panel's **Resources** page is empty
+and **Restart services** is a silent no-op that still answers 200.
 
+The script installs Docker CE and the Compose plugin from Docker's own apt
+repository, writes `.env` (generating `MERCY_SESSION_SECRET`,
+`INTERNAL_API_KEY`, `MERCY_API_KEY` and `JWT_SECRET`, and taking the admin
+password from the file, the `MERCY_ADMIN_PASSWORD` environment variable or a
+prompt -- never from the command line, where `/proc` would expose it), builds
+the nine images, brings all sixteen containers up, waits for every service to
+actually answer HTTP, and prints a PASS/FAIL table with the three URLs the
+event runs on. The whole run is also written to `setup-<date>.log`.
+
+It runs in stages, and each can be run on its own:
+
+```bash
+./setup.sh --stage=preflight     # the day before: read-only, changes nothing
+./setup.sh --stage=verify        # event morning: is it healthy right now?
+./setup.sh --stage=start --no-build --recreate   # restart without rebuilding
+./setup.sh --help                # every flag
 ```
-MERCY_SESSION_SECRET=<long random string>   # signs every participant's session cookie
-ADMIN_PASSWORD=<something you will type at the desk>
-MERCY_LLM_PROVIDER=vertex                    # stub = canned replies, vertex = Gemini
+
+**Before the media is on the VM, the game is incomplete.** A large part of the
+story -- the rescue film, the band memo audio, the laptop's photographs and
+documents, the Haven recordings -- is untracked in git, so a plain clone does
+not have it. Preflight says so explicitly. Either commit it first, or copy it
+across:
+
+```bash
+rsync -av --progress services/ <user>@<vm>:mercy-aijudgement/services/
 ```
 
-`GOOGLE_CLOUD_PROJECT=zinnia-mercy`, `GOOGLE_CLOUD_LOCATION=global` and `VERTEX_MODEL=gemini-2.5-flash` are the defaults in `docker-compose.yml`; override them in `.env` if the project or model changes. Leave `GOOGLE_APPLICATION_CREDENTIALS` unset on the VM.
+What preflight checks, and why each one matters on the day: the architecture
+and the disk where Docker really stores images; that the seed SQL is present;
+that the nine ports are free, and which other compose project holds them if
+not; the metadata server, the attached service account and whether its scopes
+include `cloud-platform`; and **Vertex itself** -- it mints a token from the
+metadata server and makes one real `generateContent` call, so a wrong project,
+a disabled API and a missing IAM role are three different messages with three
+different remedies rather than one silent fallback to canned replies.
 
-Check it: `docker compose ps` shows 16 containers up; `curl -s localhost:4010/api/health`; the engine's log (`docker compose logs -f mercy-engine`) prints one line per argument, and prints `vertex ... failed, using the stub: ...` if Vertex is not reachable -- the game keeps running on the stub, so fix the cause (usually the service account's role or scopes) and `docker compose restart mercy-engine`.
+Verify additionally proves the things a green `docker compose ps` does not: that
+the ports are bound on all interfaces and not just loopback, that the admin
+password in `.env` really signs in, that the admin panel can see the stack
+through the Docker socket, that the engine booted with the provider `.env`
+asks for, that `mercy-engine` can mint a token *from inside the container*, and
+when PREPARE TEMPLATES was last run -- a template seeded yesterday leaves every
+timestamp in the story a day out.
+
+Doing it by hand instead: `cp .env.example .env`, edit it, then
+`COMPOSE_PROJECT_NAME=mercy-aijudgement docker compose up --build -d`.
 
 ## 4. Running the event
 

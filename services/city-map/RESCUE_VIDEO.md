@@ -1,6 +1,6 @@
 # MERCY -- Rescue video shot list
 
-_One file, six shots, 25 to 40 s, 16:9. Saved as services/city-map/public/video/rescue.mp4._
+_One file, seven shots, 16:9, with sound. Saved as services/city-map/public/video/rescue.mp4. **The film is in place** (1:07, 720p, 29 MB, faststart); what follows is the shot list it was made from, kept for a re-cut._
 
 
 ## What this video is for
@@ -15,10 +15,10 @@ The chase ends at one of Nikhil's six stops -- the one drawn at random into `app
 
 ### Format
 
-- 25 to 40 s in total. The six shots below add up to about 33 s at their suggested lengths; the card at the end can absorb slack.
+- 30 to 45 s in total. The seven shots below add up to about 41 s at their suggested lengths; the card at the end can absorb slack.
 - 16:9, **1280x720**, **H.264 MP4** (`yuv420p`, `+faststart` so it plays before it has finished downloading). WebM (VP9) is accepted too.
 - **20 MB or less.** At 1280x720 a 35 s clip at 3 to 4 Mbit/s lands at 13 to 18 MB; if it is over, drop the bitrate before the resolution.
-- Sound is optional. The placeholder is silent; if the cut has a track keep it to rotors, radio, rain and the ambulance, no music.
+- **Sound matters in this cut**, because shot 6 is the only place in the whole game where Meera is heard speaking normally -- the band memo is a drugged whisper, and this answers it. Keep the night (shots 1 to 5) to rotors, radio, rain and the ambulance, no music; shot 6 carries her line, clean and close, over quiet room tone. The page plays the file unmuted; if a browser refuses to start audio on its own it shows a PLAY button instead, so nothing is lost. A silent cut still works -- the film just loses its best moment.
 - No leader, no black at the head: the first frame is the first shot. A fade to black over the last second of the card is fine.
 
 From any edit, this produces the right container:
@@ -30,7 +30,7 @@ ffmpeg -i cut.mov -vf scale=1280:720 -c:v libx264 -preset slow -crf 23 -pix_fmt 
 
 ### Rules the cut must keep
 
-This is the one place in the game where people appear on camera, and they appear the way MERCY would see them: at a distance, in thermal, through a torch beam, from behind an officer's shoulder. **Meera is never a clear face** -- turned away, under the blanket, out of focus, or a heat signature -- so she does not have to look like anyone in particular and the drone frames' rule (the drones see heat, not a person) carries through to the moment it is broken by the medic. **Nikhil Rao is a man in his thirties at a car**, seen from the drone or over the officers: no dialogue, no mugshot close-up. **Arjun's name is never shown or spoken**: the participant is Arjun, and the card that ends the game is the map's, not the video's, so the video's own card (shot 6) says what happened and stops there. No text anywhere in the picture except the number plate in shot 5 and the card in shot 6. The captions listed below are burnt in as lower thirds in the map's monospace style -- the page does not add its own -- and they state nothing the search result text does not.
+This is the one place in the game where people appear on camera, and they appear the way MERCY would see them: at a distance, in thermal, through a torch beam, from behind an officer's shoulder. **Meera is never a clear face during the rescue itself** (shots 1 to 5) -- turned away, under the blanket, out of focus, or a heat signature -- so the drone frames' rule (the drones see heat, not a person) carries through the night. The exception is the last shot, in daylight at the hospital: after the night is over she is finally a person, awake and talking, and her face may be seen -- use the same reference as the Haven diary films so it is recognisably her. **Nikhil Rao is a man in his thirties at a car**, seen from the drone or over the officers: no dialogue, no mugshot close-up. **Arjun's name is never shown or spoken**: the participant is Arjun, and the card that ends the game is the map's, not the video's, so the video's own card (shot 6) says what happened and stops there. No text anywhere in the picture except the number plate in shot 5 and the card in shot 6. The captions listed below are burnt in as lower thirds in the map's monospace style -- the page does not add its own -- and they state nothing the search result text does not.
 
 **The building is generic on purpose.** The same clip plays whichever of the six stops turns out to be the truth, so the place in shots 1, 2 and 4 is any low building at the side of a road with a dark hill behind it: not recognisably a stadium, a chapel, a market hall or an office block. Keep it to a single storey or two, a yard, a rear door.
 
@@ -40,7 +40,7 @@ This is the one place in the game where people appear on camera, and they appear
 
 ### Continuity with the drone frames
 
-The drone frames (`DRONE_FOOTAGE.md`) set the look, and this is the same night a few minutes on: overcast, no moon, cold and desaturated, blacks true black, the drones' own white LED lamps as the key light, street lighting sodium amber, thermal in the white-hot palette with soft edges and no overlay. The map behind it is a blueprint -- dark blue ground, cyan wire buildings, orange search rings, amber lamps -- so the grade should lean **blue-black in the shadows and amber in the lights**, and nothing in it should be warm-white daylight or a false-colour rainbow thermal. Emergency lighting is amber (hazards, beacons, the ambulance's side lights) with blue allowed; keep red from flooding the frame. Consumer-drone image quality throughout: 24 mm equivalent, high ISO grain, slight motion softness, mild vignette, chromatic fringing on the lamps. No HUD, no crosshair, no timestamps, no logos.
+The drone frames (`DRONE_FOOTAGE.md`) set the look, and this is the same night a few minutes on: overcast, no moon, cold and desaturated, blacks true black, the drones' own white LED lamps as the key light, street lighting sodium amber, thermal in the white-hot palette with soft edges and no overlay. The map behind it is a blueprint -- dark blue ground, cyan wire buildings, orange search rings, amber lamps -- so the grade should lean **blue-black in the shadows and amber in the lights**, and nothing in it should be a false-colour rainbow thermal. The one deliberate break is the last shot: the hospital in the morning is warm, bright and clean, and the cut should feel the temperature change -- hold a beat of black between shot 5 and shot 6 so the daylight lands. Emergency lighting is amber (hazards, beacons, the ambulance's side lights) with blue allowed; keep red from flooding the frame. Consumer-drone image quality throughout: 24 mm equivalent, high ISO grain, slight motion softness, mild vignette, chromatic fringing on the lamps. No HUD, no crosshair, no timestamps, no logos.
 
 
 ### AI base prompt -- append this paragraph to every AI prompt below
@@ -123,7 +123,33 @@ The drone frames (`DRONE_FOOTAGE.md`) set the look, and this is the same night a
 **Note on the plate.** Video generators cannot be trusted with text. Generate or shoot the car with a blank or unreadable plate and composite the plate in post: an Indian private plate, white ground, black characters, reading **KA 05 MN 4471**, tracked to the rear of the car for the last two seconds of the shot while the spotlight holds on it. If that is more than the edit can take, hold the last frame as a still with the plate legible and let the caption carry the number.
 
 
-### 06 -- CARD -- MERCY caption card (4 s) -- built in the editor
+### 06 -- AFTER -- the hospital, morning (8 s, she speaks) -- AI
+
+**Caption:** Meridian General, 09:10. Recovering. Talking.
+
+The night ends and the film lets go of it: the only warm, bright, quiet shot in the cut, the only one where Meera has a face, and the only one where she speaks in her own voice -- awake, hoarse, amused, asking for her husband. Everything before it has been a machine's view of her: a heat signature, a shape under foil, a whisper on a dying watch. No police, no drones, no thermal -- daylight through a window, a doctor at the bedside, a woman who is going to be all right.
+
+**What she says.** Same voice as the band memo and the Haven diary films (clone from the same reference, so it is recognisably her) -- but the opposite of the memo: warm, dry-throated, a little hoarse from the sedative, and cheerful. Lip-sync matters here; generate the shot with the line so the mouth matches, or shoot it silent and dub the line over it in the editor.
+
+```
+0:00  DOCTOR (gently, half off-camera):  How are you feeling?
+0:02  MEERA (a small laugh):             Like I slept for a week.
+0:04  MEERA:                             I'm fine. Really.
+0:06  MEERA (looking to the door):       Is Arjun here? Can he come in?
+```
+
+Shorter alternative if eight seconds is tight: drop the doctor's line and open on *"Like I slept for a week."* Whatever is used, the last thing she says must be about Arjun -- the participant has spent twenty-five minutes being accused of killing her, and this is the film telling them she never thought it was him.
+
+**AI PROMPT:**
+
+> Warm daylight hospital footage with sound, handheld and steady, a private room in an Indian hospital in the morning, soft sunlight through a half-open blind falling across the bed. A young Indian woman in her late twenties [match the reference photo for face and hair], propped up on pillows in a pale hospital gown with a blanket over her legs, hair loose and unbrushed, a cannula taped to the back of her hand, a pulse-oximeter clip on one finger and a monitor beside the bed showing a steady rhythm. She looks tired but well. A doctor -- a woman in her forties in a white coat with a stethoscope -- sits at the bedside with a clipboard, leaning in, and asks gently, "How are you feeling?" The young woman gives a small hoarse laugh and answers, speaking Indian English with a Bengaluru accent, her voice tired and warm and amused: "Like I slept for a week." A beat, still smiling: "I'm fine. Really." Then she looks past the doctor toward the door and asks, hopeful: "Is Arjun here? Can he come in?" The doctor smiles and nods. Realistic lip-sync and natural micro-movements, clear close dialogue over quiet room tone, no music. A glass of water and a small bunch of flowers on the side table. The camera drifts slowly closer and holds on her as she speaks. 8 seconds. NEGATIVE: no blood, no injuries, no bruises, no oxygen mask, no ventilator, no crying, no shouting, no police, no uniforms, no night, no thermal, no music, no subtitles or captions, no readable text on charts or monitors, no hospital name or logo, no watermark, no CGI look.
+
+**STOCK -- search for:**
+
+> Search: patient smiling talking to doctor hospital bed morning sunlight recovery || Must be in frame: a young woman sitting up in a hospital bed in daylight, talking and smiling with a doctor at the bedside, calm and unhurried, no distress, no visible injuries, no readable hospital branding. Grade it warm to match the AI shot. Stock has no usable dialogue: record or generate the four lines separately in Meera's voice and lay them over a clip whose mouth movements roughly fit, or keep the camera off her face while she speaks.
+
+
+### 07 -- CARD -- MERCY caption card (4 s) -- built in the editor
 
 **Caption:** SUBJECT LOCATED -- ALIVE / NIKHIL RAO -- DETAINED / MERCY -- search concluded
 
@@ -139,5 +165,6 @@ No footage: a title card made in the editor in the map's own style. Black backgr
 | 03 | Thermal then torchlight: woman on mattress, medic | 6 s | AI | One person. Alive. Medic with her. |
 | 04 | Foil blanket to the ambulance | 6 s | AI | Meera Kapoor, out. Breathing on her own. |
 | 05 | Nikhil Rao detained at the grey i20, plate | 5 s | AI + plate composite | Nikhil Rao. Detained at the vehicle. KA 05 MN 4471. |
-| 06 | MERCY caption card | 4 s | Editor | SUBJECT LOCATED -- ALIVE / NIKHIL RAO -- DETAINED / MERCY -- search concluded |
-| | Total | 33 s | | |
+| 06 | The hospital next morning: Meera awake, speaking -- "Is Arjun here?" | 8 s | AI (with dialogue) | Meridian General, 09:10. Recovering. Talking. |
+| 07 | MERCY caption card | 4 s | Editor | SUBJECT LOCATED -- ALIVE / NIKHIL RAO -- DETAINED / MERCY -- search concluded |
+| | Total | 41 s | | |

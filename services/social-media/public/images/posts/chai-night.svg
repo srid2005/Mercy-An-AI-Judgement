@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420" viewBox="0 0 640 420">
-  <rect width="640" height="420" fill="#22262f"/>
-  <rect x="8" y="8" width="624" height="404" fill="none" stroke="#3a3f4a" stroke-width="2" stroke-dasharray="10,6"/>
-  <text x="320" y="196" font-family="sans-serif" font-size="20" fill="#9aa0a6" text-anchor="middle">PLACEHOLDER IMAGE</text>
-  <text x="320" y="226" font-family="sans-serif" font-size="15" fill="#c7cad0" text-anchor="middle">FAMILY PHOTO</text>
-  <text x="320" y="252" font-family="sans-serif" font-size="12" fill="#6b7280" text-anchor="middle">Vikram &amp; Arjun, late-night chai at their mother's</text>
-  <text x="320" y="392" font-family="ui-monospace,monospace" font-size="11" fill="#4b5563" text-anchor="middle">replace: images/posts/chai-night.svg</text>
-</svg>

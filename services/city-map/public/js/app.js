@@ -801,7 +801,7 @@ async function runCaveSequence(r) {
     await mercyOverlay.line(`› ${desc}`, 'item');
   }
   if (!(await beat(600))) return;
-  await mercyOverlay.bar('EXTRACTING BAND MEMORY', 3500, ['mounting flash storage', '1 voice memo · 02:15 · 41 s · never uploaded', 'decoding', 'playback recovered']);
+  await mercyOverlay.bar('EXTRACTING BAND MEMORY', 3500, ['mounting flash storage', '1 voice memo · 02:15 · 2:07 · never uploaded', 'decoding', 'playback recovered']);
   if (!(await beat(400))) return;
   mercyOverlay.add(memoCard());
   memoChip.hidden = false;

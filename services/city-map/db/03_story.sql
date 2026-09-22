@@ -41,8 +41,8 @@ WHERE NOT EXISTS (SELECT 1 FROM roads WHERE name = 'Southgate Road (hamlet spur)
 -- ---------------------------------------------------------------------------
 INSERT INTO story_spots (slug, priority, lat, lng, radius_m, outcome, result, items, evidence_ids, requires_spots, sealed_slug) VALUES
 ('kettle-cave', 1, 12.951181, 77.501304, 60, 'trace',
- $story$Cave, Kettle Hill, north face. Two drones inside. No one. On the floor six metres past the light: her grey jacket -- folded, not dropped -- and her PulseFit band, strap cut, 3% battery. The band that sent SOS 5/5 at 02:14. It holds a voice memo, 02:15, forty-one seconds, never uploaded. Playback recovered. Listen to it. Meera is not here, and whoever brought her here wanted this cave found.$story$,
- $story$[{"kind":"jacket","desc":"Meera's grey zip jacket, folded, flat keys in the pocket"},{"kind":"band","desc":"PulseFit Band 3, strap cut, 3% battery","recording":{"evidence_id":"SW-06","duration_s":41}}]$story$::jsonb,
+ $story$Cave, Kettle Hill, north face. Two drones inside. No one. On the floor six metres past the light: her grey jacket -- folded, not dropped -- and her PulseFit band, strap cut, 3% battery. The band that sent SOS 5/5 at 02:14. It holds a voice memo, 02:15, two minutes and seven seconds, never uploaded. Playback recovered. Listen to it. Meera is not here, and whoever brought her here wanted this cave found.$story$,
+ $story$[{"kind":"jacket","desc":"Meera's grey zip jacket, folded, flat keys in the pocket"},{"kind":"band","desc":"PulseFit Band 3, strap cut, 3% battery","recording":{"evidence_id":"SW-06","duration_s":127}}]$story$::jsonb,
  '{SW-06}', '{sos-1,sos-2,sos-3,sos-4}', 'kettle-cave-sealed'),
 
 ('kettle-cave-sealed', 2, 12.951181, 77.501304, 60, 'clear',

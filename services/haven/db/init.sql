@@ -312,21 +312,19 @@ I''m going through his Loop in the morning. Every trek photo. Then I''ll know.',
 -- The final recording. Backed up to Haven minutes before she was taken --
 -- the newest entry the laptop never had a local copy of.
 INSERT INTO entries (evidence_id, title, recorded_at, duration_seconds, mood, tags, transcript, video_url, poster_url, device, is_final) VALUES
-('HAV-031', 'If something happens', t('2024-09-02 21:52:00+05:30'), 340, 'afraid', '{rahul,dad,case}',
+('HAV-031', 'If something happens', t('2024-09-02 21:52:00+05:30'), 36, 'afraid', '{rahul,dad,case}',
  'I''m recording this because I need it to exist somewhere he can''t reach.
 
-I went through Rahul''s Loop today. Every trek photo since 2017. There''s a blue carabiner on his rucksack strap in all of them, with the Trail Diaries tag. TD. He was a member in 2018. He posted from Turahalli the Sunday before Dad died. He''s "R." His number is the 5:48 call in Dad''s phone. Rahul Nair. He was at the rock with Dad on the fourteenth of October 2018.
+Rahul''s Loop. Every trek photo since 2017. A blue carabiner on his strap in all of them, with the Trail Diaries tag. TD. He was a member in 2018.
 
-Dad had warned him off -- three times that year, it''s in Dad''s diary in Dad''s handwriting -- because Rahul had been... it wasn''t friendship, for him. Not for years. Dad saw it before I did. Dad went up to the rock that morning to end it, and Rahul went too, and Dad never came down. It wasn''t an accident. Rahul killed my father.
+His number is the 5:48 call in Dad''s phone. He''s "R". Dad warned him off three times that year. It''s in Dad''s handwriting. Dad went up to the rock that morning to end it. Rahul went too. Dad never came down.
 
-[pause]
+It wasn''t an accident. Rahul killed my father.
 
-He''s outside right now. I saw his car from the balcony ten minutes ago. He''s texting that he "just wants to talk." Arjun''s at his brother''s till tomorrow, N. isn''t picking up, and I don''t want to call the police from this flat with Rahul at the door.
+He''s outside right now. I saw his car from the balcony. He''s texting that he just wants to talk. Arjun''s at his brother''s. N. isn''t picking up.
 
-If something happens to me -- it''s Rahul. Rahul Nair. It was always --
-
-[recording ends]',
- '/videos/2024-09-02.mp4', '/images/posters/2024-09-02.svg', 'Meera''s phone', true);
+If something happens to me, it''s Rahul. Rahul Nair. It was always --',
+ '/videos/2024-09-02.mp4', '/images/posters/2024-09-02.jpg', 'Meera''s phone', true);
 
 -- Cloud backup timestamps: a few minutes after each recording finished.
 -- Two are pinned to match the "Your entry has been saved" emails in Quill

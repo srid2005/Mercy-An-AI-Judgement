@@ -9,7 +9,6 @@ import "./sidepane.scss";
 import "./startmenu.scss";
 
 export * from "./start";
-export * from "./widget";
 
 export const DesktopApp = () => {
   const deskApps = useSelector((state) => {

@@ -67,6 +67,54 @@
                     },
                     "data": "recipes to try\n- bisi bele bath (Dad's proportions, from the diary!)\n- that lemon cake Priya made\n- Coorg pandi curry -- ask the homestay aunty\n\nbooks\n- the Shashi Deshpande one Priya keeps mentioning\n- re-read Malgudi Days (Dad's copy is in the box)\n\ngifts\n- Arjun bday: the watch strap, NOT another book"
                   },
+                  "Resume_Meera.pdf": {
+                    "type": "pdf",
+                    "info": {
+                      "icon": "pdf",
+                      "evidence_id": "LAP-DOC-07"
+                    },
+                    "data": "/files/docs/Resume_Meera.pdf"
+                  },
+                  "Aadhaar_Copy.pdf": {
+                    "type": "pdf",
+                    "info": {
+                      "icon": "pdf",
+                      "evidence_id": "LAP-DOC-08"
+                    },
+                    "data": "/files/docs/Aadhaar_Copy.pdf"
+                  },
+                  "Passport.pdf": {
+                    "type": "pdf",
+                    "info": {
+                      "icon": "pdf",
+                      "evidence_id": "LAP-DOC-09"
+                    },
+                    "data": "/files/docs/Passport.pdf"
+                  },
+                  "Insurance.pdf": {
+                    "type": "pdf",
+                    "info": {
+                      "icon": "pdf",
+                      "evidence_id": "LAP-DOC-10"
+                    },
+                    "data": "/files/docs/Insurance.pdf"
+                  },
+                  "Marriage_Certificate.pdf": {
+                    "type": "pdf",
+                    "info": {
+                      "icon": "pdf",
+                      "evidence_id": "LAP-DOC-11"
+                    },
+                    "data": "/files/docs/Marriage_Certificate.pdf"
+                  },
+                  "Important_Contacts.docx": {
+                    "type": "doc",
+                    "info": {
+                      "icon": "docs",
+                      "evidence_id": "LAP-DOC-12"
+                    },
+                    "data": "Important contacts\n\nArjun (husband)                 +91 98450 77890\nAmma -- Lakshmi Sharma          +91 98451 60214\nPriya Menon                     +91 98450 33456\nRahul Nair                      +91 98450 55678\nNikhil Rao (Northwind, work)    +91 98450 99012\nDivya Reddy (manager)           +91 99001 22845\nAnaia Studio -- reception       080 4128 6600\nDr. Anitha, City Paws (Bruno)   +91 98860 71140\nDr. S. Rangan -- family doctor  +91 98455 30902\nSociety office / security       080 2572 4411\nRamesh -- plumber               +91 99640 21187\nSanjeevani Health -- claims     1800 200 4141\nBank -- Prime Bank card block   1800 209 4747\nOla / Uber lost & found         080 6789 0000\n\nPolicy numbers: LIC 733 44 21 906 / Sanjeevani SHI/BLR/2024/0448271\nPassport P8472913 (mine), expires 14/05/2032. Aadhaar ends 9017.\nWifi: the sticker under the router. Gas booking: 1800 2333 555, consumer no. 4410 8832."
+                  },
                   "Insurance": {
                     "data": {
                       "LIC_policy_2019.pdf": {
@@ -164,6 +212,54 @@
                         },
                         "data": "/files/photos/camera/IMG_20181007_073012.jpg"
                       },
+                      "IMG_20221224_154512.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-23"
+                        },
+                        "data": "/files/photos/camera/IMG_20221224_154512.jpg"
+                      },
+                      "IMG_20221224_161830.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-24"
+                        },
+                        "data": "/files/photos/camera/IMG_20221224_161830.jpg"
+                      },
+                      "IMG_20221225_083447.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-25"
+                        },
+                        "data": "/files/photos/camera/IMG_20221225_083447.jpg"
+                      },
+                      "IMG_20231112_183002.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-26"
+                        },
+                        "data": "/files/photos/camera/IMG_20231112_183002.jpg"
+                      },
+                      "IMG_20240204_133928.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-27"
+                        },
+                        "data": "/files/photos/camera/IMG_20240204_133928.jpg"
+                      },
+                      "IMG_20240312_210715.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-28"
+                        },
+                        "data": "/files/photos/camera/IMG_20240312_210715.jpg"
+                      },
                       "IMG_20240316_190455.jpg": {
                         "type": "img",
                         "info": {
@@ -188,6 +284,22 @@
                         },
                         "data": "/files/photos/camera/IMG_20240505_101410.jpg"
                       },
+                      "IMG_20240519_222104.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-29"
+                        },
+                        "data": "/files/photos/camera/IMG_20240519_222104.jpg"
+                      },
+                      "IMG_20240608_112640.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-30"
+                        },
+                        "data": "/files/photos/camera/IMG_20240608_112640.jpg"
+                      },
                       "IMG_20240622_123301.jpg": {
                         "type": "img",
                         "info": {
@@ -206,7 +318,102 @@
                       }
                     }
                   },
-                  "Wedding": {},
+                  "Wedding": {
+                    "data": {
+                      "IMG_20210214_091204.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-17"
+                        },
+                        "data": "/files/photos/wedding/IMG_20210214_091204.jpg"
+                      },
+                      "IMG_20210214_094811.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-18"
+                        },
+                        "data": "/files/photos/wedding/IMG_20210214_094811.jpg"
+                      },
+                      "IMG_20210214_100539.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-19"
+                        },
+                        "data": "/files/photos/wedding/IMG_20210214_100539.jpg"
+                      },
+                      "IMG_20210214_103217.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-20"
+                        },
+                        "data": "/files/photos/wedding/IMG_20210214_103217.jpg"
+                      },
+                      "IMG_20210214_104755.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-21"
+                        },
+                        "data": "/files/photos/wedding/IMG_20210214_104755.jpg"
+                      },
+                      "IMG_20210214_112033.jpg": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-22"
+                        },
+                        "data": "/files/photos/wedding/IMG_20210214_112033.jpg"
+                      }
+                    }
+                  },
+                  "Screenshots": {
+                    "data": {
+                      "Screenshot_20260914_221408.png": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-31"
+                        },
+                        "data": "/files/photos/screenshots/Screenshot_20260914_221408.png"
+                      },
+                      "Screenshot_20260915_164102.png": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-32"
+                        },
+                        "data": "/files/photos/screenshots/Screenshot_20260915_164102.png"
+                      },
+                      "Screenshot_20260921_211432.png": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-33"
+                        },
+                        "data": "/files/photos/screenshots/Screenshot_20260921_211432.png"
+                      },
+                      "Screenshot_20260922_182715.png": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-35"
+                        },
+                        "data": "/files/photos/screenshots/Screenshot_20260922_182715.png"
+                      },
+                      "Screenshot_20260922_102843.png": {
+                        "type": "img",
+                        "info": {
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-34"
+                        },
+                        "data": "/files/photos/screenshots/Screenshot_20260922_102843.png"
+                      }
+                    }
+                  },
                   "Bruno": {},
                   "Dad": {}
                 }

@@ -74,7 +74,7 @@ MERCY has released the trail (the `the_confession` checkpoint). Each place is
 a **story spot** (`story_spots`): sweeping it returns a clue text, and the
 cave on Kettle Hill's north face stays *sealed* until the four earlier spots
 have been swept. Sweeping the cave then returns a **trace** (`found=false`):
-her folded jacket, her band, and a 41-second voice memo (`SW-06`) in which
+her folded jacket, her band, and a two-minute voice memo (`SW-06`) in which
 she names Nikhil Rao -- not Rahul. After the drone frames MERCY comes into
 action: an overlay on the map extracts the memo from the band and offers it
 to the player to play -- the audio from `GET /audio/SW-06-band-memo` (the

@@ -63,7 +63,6 @@ prompts that made them are in `VIDEO_PROMPTS.md`. For every filmed entry,
 `transcript` and `duration_seconds` in the seed and the live database are the
 lines actually spoken, so text and video agree; the original long transcripts
 are kept in `db/transcripts-full.backup.json`, and a running database gets
-the latest batch with `scripts/migrate_live_videos_batch23.sql`. HAV-031 (the
-final recording, "If something happens") still needs its video,
-`2024-09-02.mp4`; its transcript stays long and its poster the SVG until then
--- drop the file in at that path, take its poster the same way, and rebuild.
+the latest batch with `scripts/migrate_live_videos_batch23.sql`. All thirty-one are filmed, HAV-031 ("If something happens", 36 s) included;
+`scripts/migrate_live_hav031.sql` carries that last one to a running
+database.

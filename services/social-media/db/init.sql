@@ -463,7 +463,7 @@ INSERT INTO follows (follower_id, followee_id)
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-050', (SELECT id FROM users WHERE username='vikram'),
      'Late-night chai with the little brother. Mum refusing to go to bed until he finishes his plate. @arjun',
-     '/images/posts/chai-night.svg', 'recent', 41, t('2024-09-02 23:40:00+05:30'));
+     '/images/posts/chai-night.png', 'recent', 41, t('2024-09-02 23:40:00+05:30'));
 INSERT INTO tags (post_id, tagged_user_id)
     SELECT (SELECT id FROM posts WHERE evidence_id='SOC-050'), id FROM users WHERE username='arjun';
 INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES

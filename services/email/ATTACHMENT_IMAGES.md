@@ -62,6 +62,6 @@ Filename shown: `weekly_flyer.jpg`, 380 KB. A supermarket weekly-offers flyer: v
 
 ## Status
 All eight JPGs are in `public/images/attachments/` (converted to ≤1600 px, ≤400 KB
-from the originals in `/quill attachment images/`); the seed rows point at
+from the originals in `source-media/quill attachment images/`); the seed rows point at
 them (`.jpg` / `image/jpeg`) and a running database gets the same with
 `scripts/migrate_live_attachments.sql`. The SVG placeholders were removed.

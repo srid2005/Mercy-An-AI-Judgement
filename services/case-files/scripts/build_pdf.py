@@ -21,7 +21,7 @@ Each thread only closes against another app: Loop (Trail Diaries, Rahul's
 trek photos and the carabiner on his strap), Haven (Dad's diary, the note on
 his phone), Quill (the unsent letter). Rahul is never named here.
 
-Photographs: put real images in  D:/MERCY-AI JUDGEMENT/case photos/
+Photographs: put real images in  <repo>/source-media/case photos/
   photo-1-rock.jpg          Sunset Rock from the trail below, the ledge ~12 m up
   photo-2-ledge.jpg         the ledge on top: scuffed moss, Ravi's water bottle
   photo-3-base.jpg          the base, taped off, outline where he lay
@@ -42,7 +42,7 @@ from pypdf import PdfReader, PdfWriter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.path.abspath(os.path.join(HERE, '..'))
-PHOTOS = os.path.abspath(os.path.join(HERE, '..', '..', '..', 'case photos'))
+PHOTOS = os.path.abspath(os.path.join(HERE, '..', '..', '..', 'source-media', 'case photos'))
 FONTS = 'C:/Windows/Fonts'
 pdfmetrics.registerFont(TTFont('Type', os.path.join(FONTS, 'cour.ttf')))
 pdfmetrics.registerFont(TTFont('TypeB', os.path.join(FONTS, 'courbd.ttf')))
@@ -264,7 +264,7 @@ class Page:
 
 
 def portrait(c, x, y, w, h):
-    """Passport-style photograph of the deceased, cropped from case photos/ravi sharma.jpg."""
+    """Passport-style photograph of the deceased, cropped from source-media/case photos/ravi sharma.jpg."""
     path = photo_path('ravi sharma')
     c.setFillColor(HexColor('#d6d2c6'))
     c.rect(x, y, w, h, stroke=0, fill=1)

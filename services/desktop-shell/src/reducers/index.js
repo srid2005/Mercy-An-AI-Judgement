@@ -5,7 +5,6 @@ import taskReducer from "./taskbar";
 import deskReducer from "./desktop";
 import menuReducer from "./startmenu";
 import paneReducer from "./sidepane";
-import widReducer from "./widpane";
 import appReducer from "./apps";
 import menusReducer from "./menu";
 import globalReducer from "./globals";
@@ -19,7 +18,6 @@ const allReducers = combineReducers({
   desktop: deskReducer,
   startmenu: menuReducer,
   sidepane: paneReducer,
-  widpane: widReducer,
   apps: appReducer,
   menus: menusReducer,
   globals: globalReducer,
