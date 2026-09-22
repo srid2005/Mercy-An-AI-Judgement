@@ -205,12 +205,30 @@ export const loadSettings = () => {
   store.dispatch({ type: "SETTLOAD", payload: sett });
 };
 
+// A file with a real evidence_id (or evidence_ids, for the case file's six
+// exhibits) tells the MERCY console it's been opened -- window.top always
+// reaches the console regardless of how deep this shell is nested (it isn't
+// nested at all here, but the same call works whether desktop-shell is
+// opened standalone or as the console's Laptop tab).
+export const reportEvidenceIds = (ids) => {
+  (ids || []).forEach((evidence_id) => {
+    try {
+      window.top.postMessage({ type: "mercy:evidence-seen", evidence_id }, "*");
+    } catch (e) {}
+  });
+};
+const reportEvidenceSeen = (item) => {
+  const info = item.info || {};
+  reportEvidenceIds(info.evidence_ids || (info.evidence_id ? [info.evidence_id] : []));
+};
+
 // mostly file explorer
 export const handleFileOpen = (id) => {
   // handle double click open
   const files = store.getState().files;
   const item = files.data.getId(id);
   if (item != null) {
+    reportEvidenceSeen(item);
     if (item.type == "folder") {
       store.dispatch({ type: "FILEDIR", payload: item.id });
     } else if (item.type == "txt") {
@@ -219,7 +237,7 @@ export const handleFileOpen = (id) => {
       store.dispatch({ type: "VIDEOOPEN", payload: { name: item.name, src: item.data, folder: files.data.getPath(item.host ? item.host.id : item.id) } });
     } else if (item.type == "img") {
       const folder = item.host;
-      const list = ((folder && folder.data) || []).filter((x) => x.type == "img").map((x) => ({ name: x.name, src: x.data }));
+      const list = ((folder && folder.data) || []).filter((x) => x.type == "img").map((x) => ({ name: x.name, src: x.data, evidence_id: x.info && x.info.evidence_id }));
       store.dispatch({ type: "PHOTOSOPEN", payload: { name: item.name, src: item.data, folder: files.data.getPath(folder ? folder.id : item.id), list } });
     } else if (item.type == "pdf") {
       // PDFs open in Orbit, like a real laptop with no other reader. The

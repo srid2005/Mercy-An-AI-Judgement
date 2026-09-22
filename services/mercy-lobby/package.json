@@ -1,0 +1,15 @@
+{
+  "name": "mercy-lobby",
+  "version": "0.1.0",
+  "description": "MERCY lobby -- the event's front door: Zinnia ID login, the intro film and the briefing, the result page and the leaderboard, and the admin panel that runs the event -- one container in the MERCY: AI Judgement game",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "pg": "^8.12.0"
+  }
+}

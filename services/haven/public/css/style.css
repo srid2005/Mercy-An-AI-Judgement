@@ -26,7 +26,8 @@ button { font-family: inherit; }
 a { color: inherit; }
 
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-.brand img { width: 30px; height: 30px; border-radius: 8px; }
+.brand img { width: 32px; height: 32px; object-fit: contain; }
+.lock-card .brand img { width: 56px; height: 56px; }
 .wordmark { font-weight: 700; font-size: 20px; letter-spacing: -0.4px; color: var(--accent-dark); }
 
 .link {

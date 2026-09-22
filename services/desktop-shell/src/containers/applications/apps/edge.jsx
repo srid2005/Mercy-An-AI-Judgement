@@ -1,17 +1,19 @@
-// Orbit -- Meera's browser. A window with tabs-that-aren't, an address bar
-// that shows story domains, a bookmarks bar, a history page and a saved-
-// passwords page. The real services load in an iframe; each of them posts its
-// route to us so the address bar follows what the participant is doing.
-import React, { useState, useEffect, useRef, useCallback } from "react";
+// Orbit -- Meera's browser. Real tabs: each keeps its own history stack, so
+// opening a new tab does not touch what the last one was doing. The address
+// bar shows story domains; the real services load in an iframe, and each of
+// them posts its route to us so the address bar follows what's on screen.
+import React, { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Icon, ToolBar, LazyComponent } from "../../../utils/general";
 import { SITES, KNOWN_OFFLINE, BOOKMARKS, PASSWORDS, HISTORY, fmtWhen } from "../../../utils/sites";
+import { LAPTOP_PIN } from "../../background";
 import "./assets/orbit.scss";
-
-const LAPTOP_PIN = "1708";
 
 let nextId = 1;
 const mk = (e) => ({ ...e, id: nextId++ });
+
+let nextTabId = 1;
+const newTabState = () => ({ tabId: nextTabId++, stack: [mk({ kind: "internal", page: "newtab" })], idx: 0, livePath: null, liveTitle: "" });
 
 const siteByDomain = (domain) => Object.keys(SITES).find((k) => SITES[k].domain === domain);
 const originOf = (url) => {
@@ -50,7 +52,12 @@ const displayUrl = (entry, livePath) => {
   if (entry.kind === "file") return entry.path;
   if (entry.kind === "offline") return `https://${entry.domain}${entry.path === "/" ? "" : entry.path}`;
   const p = (livePath != null ? livePath : entry.path) || "/";
-  const pretty = p.replace(/^\/#\//, "/").replace(/^\/#$/, "/");
+  const pretty = p
+    .replace(/^\/index\.html/, "/")
+    .replace(/\.html#\//, "/")
+    .replace(/\.html$/, "")
+    .replace(/^\/#\//, "/")
+    .replace(/^\/#$/, "/");
   return `https://${SITES[entry.site].domain}${pretty === "/" ? "" : pretty}`;
 };
 
@@ -61,33 +68,50 @@ const faviconOf = (entry) => {
   return "img/site/orbit.png";
 };
 
+const titleOf = (entry, liveTitle) =>
+  !entry
+    ? "Orbit"
+    : entry.kind === "internal"
+      ? { newtab: "New tab", history: "History", passwords: "Passwords" }[entry.page] || "Orbit"
+      : entry.kind === "file"
+        ? entry.name
+        : entry.kind === "offline"
+          ? entry.title
+          : liveTitle || SITES[entry.site].name;
+
+// the site's current page, as reported by its route messages, written back
+// into the history entry so reload/back/forward return to the same page
+const settleStack = (t) => t.stack.map((e, i) => (i === t.idx && e.kind === "site" && t.livePath ? { ...e, path: t.livePath } : e));
+
 // session history lives with the seeded one, newest first
 let sessionHistory = [];
 
 export const EdgeMenu = () => {
   const wnapp = useSelector((state) => state.apps.orbit);
   const dispatch = useDispatch();
-  const [stack, setStack] = useState([mk({ kind: "internal", page: "newtab" })]);
-  const [idx, setIdx] = useState(0);
+  const [tabs, setTabs] = useState(() => [newTabState()]);
+  const [active, setActive] = useState(0);
   const [typed, setTyped] = useState(null); // null = not typing
-  const [livePath, setLivePath] = useState(null);
-  const [liveTitle, setLiveTitle] = useState("");
-  const [, bump] = useState(0);
-  const entry = stack[idx];
+  const tab = tabs[active] || tabs[0];
+  const entry = tab.stack[tab.idx];
 
   const go = useCallback(
-    (raw) => {
+    (raw, atIdx) => {
+      const ti = atIdx != null ? atIdx : active;
       const e = resolve(raw);
-      setStack((st) => [...st.slice(0, idx + 1), e]);
-      setIdx((i) => i + 1);
+      setTabs((ts) =>
+        ts.map((t, i) => {
+          if (i !== ti) return t;
+          const stack = settleStack(t);
+          return { ...t, stack: [...stack.slice(0, t.idx + 1), e], idx: t.idx + 1, livePath: null, liveTitle: "" };
+        }),
+      );
       setTyped(null);
-      setLivePath(null);
-      setLiveTitle("");
       if (e.kind === "site" || e.kind === "offline") {
         sessionHistory.unshift({ t: new Date(), ...(e.kind === "site" ? { site: e.site } : { domain: e.domain }), path: e.path, title: e.title || (e.kind === "site" ? SITES[e.site].name : e.domain) });
       }
     },
-    [idx],
+    [active],
   );
 
   // opened from elsewhere (Explorer double-click, PulseFit "open in Orbit")
@@ -98,43 +122,49 @@ export const EdgeMenu = () => {
     }
   }, [wnapp.url]);
 
-  // the services tell us where they are
+  // the active tab's site tells us where it is
   useEffect(() => {
     const onMsg = (ev) => {
       if (!ev.data || ev.data.type !== "mercy:route") return;
-      if (!entry || entry.kind !== "site") return;
-      if (ev.origin !== originOf(SITES[entry.site].url)) return;
-      setLivePath(ev.data.path || "/");
-      if (ev.data.title) {
-        setLiveTitle(ev.data.title);
-        // keep the session history titled
-        if (sessionHistory[0] && sessionHistory[0].site === entry.site) {
-          sessionHistory[0].title = ev.data.title;
-          sessionHistory[0].path = ev.data.path || "/";
-        }
+      const t = tabs[active];
+      const en = t && t.stack[t.idx];
+      if (!en || en.kind !== "site") return;
+      if (ev.origin !== originOf(SITES[en.site].url)) return;
+      setTabs((ts) => ts.map((tt, i) => (i === active ? { ...tt, livePath: ev.data.path || "/", liveTitle: ev.data.title || tt.liveTitle } : tt)));
+      if (ev.data.title && sessionHistory[0] && sessionHistory[0].site === en.site) {
+        sessionHistory[0].title = ev.data.title;
+        sessionHistory[0].path = ev.data.path || "/";
       }
     };
     window.addEventListener("message", onMsg);
     return () => window.removeEventListener("message", onMsg);
-  }, [entry]);
+  }, [tabs, active]);
 
   const back = () => {
-    if (idx > 0) {
-      setIdx(idx - 1);
-      setTyped(null);
-      setLivePath(null);
-    }
+    setTabs((ts) => ts.map((t, i) => (i === active && t.idx > 0 ? { ...t, stack: settleStack(t), idx: t.idx - 1, livePath: null, liveTitle: "" } : t)));
+    setTyped(null);
   };
   const fwd = () => {
-    if (idx < stack.length - 1) {
-      setIdx(idx + 1);
-      setTyped(null);
-      setLivePath(null);
-    }
+    setTabs((ts) => ts.map((t, i) => (i === active && t.idx < t.stack.length - 1 ? { ...t, stack: settleStack(t), idx: t.idx + 1, livePath: null, liveTitle: "" } : t)));
+    setTyped(null);
   };
   const reload = () => {
-    setStack((st) => st.map((e, i) => (i === idx ? { ...e, id: nextId++ } : e)));
-    setLivePath(null);
+    // reload the page the site is on now, not the one the entry started at
+    setTabs((ts) => ts.map((t, i) => (i === active ? { ...t, stack: settleStack(t).map((e, j) => (j === t.idx ? { ...e, id: nextId++ } : e)), livePath: null } : t)));
+  };
+
+  const openNewTab = () => {
+    setActive(tabs.length);
+    setTabs((ts) => [...ts, newTabState()]);
+  };
+  const closeTab = (i, ev) => {
+    if (ev) ev.stopPropagation();
+    if (tabs.length <= 1) {
+      dispatch({ type: wnapp.action, payload: "close" });
+      return;
+    }
+    setTabs((ts) => ts.filter((_, j) => j !== i));
+    setActive((a) => (i === a ? Math.max(0, a - 1) : i < a ? a - 1 : a));
   };
 
   const onKey = (e) => {
@@ -142,15 +172,7 @@ export const EdgeMenu = () => {
     else if (e.key === "Escape") setTyped(null);
   };
 
-  const title =
-    entry.kind === "internal"
-      ? { newtab: "New tab", history: "History", passwords: "Passwords" }[entry.page] || "Orbit"
-      : entry.kind === "file"
-        ? entry.name
-        : entry.kind === "offline"
-          ? entry.title
-          : liveTitle || SITES[entry.site].name;
-
+  const title = titleOf(entry, tab.liveTitle);
   const frameSrc = entry.kind === "site" ? SITES[entry.site].url + (entry.path === "/" ? "/" : entry.path) : entry.kind === "file" ? entry.src : null;
 
   return (
@@ -169,19 +191,24 @@ export const EdgeMenu = () => {
       <div className="windowScreen flex flex-col">
         <div className="overTool flex">
           <Icon src={wnapp.icon} width={14} margin="0 6px" />
-          <div className="btab">
-            <img className="tabfav" src={faviconOf(entry)} alt="" />
-            <div className="tabtitle">{title}</div>
-            <Icon fafa="faTimes" click={wnapp.action} payload="close" width={10} />
-          </div>
-          <div className="newtabbtn prtclk" onClick={() => go("orbit://newtab")} title="New tab">
+          {tabs.map((t, i) => {
+            const e = t.stack[t.idx];
+            return (
+              <div key={t.tabId} className={"btab prtclk" + (i === active ? " active" : "")} onClick={() => setActive(i)}>
+                <img className="tabfav" src={faviconOf(e)} alt="" />
+                <div className="tabtitle">{titleOf(e, t.liveTitle)}</div>
+                <Icon fafa="faTimes" onClick={(ev) => closeTab(i, ev)} width={10} />
+              </div>
+            );
+          })}
+          <div className="newtabbtn prtclk" onClick={openNewTab} title="New tab">
             +
           </div>
         </div>
         <div className="restWindow flex-grow flex flex-col">
           <div className="addressBar w-full h-10 flex items-center">
-            <Icon className={"edgenavicon" + (idx == 0 ? " dimmed" : "")} src="left" onClick={back} width={14} ui margin="0 8px" />
-            <Icon className={"edgenavicon" + (idx >= stack.length - 1 ? " dimmed" : "")} src="right" onClick={fwd} width={14} ui margin="0 8px" />
+            <Icon className={"edgenavicon" + (tab.idx == 0 ? " dimmed" : "")} src="left" onClick={back} width={14} ui margin="0 8px" />
+            <Icon className={"edgenavicon" + (tab.idx >= tab.stack.length - 1 ? " dimmed" : "")} src="right" onClick={fwd} width={14} ui margin="0 8px" />
             <Icon fafa="faRedo" onClick={reload} width={14} margin="0 8px" />
             <Icon fafa="faHome" onClick={() => go("orbit://newtab")} width={18} margin="0 16px" />
             <div className="addCont relative flex items-center">
@@ -192,7 +219,7 @@ export const EdgeMenu = () => {
                 onChange={(e) => setTyped(e.target.value)}
                 onFocus={(e) => e.target.select()}
                 onBlur={() => setTyped(null)}
-                value={typed != null ? typed : displayUrl(entry, livePath)}
+                value={typed != null ? typed : displayUrl(entry, tab.livePath)}
                 placeholder="Search or enter web address"
                 type="text"
                 spellCheck={false}
@@ -219,7 +246,7 @@ export const EdgeMenu = () => {
           <div className="siteFrame flex-grow overflow-hidden relative">
             {frameSrc && frameSrc !== "/files/missing" ? (
               <LazyComponent show={!wnapp.hide}>
-                <iframe key={entry.id} src={frameSrc} id="isite" frameBorder="0" className="w-full h-full" title="site"></iframe>
+                <iframe key={tab.tabId + "-" + entry.id} src={frameSrc} id="isite" frameBorder="0" className="w-full h-full" title="site"></iframe>
               </LazyComponent>
             ) : entry.kind === "internal" && entry.page === "history" ? (
               <HistoryPage go={go} />

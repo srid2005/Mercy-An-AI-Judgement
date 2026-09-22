@@ -1,0 +1,520 @@
+{
+  "style": {
+    "ai_base_prompt": "This is a real photograph captured tonight by a police surveillance drone over the city of Meridian, not a render, not an illustration, not a game screenshot. Night, between 22:00 and 05:00, overcast, no moon. Drone point of view only: aerial frames from 30 to 60 m looking down at a steep angle, ground and detail frames from a small quadcopter hovering at 0.5 to 2 m with its own hard white LED lamp as the key light. Consumer-drone image quality: 24 mm equivalent, high ISO, fine luminance grain, slight chromatic fringing on highlights, mild vignette, a little motion softness at the edges. Colour: cold and desaturated, the drone lamp white, any street lighting sodium amber or cold LED, everything outside the beam falling to true black. Mood: forensic, quiet, unsettling. Absolutely no people or faces (a single heat blob in a found thermal frame is the only exception), no text, no captions, no timestamps, no watermarks, no logos, no readable signs or number plates, no HUD or crosshair, no daylight, no dawn.",
+    "thermal_note": "Thermal frames are long-wave infrared from the drone's FLIR-style camera in a white-hot palette: hottest surfaces pure white, warm mid-grey, cold near black, no false-colour rainbow. Soft edges and low resolution, as if a 640x512 sensor was upscaled, gentle vignette, slight noise. Timestamp-free: no on-screen data, no reticle, no temperature scale, no crosshair. A found frame shows exactly one human heat signature: a bright, blurred, featureless human-sized shape lying or curled, with no face, no clothing detail, no identifying feature of any kind -- the drones see heat, not a person. Clear and generic thermal frames show no human signature at all; warm machinery (boilers, compressors, HVAC, a torch bulb) is fine.",
+    "sizes": "1600x900 landscape JPEG, ~200-400 KB"
+  },
+  "sets": {
+    "sos-1": [
+      {
+        "file": "sos-1/01-aerial.jpg",
+        "kind": "aerial",
+        "caption": "St Aldric's churchyard, from 40 m. The lych-gate lane. No people.",
+        "source": "ai",
+        "prompt": "Real drone photograph, not a render. Night, roughly 03:00, overcast, no moon. Police quadcopter at 40 m altitude, 24 mm equivalent lens, wide aerial frame looking down at about 60 degrees, high ISO with visible fine luminance grain, slight motion softness at the frame edge, the drone's own white spotlight as the key light, everything outside it falling to black. In frame: a small stone church and its walled churchyard, gravestones as pale shapes in dark grass, a narrow gravel lane leading to a timber lych-gate with a pitched roof, one sodium street lamp beyond the wall casting orange light, the drone spotlight a soft white circle on the gravel where two faint tyre tracks are visible. Mood: still, empty, cold. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "sos-1/02-ground.jpg",
+        "kind": "ground",
+        "caption": "Tyre marks in the gravel of the lych-gate lane: one car, in and out.",
+        "source": "ai",
+        "prompt": "Real photograph from a small police drone hovering at about 1.5 m, 24 mm equivalent lens, night. Lit only by the drone's own white LED lamp: a hard-edged pool of light with deep black falloff, high ISO grain, faint dust drifting in the beam. In frame: a gravel lane between low stone walls leading to a timber lych-gate, two sets of tyre impressions pressed into damp gravel, one arriving and one turning, gravel scattered at the turn. The gate and the churchyard behind it dissolve into darkness. Mood: forensic, quiet. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "sos-1/03-detail.jpg",
+        "kind": "detail",
+        "caption": "In the storm drain by the gate: a phone, screen shattered, SIM tray empty.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: a cast-iron storm drain grate set in kerb stones beside a gate post, and wedged just below the grate a modern smartphone in a patterned case, face up, screen spider-cracked, its SIM tray slot open and empty, wet leaf litter and grit around it. Mood: found evidence, cold light. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "sos-2": [
+      {
+        "file": "sos-2/01-aerial.jpg",
+        "kind": "aerial",
+        "caption": "Auditorium service yard, south side, from 40 m.",
+        "source": "ai",
+        "prompt": "Real drone photograph, not a render. Night, roughly 03:00, overcast, no moon. Police quadcopter at 40 m altitude, 24 mm equivalent lens, wide aerial frame looking down at about 60 degrees, high ISO with visible fine luminance grain, slight motion softness at the frame edge, the drone's own white spotlight as the key light, everything outside it falling to black. In frame: the back of a large modern auditorium, a concrete service yard with a roller shutter, a fire door with a single caged bulkhead light, a row of steel bollards at the yard entrance, wheelie bins along one wall, wet tarmac reflecting one amber lamp, the drone spotlight on the yard entrance. Mood: deserted, industrial. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "sos-2/02-detail.jpg",
+        "kind": "detail",
+        "caption": "Fresh paint transfer on the entrance bollard, silver-grey. A car left here fast enough to clip it.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: a black steel bollard about knee height with a fresh scrape at bumper level, a smear of silver-grey metallic car paint on the black, bright chips of paint on the tarmac at its foot, the yard entrance kerb behind it. Mood: forensic close-up, harsh light. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "sos-2/03-detail.jpg",
+        "kind": "detail",
+        "caption": "By the fire door: a woman's sandal, strap torn.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: a grey steel fire door with a push bar and a caged bulkhead lamp above it, and on the wet concrete step a single flat woman's sandal lying on its side, its ankle strap torn through, a few grit stones around it. Nothing else on the step. Mood: abandoned, stark. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "sos-3": [
+      {
+        "file": "sos-3/01-aerial.jpg",
+        "kind": "aerial",
+        "caption": "Veterinary Hospital, from 40 m. The side door to the pharmacy store.",
+        "source": "ai",
+        "prompt": "Real drone photograph, not a render. Night, roughly 03:00, overcast, no moon. Police quadcopter at 40 m altitude, 24 mm equivalent lens, wide aerial frame looking down at about 60 degrees, high ISO with visible fine luminance grain, slight motion softness at the frame edge, the drone's own white spotlight as the key light, everything outside it falling to black. In frame: a two-storey veterinary hospital with a car park and an ambulance bay, dark windows, one lit entrance canopy, a narrow side alley with a single plain door under a wall light, a wheelie bin, chain-link fence, the drone spotlight marking the side door. Mood: clinical, deserted. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "sos-3/02-detail.jpg",
+        "kind": "detail",
+        "caption": "The side door to the pharmacy store is forced; the frame is split at the latch.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: a plain painted steel-faced door standing a few centimetres open, the timber frame splintered and split at the latch plate, fresh pale wood showing under the paint, a bent strike plate, pry marks, a strip of interior light through the gap. Mood: break-in, forensic. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "sos-3/03-detail.jpg",
+        "kind": "detail",
+        "caption": "The drug register is open on the bench. The cabinet is short one bottle of xylazine.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: a pharmacy store bench under a fluorescent tube, a hardback controlled-drug register lying open with handwritten columns that are blurred and illegible, and behind it a steel drugs cabinet with its door open, shelves of glass vials and bottles in neat rows with one obvious gap in a row. Mood: something taken, cold light. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "sos-4": [
+      {
+        "file": "sos-4/01-aerial.jpg",
+        "kind": "aerial",
+        "caption": "Eco-Park, the loop road by the pond, from 40 m. No people.",
+        "source": "ai",
+        "prompt": "Real drone photograph, not a render. Night, roughly 03:00, overcast, no moon. Police quadcopter at 40 m altitude, 24 mm equivalent lens, wide aerial frame looking down at about 60 degrees, high ISO with visible fine luminance grain, slight motion softness at the frame edge, the drone's own white spotlight as the key light, everything outside it falling to black. In frame: a dark park with a loop road curving past a black pond edged with reeds, a low gate on the road, dense tree canopy, a timber lookout tower rising above the trees on the far side, no lamps, only the drone spotlight on the gate and a faint city glow on the horizon. Mood: black water, silence. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "sos-4/02-ground.jpg",
+        "kind": "ground",
+        "caption": "Tyre marks on the verge at the gate.",
+        "source": "ai",
+        "prompt": "Real photograph from a small police drone hovering at about 1.5 m, 24 mm equivalent lens, night. Lit only by the drone's own white LED lamp: a hard-edged pool of light with deep black falloff, high ISO grain, faint dust drifting in the beam. In frame: a low steel park gate across a single-lane road, and beside it the grass verge churned by a car's tyres, two muddy ruts cutting across the grass and back onto the tarmac, wet mud shining in the drone light, trees black behind. Mood: forensic, damp. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "sos-4/03-detail.jpg",
+        "kind": "detail",
+        "caption": "In the reeds at the water's edge, her tote bag, open: wallet, keys, a hair clip, pond water in everything.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: a canvas tote bag lying open and half-sunk among reeds at a pond edge, black water around it, inside and spilling out a wallet, a ring of keys and a hair clip, everything wet and streaked with pond water and algae. Mood: dropped, sodden, quiet. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "sos-4/04-detail.jpg",
+        "kind": "detail",
+        "caption": "Cigarette ends on the top rail of the lookout tower. The driver stood here a while, looking at the city.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: the weathered timber handrail at the top of a park lookout tower, four or five cigarette ends crushed on the rail top with a little ash, and beyond the rail a blurred night view of distant city lights through the treetops. Mood: someone waited, cold. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "kettle-north-face": [
+      {
+        "file": "kettle-north-face/01-aerial.jpg",
+        "kind": "aerial",
+        "caption": "Scree and thorn, north face of Kettle Hill. Searched 60 m around the fix: nothing.",
+        "source": "ai",
+        "prompt": "Real drone photograph, not a render. Night, roughly 03:00, overcast, no moon. Police quadcopter at 40 m altitude, 24 mm equivalent lens, wide aerial frame looking down at about 60 degrees, high ISO with visible fine luminance grain, slight motion softness at the frame edge, the drone's own white spotlight as the key light, everything outside it falling to black. In frame: a steep bare hillside, loose grey scree and low thorn scrub, no path, no buildings, no lights, the drone spotlight a hard white circle on rock and gravel, the slope falling away into black. Mood: empty, hostile ground. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "kettle-north-face/02-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal, 60 m around the fix: nothing.",
+        "source": "ai",
+        "prompt": "Real thermal (long-wave infrared) frame from a police drone's FLIR-style camera, white-hot palette: hot surfaces bright white, warm surfaces mid-grey, cold surfaces near black, no false colour. Soft edges and slight blur typical of a 640x512 thermal sensor upscaled, gentle vignette, faint sensor noise, no overlay of any kind. In frame: a steep rocky hillside from above, uniform cool grey rock and scree, a few slightly warmer boulders as dim grey shapes, thorn scrub as faint texture, no hot spots at all, no human signature. Mood: nothing here. NEGATIVE: no face, no facial detail, no identifying features, no clothing detail, no second person; no text, no crosshair, no reticle, no temperature scale, no timestamp, no watermark, no logo; no visible-light colour, no rainbow palette, no daylight; no illustration or render look."
+      }
+    ],
+    "kettle-cave-sealed": [
+      {
+        "file": "kettle-cave-sealed/01-aerial.jpg",
+        "kind": "aerial",
+        "caption": "Cave mouth, north face of Kettle Hill. The interior is unlit and out of line of sight.",
+        "source": "ai",
+        "prompt": "Real drone photograph, not a render. Night, roughly 03:00, overcast, no moon. Police quadcopter at 40 m altitude, 24 mm equivalent lens, wide aerial frame looking down at about 60 degrees, high ISO with visible fine luminance grain, slight motion softness at the frame edge, the drone's own white spotlight as the key light, everything outside it falling to black. In frame: a rocky hillside with a low dark cave opening in a band of grey rock, scree fanning out below it, thorn scrub either side, the drone spotlight on the rock above the entrance while the opening itself stays absolute black. Mood: a mouth in the hill, forbidding. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "kettle-cave-sealed/02-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal at the entrance: nothing. The drones do not enter a structure without cause.",
+        "source": "ai",
+        "prompt": "Real thermal (long-wave infrared) frame from a police drone's FLIR-style camera, white-hot palette: hot surfaces bright white, warm surfaces mid-grey, cold surfaces near black, no false colour. Soft edges and slight blur typical of a 640x512 thermal sensor upscaled, gentle vignette, faint sensor noise, no overlay of any kind. In frame: a cave entrance in a rock face seen from a hovering drone, the rock uniform cool grey, the opening a flat black void with no gradient, scree below slightly lighter grey, no hot spots, no human signature anywhere. Mood: sealed, cold. NEGATIVE: no face, no facial detail, no identifying features, no clothing detail, no second person; no text, no crosshair, no reticle, no temperature scale, no timestamp, no watermark, no logo; no visible-light colour, no rainbow palette, no daylight; no illustration or render look."
+      }
+    ],
+    "kettle-cave": [
+      {
+        "file": "kettle-cave/01-ground.jpg",
+        "kind": "ground",
+        "caption": "Cave, Kettle Hill, north face. Two drones inside. No one.",
+        "source": "ai",
+        "prompt": "Real photograph from a small police drone hovering at about 1.5 m, 24 mm equivalent lens, night. Lit only by the drone's own white LED lamp: a hard-edged pool of light with deep black falloff, high ISO grain, faint dust drifting in the beam. In frame: the inside of a natural rock cave, uneven stone floor with grit and dust, damp walls, a second small quadcopter's lamp visible ahead as a white glare with lens flare, the cave narrowing into darkness beyond, and low on the floor two small dark objects just at the edge of the light. Mood: torch-lit, claustrophobic. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "kettle-cave/02-detail.jpg",
+        "kind": "detail",
+        "caption": "On the floor six metres past the light: her grey jacket -- folded, not dropped.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: a woman's grey zip-up jacket folded neatly into a square and placed on a flat rock on a cave floor, the zip pull catching the light, dust and grit around it, the damp rock wall behind. Deliberately placed, not fallen. Mood: staged, unsettling. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "kettle-cave/03-detail.jpg",
+        "kind": "detail",
+        "caption": "Her PulseFit band, strap cut, 3% battery.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: a slim black fitness band with a small dark screen lying on a cave floor beside a folded grey jacket, its silicone strap cut cleanly through, the two ends splayed, a faint dim glow on the screen with nothing readable on it, grit and dust around it. Mood: cut loose, evidence. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "stop-1": [
+      {
+        "file": "stop-1/01-aerial.jpg",
+        "kind": "aerial",
+        "caption": "Northwind Campus, from 40 m. The car park under Block B.",
+        "source": "ai",
+        "prompt": "Real drone photograph, not a render. Night, roughly 03:00, overcast, no moon. Police quadcopter at 40 m altitude, 24 mm equivalent lens, wide aerial frame looking down at about 60 degrees, high ISO with visible fine luminance grain, slight motion softness at the frame edge, the drone's own white spotlight as the key light, everything outside it falling to black. In frame: a corporate office campus, a glass-and-concrete office block with a few lit floors, a barrier gate with a camera pole at the entrance, a concrete ramp curving down under the building into an underground car park lit by a strip of cold white light, a mostly empty surface car park. Mood: corporate, after hours. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "stop-1/02-ground.jpg",
+        "kind": "ground",
+        "caption": "Basement level. The print room is a dead zone for the campus cameras and its door locks from outside.",
+        "source": "ai",
+        "prompt": "Real photograph from a small police drone hovering at about 1.5 m, 24 mm equivalent lens, night. Lit only by the drone's own white LED lamp: a hard-edged pool of light with deep black falloff, high ISO grain, faint dust drifting in the beam. In frame: a basement corridor in an office building, painted breeze-block walls, exposed cable trays and pipes on the ceiling, a plain door with a blank sign panel and a keycard reader glowing beside it, a security camera on the corridor ceiling pointing the other way, flickering fluorescent light. Mood: back-of-house, unwatched. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "stop-1:clear": [
+      {
+        "file": "stop-1-clear/01-detail.jpg",
+        "kind": "detail",
+        "caption": "Inside: nothing. A chair against the wall. He checked a place. He did not use it.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: a small windowless basement print room, a large photocopier under a dust sheet, shelves of paper reams, a bare concrete floor, and a single office chair pushed against the far wall. Empty room. Mood: checked, unused. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "stop-1-clear/02-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal, print room: no trace of her.",
+        "source": "ai",
+        "prompt": "Real thermal (long-wave infrared) frame from a police drone's FLIR-style camera, white-hot palette: hot surfaces bright white, warm surfaces mid-grey, cold surfaces near black, no false colour. Soft edges and slight blur typical of a 640x512 thermal sensor upscaled, gentle vignette, faint sensor noise, no overlay of any kind. In frame: a small windowless room from the doorway, cool grey walls and floor, a photocopier as a slightly warmer rectangle, a chair against the wall as a dim outline, no human signature, no hot spots. Mood: empty. NEGATIVE: no face, no facial detail, no identifying features, no clothing detail, no second person; no text, no crosshair, no reticle, no temperature scale, no timestamp, no watermark, no logo; no visible-light colour, no rainbow palette, no daylight; no illustration or render look."
+      }
+    ],
+    "stop-1:found": [
+      {
+        "file": "stop-1-found/01-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal, print room: one person, alive, on the floor by the far wall.",
+        "source": "ai",
+        "prompt": "Real thermal (long-wave infrared) frame from a police drone's FLIR-style camera, white-hot palette: hot surfaces bright white, warm surfaces mid-grey, cold surfaces near black, no false colour. Soft edges and slight blur typical of a 640x512 thermal sensor upscaled, gentle vignette, faint sensor noise, no overlay of any kind. In frame: a small windowless room from the doorway, cool grey walls and a photocopier as a warmer rectangle, and on the floor along the far wall a single bright white-hot human heat signature lying on its side, curled, blurred and featureless, a faint warm halo on the floor around it. One person only. Mood: located. NEGATIVE: no face, no facial detail, no identifying features, no clothing detail, no second person; no text, no crosshair, no reticle, no temperature scale, no timestamp, no watermark, no logo; no visible-light colour, no rainbow palette, no daylight; no illustration or render look."
+      },
+      {
+        "file": "stop-1-found/02-detail.jpg",
+        "kind": "detail",
+        "caption": "Under his own office, behind a door that only locks from outside.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: the outside of a plain basement door in a breeze-block corridor, a heavy sliding bolt and a padlock hasp fitted on the corridor side at chest height, no handle on the inside visible through the gap, fluorescent light. Mood: a cell, not a room. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "stop-2": [
+      {
+        "file": "stop-2/01-aerial.jpg",
+        "kind": "aerial",
+        "caption": "Meridian Stadium, east service gate, from 40 m.",
+        "source": "ai",
+        "prompt": "Real drone photograph, not a render. Night, roughly 03:00, overcast, no moon. Police quadcopter at 40 m altitude, 24 mm equivalent lens, wide aerial frame looking down at about 60 degrees, high ISO with visible fine luminance grain, slight motion softness at the frame edge, the drone's own white spotlight as the key light, everything outside it falling to black. In frame: a large modern stadium, the curved east stand with its roof cantilever, floodlight masts dark, a chain-link service gate in the perimeter fence with a service road behind it, a few security lamps on the stand's back wall, an empty coach park. Mood: vast and empty. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "stop-2/02-detail.jpg",
+        "kind": "detail",
+        "caption": "The padlock has been cut and hung back on the hasp.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: a chain-link service gate, a heavy brass padlock hanging on the hasp with its shackle cut clean through by bolt cutters, bright metal at the cut, the chain draped through the mesh, wet concrete below. Mood: forced entry made to look shut. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "stop-2:clear": [
+      {
+        "file": "stop-2-clear/01-ground.jpg",
+        "kind": "ground",
+        "caption": "Under the east stand: a first-aid room with the cot stripped. No one.",
+        "source": "ai",
+        "prompt": "Real photograph from a small police drone hovering at about 1.5 m, 24 mm equivalent lens, night. Lit only by the drone's own white LED lamp: a hard-edged pool of light with deep black falloff, high ISO grain, faint dust drifting in the beam. In frame: a small first-aid room under a stadium stand, painted concrete walls, a green first-aid cabinet, a wall sink, a metal-framed treatment cot with its mattress bare and the bedding stripped off, a single ceiling light. Empty room. Mood: cleared out. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "stop-2-clear/02-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal, under the east stand: no trace of her.",
+        "source": "ai",
+        "prompt": "Real thermal (long-wave infrared) frame from a police drone's FLIR-style camera, white-hot palette: hot surfaces bright white, warm surfaces mid-grey, cold surfaces near black, no false colour. Soft edges and slight blur typical of a 640x512 thermal sensor upscaled, gentle vignette, faint sensor noise, no overlay of any kind. In frame: a bare first-aid room seen from the door, cool grey walls, a treatment cot as a cold dark rectangle, a sink and cabinet as faint outlines, no human signature, no hot spots. Mood: empty. NEGATIVE: no face, no facial detail, no identifying features, no clothing detail, no second person; no text, no crosshair, no reticle, no temperature scale, no timestamp, no watermark, no logo; no visible-light colour, no rainbow palette, no daylight; no illustration or render look."
+      }
+    ],
+    "stop-2:found": [
+      {
+        "file": "stop-2-found/01-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal, first-aid room: one person on the cot, alive.",
+        "source": "ai",
+        "prompt": "Real thermal (long-wave infrared) frame from a police drone's FLIR-style camera, white-hot palette: hot surfaces bright white, warm surfaces mid-grey, cold surfaces near black, no false colour. Soft edges and slight blur typical of a 640x512 thermal sensor upscaled, gentle vignette, faint sensor noise, no overlay of any kind. In frame: a small first-aid room from the doorway, cool grey walls and floor, and on a treatment cot along one wall a single bright white-hot human heat signature lying flat, blurred and featureless, the cot frame a dark outline around it, warmth bleeding into the mattress. One person only. Mood: located. NEGATIVE: no face, no facial detail, no identifying features, no clothing detail, no second person; no text, no crosshair, no reticle, no temperature scale, no timestamp, no watermark, no logo; no visible-light colour, no rainbow palette, no daylight; no illustration or render look."
+      },
+      {
+        "file": "stop-2-found/02-detail.jpg",
+        "kind": "detail",
+        "caption": "A room with a bed and a lock, empty until the season starts.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: a steel door with a small blank sign panel in a concrete corridor under a stadium stand, a heavy padlock and hasp on the outside, a strip of light under the door, dusty floor with fresh scuff marks. Mood: locked from the outside. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "stop-3": [
+      {
+        "file": "stop-3/01-aerial.jpg",
+        "kind": "aerial",
+        "caption": "Old Town Market Hall, loading yard, from 40 m.",
+        "source": "ai",
+        "prompt": "Real drone photograph, not a render. Night, roughly 03:00, overcast, no moon. Police quadcopter at 40 m altitude, 24 mm equivalent lens, wide aerial frame looking down at about 60 degrees, high ISO with visible fine luminance grain, slight motion softness at the frame edge, the drone's own white spotlight as the key light, everything outside it falling to black. In frame: a Victorian-style covered market hall with a long slate roof and clerestory, a cobbled loading yard at the back with roller shutters, stacked pallets and crates, a refrigerated store with an external compressor and a single amber lamp on the wall, narrow old-town streets beyond. Mood: old brick, cold night. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "stop-3/02-detail.jpg",
+        "kind": "detail",
+        "caption": "The cold store at the back has been opened tonight: the seal is broken, the compressor is running.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: the heavy insulated door of a walk-in cold store, its lever handle, a plastic tamper seal snapped and dangling from the latch, frost around the door gasket, a condenser unit on the wall beside it with its fan blurred in motion, vapour at the door edge. Mood: recently opened. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "stop-3:clear": [
+      {
+        "file": "stop-3-clear/01-ground.jpg",
+        "kind": "ground",
+        "caption": "Inside: crates, ice, a torch left on the floor, still on. No one.",
+        "source": "ai",
+        "prompt": "Real photograph from a small police drone hovering at about 1.5 m, 24 mm equivalent lens, night. Lit only by the drone's own white LED lamp: a hard-edged pool of light with deep black falloff, high ISO grain, faint dust drifting in the beam. In frame: the inside of a walk-in cold store, frosted steel walls, stacked plastic crates and slabs of ice, a hand torch lying on the wet floor with its beam still on and throwing a long cone across the frost, vapour in the air. Empty. Mood: someone left in a hurry. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "stop-3-clear/02-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal, cold store: no trace of her.",
+        "source": "ai",
+        "prompt": "Real thermal (long-wave infrared) frame from a police drone's FLIR-style camera, white-hot palette: hot surfaces bright white, warm surfaces mid-grey, cold surfaces near black, no false colour. Soft edges and slight blur typical of a 640x512 thermal sensor upscaled, gentle vignette, faint sensor noise, no overlay of any kind. In frame: the inside of a walk-in cold store from the door, everything near black with cold, crates as slightly lighter blocks, one small bright point on the floor where a torch bulb is warm, no human signature. Mood: empty, freezing. NEGATIVE: no face, no facial detail, no identifying features, no clothing detail, no second person; no text, no crosshair, no reticle, no temperature scale, no timestamp, no watermark, no logo; no visible-light colour, no rainbow palette, no daylight; no illustration or render look."
+      }
+    ],
+    "stop-3:found": [
+      {
+        "file": "stop-3-found/01-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal, faint: one person, alive, cold.",
+        "source": "ai",
+        "prompt": "Real thermal (long-wave infrared) frame from a police drone's FLIR-style camera, white-hot palette: hot surfaces bright white, warm surfaces mid-grey, cold surfaces near black, no false colour. Soft edges and slight blur typical of a 640x512 thermal sensor upscaled, gentle vignette, faint sensor noise, no overlay of any kind. In frame: the inside of a walk-in cold store from the door, walls and crates near black with cold, and low on the floor between crates a single dim grey-white human heat signature lying curled, faint and low-contrast against the cold, blurred and featureless, the only warmth in the frame. One person only. Mood: barely there. NEGATIVE: no face, no facial detail, no identifying features, no clothing detail, no second person; no text, no crosshair, no reticle, no temperature scale, no timestamp, no watermark, no logo; no visible-light colour, no rainbow palette, no daylight; no illustration or render look."
+      },
+      {
+        "file": "stop-3-found/02-detail.jpg",
+        "kind": "detail",
+        "caption": "The compressor is running.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: an external refrigeration compressor and condenser unit on a brick wall, its fan blades blurred with motion, frost on the copper lines, a green indicator lamp glowing on the control box, a puddle of meltwater on the cobbles beneath. Mood: mechanical, relentless. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "stop-4": [
+      {
+        "file": "stop-4/01-aerial.jpg",
+        "kind": "aerial",
+        "caption": "A house at the foot of Kettle Hill, on lane 171.5, from 40 m. Six hundred metres from the cave.",
+        "source": "ai",
+        "prompt": "Real drone photograph, not a render. Night, roughly 03:00, overcast, no moon. Police quadcopter at 40 m altitude, 24 mm equivalent lens, wide aerial frame looking down at about 60 degrees, high ISO with visible fine luminance grain, slight motion softness at the frame edge, the drone's own white spotlight as the key light, everything outside it falling to black. In frame: a small single-storey house on a narrow unlit lane at the edge of a hamlet, a dark hill rising behind it, a walled yard, a tin-roofed lean-to, no lights in the house, one distant street lamp at the lane end, the drone spotlight on the roof. Mood: isolated, watched. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "stop-4/02-ground.jpg",
+        "kind": "ground",
+        "caption": "Curtains pinned shut.",
+        "source": "ai",
+        "prompt": "Real photograph from a small police drone hovering at about 1.5 m, 24 mm equivalent lens, night. Lit only by the drone's own white LED lamp: a hard-edged pool of light with deep black falloff, high ISO grain, faint dust drifting in the beam. In frame: the front of a small plain house, a single window with its curtains drawn tight and pinned together at the middle with clothes pegs, a plain front door, peeling paint, a concrete step, weeds along the wall. Mood: shut in. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "stop-4:clear": [
+      {
+        "file": "stop-4-clear/01-detail.jpg",
+        "kind": "detail",
+        "caption": "An air mattress, six bottles of water, a roll of tape. Prepared. Not used. No one.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: a bare room in a small house, an inflated air mattress on the floor with no bedding, six plastic bottles of water lined up against the wall, a roll of grey tape on the floor beside them, curtains pinned shut, dust. Empty room. Mood: prepared, ominous. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "stop-4-clear/02-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal, house: no trace of her.",
+        "source": "ai",
+        "prompt": "Real thermal (long-wave infrared) frame from a police drone's FLIR-style camera, white-hot palette: hot surfaces bright white, warm surfaces mid-grey, cold surfaces near black, no false colour. Soft edges and slight blur typical of a 640x512 thermal sensor upscaled, gentle vignette, faint sensor noise, no overlay of any kind. In frame: a bare room from the doorway, cool grey walls and floor, an air mattress as a slightly cooler flat rectangle, bottles as tiny cold points along the wall, no human signature, no hot spots. Mood: empty. NEGATIVE: no face, no facial detail, no identifying features, no clothing detail, no second person; no text, no crosshair, no reticle, no temperature scale, no timestamp, no watermark, no logo; no visible-light colour, no rainbow palette, no daylight; no illustration or render look."
+      }
+    ],
+    "stop-4:found": [
+      {
+        "file": "stop-4-found/01-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal in the back room: one person on a mattress, alive.",
+        "source": "ai",
+        "prompt": "Real thermal (long-wave infrared) frame from a police drone's FLIR-style camera, white-hot palette: hot surfaces bright white, warm surfaces mid-grey, cold surfaces near black, no false colour. Soft edges and slight blur typical of a 640x512 thermal sensor upscaled, gentle vignette, faint sensor noise, no overlay of any kind. In frame: a small bare room from the doorway, cool grey walls, and on an air mattress on the floor a single bright white-hot human heat signature lying on its side, blurred and featureless, warmth spreading into the mattress around it, a few cold bottle shapes along the wall. One person only. Mood: located. NEGATIVE: no face, no facial detail, no identifying features, no clothing detail, no second person; no text, no crosshair, no reticle, no temperature scale, no timestamp, no watermark, no logo; no visible-light colour, no rainbow palette, no daylight; no illustration or render look."
+      },
+      {
+        "file": "stop-4-found/02-ground.jpg",
+        "kind": "ground",
+        "caption": "The back room. Six hundred metres from where he left her jacket.",
+        "source": "ai",
+        "prompt": "Real photograph from a small police drone hovering at about 1.5 m, 24 mm equivalent lens, night. Lit only by the drone's own white LED lamp: a hard-edged pool of light with deep black falloff, high ISO grain, faint dust drifting in the beam. In frame: a plain interior door at the end of a short dark hallway in a small house, closed, a new sliding bolt fitted on the hallway side, a line of light under the door, bare floorboards, a roll of tape on the floor by the skirting. Mood: shut from outside. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "stop-5": [
+      {
+        "file": "stop-5/01-aerial.jpg",
+        "kind": "aerial",
+        "caption": "Harrow Mills, Unit 4, from 40 m. Dark since the mill closed.",
+        "source": "ai",
+        "prompt": "Real drone photograph, not a render. Night, roughly 03:00, overcast, no moon. Police quadcopter at 40 m altitude, 24 mm equivalent lens, wide aerial frame looking down at about 60 degrees, high ISO with visible fine luminance grain, slight motion softness at the frame edge, the drone's own white spotlight as the key light, everything outside it falling to black. In frame: a derelict industrial mill site, a row of long brick sheds with sawtooth roofs, broken skylights, a chimney, a rusted gate with a camera on a pole, weeds through the concrete apron, one unit with its loading bay door ajar, no lights anywhere but the drone's. Mood: abandoned, black. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "stop-5/02-detail.jpg",
+        "kind": "detail",
+        "caption": "CCTV-37 on the gate: the circuit was cut at the box.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: a grey steel junction box on a gate post with its cover hanging open, a bundle of cables inside cut cleanly through, bare copper showing, the CCTV camera above it dark, rusted gate bars behind. Mood: sabotaged. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "stop-5:clear": [
+      {
+        "file": "stop-5-clear/01-ground.jpg",
+        "kind": "ground",
+        "caption": "Inside: dust, a chair moved to the middle of the floor, a bottle of water. Someone sat here and thought. No one now.",
+        "source": "ai",
+        "prompt": "Real photograph from a small police drone hovering at about 1.5 m, 24 mm equivalent lens, night. Lit only by the drone's own white LED lamp: a hard-edged pool of light with deep black falloff, high ISO grain, faint dust drifting in the beam. In frame: the vast empty floor of a derelict mill shed, cast-iron columns, dust thick on concrete, and in the exact centre a single wooden chair facing the door with a plastic water bottle on the floor beside it, drag marks in the dust leading to the chair. Empty. Mood: someone waited here. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "stop-5-clear/02-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal, Unit 4: no trace of her.",
+        "source": "ai",
+        "prompt": "Real thermal (long-wave infrared) frame from a police drone's FLIR-style camera, white-hot palette: hot surfaces bright white, warm surfaces mid-grey, cold surfaces near black, no false colour. Soft edges and slight blur typical of a 640x512 thermal sensor upscaled, gentle vignette, faint sensor noise, no overlay of any kind. In frame: a huge empty shed floor from the doorway, uniform cool grey, columns as dark verticals, a single chair as a faint outline in the centre, no human signature, no hot spots. Mood: empty. NEGATIVE: no face, no facial detail, no identifying features, no clothing detail, no second person; no text, no crosshair, no reticle, no temperature scale, no timestamp, no watermark, no logo; no visible-light colour, no rainbow palette, no daylight; no illustration or render look."
+      }
+    ],
+    "stop-5:found": [
+      {
+        "file": "stop-5-found/01-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal in the office behind the loading bay: one person on the floor, alive.",
+        "source": "ai",
+        "prompt": "Real thermal (long-wave infrared) frame from a police drone's FLIR-style camera, white-hot palette: hot surfaces bright white, warm surfaces mid-grey, cold surfaces near black, no false colour. Soft edges and slight blur typical of a 640x512 thermal sensor upscaled, gentle vignette, faint sensor noise, no overlay of any kind. In frame: a small partitioned office inside an industrial shed seen through its doorway, cool grey walls and a desk as a dark block, and on the floor a single bright white-hot human heat signature lying curled, blurred and featureless, a warm halo on the concrete. One person only. Mood: located. NEGATIVE: no face, no facial detail, no identifying features, no clothing detail, no second person; no text, no crosshair, no reticle, no temperature scale, no timestamp, no watermark, no logo; no visible-light colour, no rainbow palette, no daylight; no illustration or render look."
+      },
+      {
+        "file": "stop-5-found/02-ground.jpg",
+        "kind": "ground",
+        "caption": "The office behind the loading bay. His father's mill.",
+        "source": "ai",
+        "prompt": "Real photograph from a small police drone hovering at about 1.5 m, 24 mm equivalent lens, night. Lit only by the drone's own white LED lamp: a hard-edged pool of light with deep black falloff, high ISO grain, faint dust drifting in the beam. In frame: a derelict mill loading bay, a roller door half up, and at the back a small brick-and-glass foreman's office with its door shut and a new padlock on a hasp, dust and drag marks on the floor leading to it, the drone's lamp the only light. Mood: hidden in plain sight. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "stop-6": [
+      {
+        "file": "stop-6/01-aerial.jpg",
+        "kind": "aerial",
+        "caption": "Westhollow Chapel, from 40 m. The store behind the vestry.",
+        "source": "ai",
+        "prompt": "Real drone photograph, not a render. Night, roughly 03:00, overcast, no moon. Police quadcopter at 40 m altitude, 24 mm equivalent lens, wide aerial frame looking down at about 60 degrees, high ISO with visible fine luminance grain, slight motion softness at the frame edge, the drone's own white spotlight as the key light, everything outside it falling to black. In frame: a small stone chapel with a slate roof and a bell cote on a quiet village high street, a low wall and iron gate, a small flat-roofed vestry extension at the back with a single door and step, one street lamp, no lights in the chapel, the drone spotlight on the vestry roof. Mood: sleeping village. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "stop-6/02-detail.jpg",
+        "kind": "detail",
+        "caption": "The vestry key is under the mat and it has been used tonight: dust on the step, one set of prints.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: a worn stone step at a small wooden vestry door, a coir doormat lifted at one corner exposing an old iron key, a film of dust on the step with a single clear set of shoe prints leading in, the door ajar. Mood: someone came in the dark. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "stop-6:clear": [
+      {
+        "file": "stop-6-clear/01-ground.jpg",
+        "kind": "ground",
+        "caption": "Inside: hymn books, a boiler, a folded blanket that is not the chapel's. No one.",
+        "source": "ai",
+        "prompt": "Real photograph from a small police drone hovering at about 1.5 m, 24 mm equivalent lens, night. Lit only by the drone's own white LED lamp: a hard-edged pool of light with deep black falloff, high ISO grain, faint dust drifting in the beam. In frame: a cramped store room behind a chapel vestry, shelves of hymn books, a wall-hung gas boiler with a small indicator glow, cardboard boxes, and on the floor by the boiler a neatly folded fleece blanket in a colour that matches nothing else in the room. Empty. Mood: someone prepared this. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      },
+      {
+        "file": "stop-6-clear/02-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal, vestry store: no trace of her.",
+        "source": "ai",
+        "prompt": "Real thermal (long-wave infrared) frame from a police drone's FLIR-style camera, white-hot palette: hot surfaces bright white, warm surfaces mid-grey, cold surfaces near black, no false colour. Soft edges and slight blur typical of a 640x512 thermal sensor upscaled, gentle vignette, faint sensor noise, no overlay of any kind. In frame: a small store room from the door, cool grey shelves, a wall boiler as a warm bright rectangle with warm pipes running from it, a folded blanket as a faint warm square on the floor near it, no human signature. Mood: empty. NEGATIVE: no face, no facial detail, no identifying features, no clothing detail, no second person; no text, no crosshair, no reticle, no temperature scale, no timestamp, no watermark, no logo; no visible-light colour, no rainbow palette, no daylight; no illustration or render look."
+      }
+    ],
+    "stop-6:found": [
+      {
+        "file": "stop-6-found/01-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal: one person, alive, under a blanket by the boiler.",
+        "source": "ai",
+        "prompt": "Real thermal (long-wave infrared) frame from a police drone's FLIR-style camera, white-hot palette: hot surfaces bright white, warm surfaces mid-grey, cold surfaces near black, no false colour. Soft edges and slight blur typical of a 640x512 thermal sensor upscaled, gentle vignette, faint sensor noise, no overlay of any kind. In frame: a small store room from the door, cool grey shelves, a wall boiler as a bright warm rectangle, and on the floor beneath it a single human heat signature lying curled, seen as a soft white-grey glow through a blanket that muffles it, blurred and featureless, no other warmth. One person only. Mood: located. NEGATIVE: no face, no facial detail, no identifying features, no clothing detail, no second person; no text, no crosshair, no reticle, no temperature scale, no timestamp, no watermark, no logo; no visible-light colour, no rainbow palette, no daylight; no illustration or render look."
+      },
+      {
+        "file": "stop-6-found/02-detail.jpg",
+        "kind": "detail",
+        "caption": "A chapel that opens twice a week, on the far side of the city from anyone who would look.",
+        "source": "ai",
+        "prompt": "Real close-up photograph from a small police drone hovering within a metre of the subject, 24 mm equivalent lens, night. Lit by the drone's white LED lamp from just above the camera: hard shadows, a shallow pool of light, black beyond it, high ISO grain, mild chromatic fringing. In frame: a heavy wooden vestry door with an old iron lock, the key turned in it from the outside, a worn stone step and a doormat below, the drone lamp raking across the grain of the wood, black night beyond the doorway. Mood: closed to the world. NEGATIVE: no people, no faces, no bodies, no silhouettes; no text, no captions, no timestamps, no watermarks, no logos, no readable signs, no number plates; no daylight, no sunrise, no blue-hour sky; no CGI or render look, no illustration, no HUD overlay."
+      }
+    ],
+    "generic:building": [
+      {
+        "file": "generic-building/01-aerial.jpg",
+        "kind": "aerial",
+        "caption": "Aerial pass, 60 m around the point.",
+        "source": "stock",
+        "stock": "Search: drone aerial view city building night top down rooftops street lights || Must be in frame: A single ordinary urban building and its neighbours seen from directly above or a steep angle at night, rooftops and a street with a few lamps. No people, no text overlay, no daylight, no famous landmark, no readable signage."
+      },
+      {
+        "file": "generic-building/02-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Rooftop thermal: nothing.",
+        "source": "stock",
+        "stock": "Search: thermal drone image building rooftop night infrared white hot || Must be in frame: A thermal or infrared aerial frame of a building roof and surrounding street in a white-hot or greyscale palette, no human heat signatures, no crosshair or on-screen data. Warm HVAC units or a chimney are fine; any person-shaped hot spot is not."
+      },
+      {
+        "file": "generic-building/03-ground.jpg",
+        "kind": "ground",
+        "caption": "Street level. No trace.",
+        "source": "stock",
+        "stock": "Search: empty city street night building entrance closed shutters street lamp || Must be in frame: A quiet street at night in front of an ordinary building: a closed entrance or shutter, a lamp, wet pavement, parked cars are fine. No people, no readable signage or logos, no daylight."
+      }
+    ],
+    "generic:coords": [
+      {
+        "file": "generic-coords/01-aerial.jpg",
+        "kind": "aerial",
+        "caption": "Aerial pass, 60 m around the point.",
+        "source": "stock",
+        "stock": "Search: drone night aerial empty road intersection street corner open ground || Must be in frame: Open ground or a street corner seen from a drone at night: a road junction, a patch of waste ground or a field edge, a lamp or two. No people, no text overlay, no daylight, no landmark."
+      },
+      {
+        "file": "generic-coords/02-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal: nothing.",
+        "source": "stock",
+        "stock": "Search: thermal drone aerial night empty field road infrared greyscale || Must be in frame: A thermal aerial frame of open ground or a road in a white-hot or greyscale palette, uniform cool tones, no human heat signature, no on-screen data or reticle."
+      },
+      {
+        "file": "generic-coords/03-ground.jpg",
+        "kind": "ground",
+        "caption": "Ground level. No trace.",
+        "source": "stock",
+        "stock": "Search: empty street corner night lamp post wet road no people || Must be in frame: A ground-level night view of a street corner or open ground lit by one lamp or a flashlight, wet tarmac or grass. No people, no readable signs, no daylight."
+      }
+    ],
+    "generic:cave": [
+      {
+        "file": "generic-cave/01-aerial.jpg",
+        "kind": "aerial",
+        "caption": "Cave mouth on the hillside. Searched 60 m around the point.",
+        "source": "stock",
+        "stock": "Search: cave entrance rocky hillside night flashlight aerial || Must be in frame: A dark cave opening in a rocky hillside or old quarry face at night, lit by a torch or drone light, scree and scrub around it. No people, no daylight, no text."
+      },
+      {
+        "file": "generic-cave/02-thermal.jpg",
+        "kind": "thermal",
+        "caption": "Thermal at the entrance: nothing.",
+        "source": "stock",
+        "stock": "Search: thermal infrared image cave entrance rock night greyscale || Must be in frame: A thermal frame of a cave or rock opening in a white-hot or greyscale palette: uniform cool rock, the opening a black void, no human heat signature, no reticle or on-screen data."
+      },
+      {
+        "file": "generic-cave/03-ground.jpg",
+        "kind": "ground",
+        "caption": "Cave mouth, ground level. No trace.",
+        "source": "stock",
+        "stock": "Search: cave entrance close up night torchlight rock || Must be in frame: A ground-level torch-lit view into a cave mouth, rock walls and floor, darkness beyond. No people, no daylight, no text or logos."
+      }
+    ]
+  }
+}

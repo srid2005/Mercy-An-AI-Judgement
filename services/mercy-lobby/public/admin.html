@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MERCY</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/lobby.css?v=1" />
+    <link rel="stylesheet" href="/css/admin.css?v=1" />
+  </head>
+  <body>
+    <div id="bg" aria-hidden="true">
+      <div class="orb o1"></div>
+      <div class="orb o2"></div>
+      <div class="orb o3"></div>
+      <div class="orb o4"></div>
+      <div id="bg-pillars"></div>
+      <div id="bg-vignette"></div>
+    </div>
+
+    <!-- the door -->
+    <section id="login" class="stage">
+      <form class="hud-card login-card" id="login-form" autocomplete="off">
+        <div class="brand light big"><span class="mark">MERCY</span><span class="sub">AI JUDGEMENT</span></div>
+        <div class="rule" aria-hidden="true"></div>
+        <h1>THE DESK</h1>
+        <input id="password" class="field" type="password" placeholder="admin password" aria-label="Admin password" autocomplete="current-password" />
+        <button id="login-btn" class="btn wide" type="submit" style="margin-top: 14px">OPEN</button>
+        <div id="login-error" class="error" role="alert"></div>
+        <div class="file-no">FILE UDR 0412/2018 &middot; ADMIN</div>
+      </form>
+    </section>
+
+    <!-- the desk -->
+    <div id="desk" hidden>
+      <header class="topbar">
+        <div class="brand"><span class="mark">MERCY</span><span class="sub">THE DESK</span></div>
+        <nav id="tabbar" role="tablist">
+          <button class="tab-btn active" data-tab="participants" role="tab">PARTICIPANTS</button>
+          <button class="tab-btn" data-tab="leaderboard" role="tab">LEADERBOARD</button>
+          <button class="tab-btn" data-tab="resources" role="tab">RESOURCES</button>
+          <button class="tab-btn" data-tab="event" role="tab">EVENT</button>
+        </nav>
+        <div class="right">
+          <span class="case-no" id="clock-top">--:--:--</span>
+          <button class="link" id="logout-btn" type="button">LOG OUT</button>
+        </div>
+      </header>
+
+      <main class="page">
+        <!-- PARTICIPANTS -->
+        <section id="tab-participants" class="tab active">
+          <div class="counts" id="counts">
+            <div class="count"><span class="l">ON THE LIST</span><b id="n-total">0</b></div>
+            <div class="count"><span class="l">NOT STARTED</span><b id="n-new">0</b></div>
+            <div class="count hot"><span class="l">PLAYING</span><b id="n-playing">0</b></div>
+            <div class="count"><span class="l">FINISHED</span><b id="n-finished">0</b></div>
+            <div class="count good"><span class="l">SOLVED</span><b id="n-solved">0</b></div>
+            <div class="count"><span class="l">TIMEOUT</span><b id="n-timeout">0</b></div>
+            <div class="count"><span class="l">LEFT</span><b id="n-left">0</b></div>
+          </div>
+
+          <div class="two-col">
+            <div class="glass">
+              <div class="glass-head">
+                <span class="pk-title">PARTICIPANTS</span>
+                <input id="search" class="field search" type="search" placeholder="Search an id or a name" autocomplete="off" />
+                <span class="file-no dim" id="players-note">every 5 s</span>
+              </div>
+              <div class="table-wrap">
+                <table class="table players">
+                  <thead>
+                    <tr>
+                      <th>ID</th><th>NAME</th><th>STATUS</th><th>STARTED</th><th class="num">TIME LEFT</th><th class="num">GUILT</th><th class="num">CHECKPOINTS</th>
+                      <th class="num">EVIDENCE</th><th class="num">SEARCHES</th><th>CHASE</th><th class="num">RESTARTS</th><th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="players"><tr class="empty"><td colspan="12">loading…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="side">
+              <form class="glass form" id="create-form">
+                <div class="glass-head"><span class="pk-title">ADD ONE</span></div>
+                <div class="form-body">
+                  <label class="lbl" for="new-id">ZINNIA ID</label>
+                  <input id="new-id" class="field mono" type="text" placeholder="ZIN26-0158" maxlength="10" autocomplete="off" spellcheck="false" />
+                  <label class="lbl" for="new-name">NAME</label>
+                  <input id="new-name" class="field" type="text" placeholder="Display name (public on the board)" maxlength="80" autocomplete="off" />
+                  <button class="btn wide" type="submit">ADD PARTICIPANT</button>
+                </div>
+              </form>
+              <form class="glass form" id="bulk-form">
+                <div class="glass-head"><span class="pk-title">PASTE MANY</span></div>
+                <div class="form-body">
+                  <textarea id="bulk" class="field" placeholder="ZIN26-0158, Asha Rao&#10;ZIN26-0159	Dev Menon&#10;ZIN26-0160 Priya Nair&#10;one per line -- the id, then the name" spellcheck="false"></textarea>
+                  <button class="btn wide" type="submit">ADD ALL</button>
+                  <div class="note">A known id gets its name updated. Nothing is provisioned until they log in.</div>
+                  <div id="bulk-result" class="bulk-result"></div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- LEADERBOARD -->
+        <section id="tab-leaderboard" class="tab">
+          <div class="hud-card board-panel">
+            <div class="glass-head"><span class="pk-title light">LEADERBOARD</span><span class="file-no" id="board-note">every 5 s</span></div>
+            <div class="table-wrap">
+              <table class="board compact">
+                <thead><tr><th>#</th><th>NAME</th><th>ID</th><th>RESULT</th><th class="num">TIME</th><th class="num">STANDING</th><th class="num">CHECKPOINTS</th></tr></thead>
+                <tbody id="board"><tr class="empty"><td colspan="7">loading…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="hint">The projector view is <a id="proj-link" href="/leaderboard" target="_blank" rel="noopener">/leaderboard</a>.</div>
+        </section>
+
+        <!-- RESOURCES -->
+        <section id="tab-resources" class="tab">
+          <div class="res-grid">
+            <div class="glass res-host">
+              <div class="glass-head"><span class="pk-title">HOST</span><span class="file-no dim" id="res-note">every 5 s</span></div>
+              <div class="host-body">
+                <div class="host-row"><span class="l">CPU</span><span class="v"><b id="h-cpus">-</b> cores &middot; load <b id="h-load">-</b></span></div>
+                <div class="host-row"><span class="l">MEMORY</span><span class="v"><b id="h-mem">-</b></span></div>
+                <div class="bar"><i id="h-mem-bar"></i></div>
+                <div class="host-row"><span class="l">DISK</span><span class="v"><b id="h-disk">-</b></span></div>
+                <div class="bar"><i id="h-disk-bar"></i></div>
+                <div class="host-row"><span class="l">UPTIME</span><span class="v"><b id="h-uptime">-</b></span></div>
+                <div class="host-row"><span class="l">DOCKER</span><span class="v"><b id="h-docker">-</b></span></div>
+              </div>
+            </div>
+            <div class="glass res-players">
+              <div class="glass-head"><span class="pk-title">THE ROOM</span></div>
+              <div class="room-body">
+                <div class="count"><span class="l">ON THE LIST</span><b id="r-total">0</b></div>
+                <div class="count hot"><span class="l">PLAYING</span><b id="r-playing">0</b></div>
+                <div class="count"><span class="l">FINISHED</span><b id="r-finished">0</b></div>
+                <div class="count good"><span class="l">SOLVED</span><b id="r-solved">0</b></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass">
+            <div class="glass-head"><span class="pk-title">CONTAINERS</span><span class="file-no dim" id="containers-note"></span></div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>SERVICE</th><th>CONTAINER</th><th>STATE</th><th class="num">CPU</th><th class="barcol"></th><th class="num">MEMORY</th><th class="barcol"></th></tr></thead>
+                <tbody id="containers"><tr class="empty"><td colspan="7">loading…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="glass">
+            <div class="glass-head"><span class="pk-title">SERVICES</span></div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>SERVICE</th><th class="num">DB SIZE</th><th class="num">CONNECTIONS</th><th class="num">POOL</th><th class="num">SCHEMAS</th><th class="num">REQ / MIN</th><th class="num">REQ TOTAL</th><th>TEMPLATE</th><th>MODE</th></tr></thead>
+                <tbody id="services"><tr class="empty"><td colspan="9">loading…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- EVENT -->
+        <section id="tab-event" class="tab">
+          <div class="res-grid">
+            <div class="hud-card event-card">
+              <div class="l">PARTICIPANTS OPEN</div>
+              <div class="url" id="share-url">http://localhost:3030/</div>
+              <div class="l" style="margin-top: 18px">EVENT CLOCK</div>
+              <div class="clock" id="clock">--:--:--</div>
+              <div class="l" id="game-minutes">25 MINUTES A GAME</div>
+            </div>
+            <div class="glass actions-panel">
+              <div class="glass-head"><span class="pk-title">CONTROLS</span></div>
+              <div class="actions-body">
+                <div class="action">
+                  <button class="btn" id="btn-prepare" type="button">PREPARE TEMPLATES</button>
+                  <span>Seed every service's template now, so the first login is fast.</span>
+                </div>
+                <div class="action">
+                  <button class="btn" id="btn-restart-services" type="button">RESTART SERVICES</button>
+                  <span>Restart the app containers over the Docker socket. Databases and this lobby are never touched.</span>
+                </div>
+                <div class="action">
+                  <button class="btn danger" id="btn-reset" type="button">RESET EVERY GAME</button>
+                  <span>Drop every participant's game and every template; the list of participants stays. Type RESET to confirm.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass">
+            <div class="glass-head"><span class="pk-title">LOG</span><span class="file-no dim" id="events-note">the last 200</span></div>
+            <div class="log" id="events"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" hidden></div>
+    <script src="/js/board.js?v=1"></script>
+    <script src="/js/admin.js?v=1"></script>
+  </body>
+</html>

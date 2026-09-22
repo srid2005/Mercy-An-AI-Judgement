@@ -32,6 +32,10 @@
     </div>
     <button class="switch-account" id="show-hint-btn" type="button">Get help logging in</button>
   </div>
+  <script>
+    // already signed in on this device: go straight to the app, like any real site
+    try { if (localStorage.getItem('sm_token')) location.replace('/feed.html' + location.hash); } catch (e) {}
+  </script>
   <script src="/js/lock.js"></script>
     <script>
       // MERCY desktop shell: tell the Orbit browser where we are so its address bar follows.
@@ -48,6 +52,24 @@
         history.replaceState = function () { rs.apply(this, arguments); send(); };
         var t = document.querySelector('title');
         if (t && window.MutationObserver) new MutationObserver(send).observe(t, { childList: true, characterData: true, subtree: true });
+      })();
+    </script>
+    <script>
+      // MERCY desktop shell: every evidence badge on screen is something the
+      // participant has now actually seen -- tell the console so it can be
+      // picked up in the "+ Evidence" search later.
+      (function () {
+        var seen = new Set();
+        var report = function () {
+          document.querySelectorAll(".evidence-badge").forEach(function (el) {
+            var id = (el.textContent || "").trim();
+            if (!id || seen.has(id)) return;
+            seen.add(id);
+            try { window.top.postMessage({ type: "mercy:evidence-seen", evidence_id: id }, "*"); } catch (e) {}
+          });
+        };
+        report();
+        if (window.MutationObserver) new MutationObserver(report).observe(document.body, { childList: true, subtree: true, characterData: true });
       })();
     </script>
   </body>

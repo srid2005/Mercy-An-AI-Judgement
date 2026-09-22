@@ -4,9 +4,10 @@ import Battery from "../../components/shared/Battery";
 import { Icon, Image } from "../../utils/general";
 import "./back.scss";
 
-// The laptop PIN. The briefing tells the participant that Arjun knows it
-// (their first date, 17/08). It is atmosphere, not a puzzle.
-export const LAPTOP_PIN = "1708";
+// The laptop PIN is Meera's birth year, and the lock screen says so. It is
+// atmosphere, not a puzzle -- the year is also on her file in the console.
+export const LAPTOP_PIN = "1998";
+export const LAPTOP_PIN_HINT = "my birth year";
 
 export const Background = () => {
   const wall = useSelector((state) => state.wallpaper);
@@ -71,6 +72,8 @@ export const LockScreen = (props) => {
   const [err, setErr] = useState(0);
   const dispatch = useDispatch();
   const userName = useSelector((state) => state.setting.person.name);
+  // the PulseFit card exists only once the console has released the SOS trail
+  const sos = useSelector((state) => state.sos);
 
   const splash = (e) => {
     if (e.target.dataset.action == "splash") setLock(true);
@@ -117,17 +120,19 @@ export const LockScreen = (props) => {
         <div className="text-lg font-medium text-gray-200" data-action="splash">
           {now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
         </div>
-        <div className="lockNotif" data-action="splash">
-          <img src="img/icon/pulsefit.png" alt="" data-action="splash" />
-          <div data-action="splash">
-            <div className="lnTitle" data-action="splash">
-              PulseFit · SOS alert
-            </div>
-            <div className="lnBody" data-action="splash">
-              Meera's band sent an SOS. Signal lost. Unlock to view.
+        {sos.released ? (
+          <div className="lockNotif" data-action="splash">
+            <img src="img/icon/pulsefit.png" alt="" data-action="splash" />
+            <div data-action="splash">
+              <div className="lnTitle" data-action="splash">
+                PulseFit · 5 SOS alerts
+              </div>
+              <div className="lnBody" data-action="splash">
+                Meera's band sent five SOS alerts through the night. Signal lost at 02:16. Unlock to view.
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
       </div>
       <div className="fadeinScreen" data-faded={!lock} data-unlock={unlocked}>
         <Image className="rounded-full overflow-hidden" src="img/asset/prof.jpg" w={200} ext />
@@ -147,7 +152,7 @@ export const LockScreen = (props) => {
           <Icon className="-ml-6 handcr" fafa="faArrowRight" width={14} color="rgba(170, 170, 170, 0.6)" onClick={proceed} />
         </div>
         {err > 0 ? <div className="text-xs text-red-200 mt-3">The PIN is incorrect. Try again.</div> : null}
-        {err > 1 ? <div className="text-xs text-gray-400 mt-1">Hint: our first date (DDMM)</div> : null}
+        <div className="text-xs text-gray-400 mt-2">Password hint: {LAPTOP_PIN_HINT}</div>
         <div className="text-xs text-gray-400 mt-6">MERCY sandbox · device MEERA-LAPTOP</div>
       </div>
       <div className="bottomInfo flex">

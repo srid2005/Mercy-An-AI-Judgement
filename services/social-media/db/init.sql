@@ -10,9 +10,12 @@
 -- current no matter when this stack is actually run. t(x) remaps every
 -- literal to be relative to now() at seed time, anchored on the latest
 -- story timestamp (Nikhil's "why don't you post anything?" message)
--- mapping to interval '3 days' ago, preserving every other event's exact gap from it.
+-- mapping to interval '1 day' ago, preserving every other event's exact gap from it.
 CREATE FUNCTION t(orig TIMESTAMPTZ) RETURNS TIMESTAMPTZ AS $$
-  SELECT (now() - interval '3 days') + (orig - TIMESTAMPTZ '2024-09-02 21:40:00+05:30');
+  -- Pinned to 21:40 IST *yesterday* whatever the clock says at seed time, so
+  -- "that night" is a night in every app and every derived time stays true.
+  SELECT ((date_trunc('day', now() AT TIME ZONE 'Asia/Kolkata') - interval '1 day' + interval '21 hours 40 minutes') AT TIME ZONE 'Asia/Kolkata')
+         + (orig - TIMESTAMPTZ '2024-09-02 21:40:00+05:30');
 $$ LANGUAGE SQL STABLE;
 
 CREATE TABLE users (
@@ -45,7 +48,7 @@ CREATE TABLE evidence_counters (
     service   TEXT PRIMARY KEY,
     next_seq  INTEGER NOT NULL
 );
-INSERT INTO evidence_counters (service, next_seq) VALUES ('social-media', 50);
+INSERT INTO evidence_counters (service, next_seq) VALUES ('social-media', 52);
 
 -- "Forgot password" flow: a real 4-digit PIN gets emailed to Meera's Quill
 -- inbox (cross-service call), then verified here. Not evidence -- this is
@@ -447,3 +450,22 @@ INSERT INTO dm_filler_messages (thread_id, from_owner, body, sent_at) VALUES
      'Oh hi! Yes of course, so good to connect 😊', now() - interval '3 days' + interval '20 minutes'),
     ((SELECT id FROM dm_filler_threads WHERE account_name='stylehub.deals'), false,
      '🎉 FLASH SALE: 40% off everything, tonight only! Use code HELLO40', now() - interval '5 hours');
+
+-- ---------------------------------------------------------------------------
+-- THE ALIBI: Arjun's brother posts from their mother's house at 23:40 the
+-- night Meera was taken, tagging Arjun; Arjun comments at 23:52. She never
+-- saw it. (SOC-050..051; the_alibi checkpoint in mercy-engine.)
+-- ---------------------------------------------------------------------------
+INSERT INTO users (username, display_name, avatar_url, bio, followers_count, following_count) VALUES
+    ('vikram', 'Vikram Kapoor', '/images/avatars/vikram.svg', 'Older brother. Chai > coffee.', 210, 180);
+INSERT INTO follows (follower_id, followee_id)
+    SELECT (SELECT id FROM users WHERE username='meera'), id FROM users WHERE username='vikram';
+INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
+    ('SOC-050', (SELECT id FROM users WHERE username='vikram'),
+     'Late-night chai with the little brother. Mum refusing to go to bed until he finishes his plate. @arjun',
+     '/images/posts/chai-night.svg', 'recent', 41, t('2024-09-02 23:40:00+05:30'));
+INSERT INTO tags (post_id, tagged_user_id)
+    SELECT (SELECT id FROM posts WHERE evidence_id='SOC-050'), id FROM users WHERE username='arjun';
+INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
+    ('SOC-051', (SELECT id FROM posts WHERE evidence_id='SOC-050'), (SELECT id FROM users WHERE username='arjun'),
+     'she''s going to make me eat again in the morning isn''t she', t('2024-09-02 23:52:00+05:30'));

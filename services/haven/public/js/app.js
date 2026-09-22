@@ -60,7 +60,7 @@ function moodChip(mood) {
 // ---------------------------------------------------------------------
 
 function renderSidebar() {
-  const years = [...new Set(entries.map((e) => new Date(e.recorded_at).getFullYear()))].sort((a, b) => b - a);
+  const years = [...new Set(entries.map((e) => new Date(e.recorded_at).getFullYear()))].sort((a, b) => a - b);
   const counts = {};
   entries.forEach((e) => {
     const y = new Date(e.recorded_at).getFullYear();

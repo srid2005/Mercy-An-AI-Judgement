@@ -9,7 +9,10 @@
 -- whatsapp (Nikhil's WhatsApp "why don't you post anything?" message) so
 -- all three services' timelines stay mutually consistent with each other.
 CREATE FUNCTION t(orig TIMESTAMPTZ) RETURNS TIMESTAMPTZ AS $$
-  SELECT (now() - interval '3 days') + (orig - TIMESTAMPTZ '2024-09-02 21:40:00+05:30');
+  -- Pinned to 21:40 IST *yesterday* whatever the clock says at seed time, so
+  -- "that night" is a night in every app and every derived time stays true.
+  SELECT ((date_trunc('day', now() AT TIME ZONE 'Asia/Kolkata') - interval '1 day' + interval '21 hours 40 minutes') AT TIME ZONE 'Asia/Kolkata')
+         + (orig - TIMESTAMPTZ '2024-09-02 21:40:00+05:30');
 $$ LANGUAGE SQL STABLE;
 
 CREATE TABLE users (
@@ -128,7 +131,7 @@ INSERT INTO users (username, display_name, email_address, avatar_url) VALUES
 -- real evidence now -- this is the discoverable trail that the app exists
 -- at all, well before those services are built.
 INSERT INTO users (username, display_name, email_address, avatar_url) VALUES
-    ('haven', 'Haven', 'hello@havenapp.io', '/images/avatars/haven.svg');
+    ('haven', 'Haven', 'hello@havenapp.io', '/images/avatars/haven.png');
 
 -- Real contacts outside the core cast -- an office manager and the police
 -- records cell -- needed so the two seed drafts below have a real "To".
@@ -394,10 +397,10 @@ INSERT INTO evidence_counters (service, next_seq) VALUES ('email', 37);
 -- actually depicts what its filename says.
 -- ---------------------------------------------------------------------------
 INSERT INTO email_attachments (email_id, filename, url, content_type, size_label) VALUES
-    ((SELECT id FROM emails WHERE evidence_id='EML-001'), 'IMG_20240621_2159.jpg', '/images/attachments/personal-photo.svg', 'image/svg+xml', '2.1 MB'),
-    ((SELECT id FROM emails WHERE evidence_id='EML-009'), 'photographer_reference.jpg', '/images/attachments/camera-reference.svg', 'image/svg+xml', '1.4 MB'),
-    ((SELECT id FROM emails WHERE evidence_id='EML-011'), 'flight_itinerary_BX4471.jpg', '/images/attachments/boarding-pass.svg', 'image/svg+xml', '860 KB'),
-    ((SELECT id FROM emails WHERE evidence_id='EML-024'), 'haven_app_preview.jpg', '/images/attachments/app-preview.svg', 'image/svg+xml', '1.1 MB');
+    ((SELECT id FROM emails WHERE evidence_id='EML-001'), 'IMG_20240621_2159.jpg', '/images/attachments/personal-photo.jpg', 'image/jpeg', '2.1 MB'),
+    ((SELECT id FROM emails WHERE evidence_id='EML-009'), 'photographer_reference.jpg', '/images/attachments/camera-reference.jpg', 'image/jpeg', '1.4 MB'),
+    ((SELECT id FROM emails WHERE evidence_id='EML-011'), 'flight_itinerary_BX4471.jpg', '/images/attachments/boarding-pass.jpg', 'image/jpeg', '860 KB'),
+    ((SELECT id FROM emails WHERE evidence_id='EML-024'), 'haven_app_preview.jpg', '/images/attachments/app-preview.jpg', 'image/jpeg', '1.1 MB');
 
 -- ---------------------------------------------------------------------------
 -- More filler: pre-starred "important" registrations. Ordinary digital-life
@@ -468,7 +471,7 @@ INSERT INTO filler_emails (kind, sender_name, sender_email, sender_avatar, subje
      '🎉 YOU''VE WON $1,000,000!',
      'Congratulations! Your email has been selected in our international lottery draw. Claim your prize now before it expires! Reply with your bank details to proceed.',
      now() - interval '2 days'),
-    ('notification', 'Haven', 'hello@havenapp.io', '/images/avatars/haven.svg',
+    ('notification', 'Haven', 'hello@havenapp.io', '/images/avatars/haven.png',
      'You''re running low on storage',
      'You''ve used 80% of your free Haven storage. Upgrade to Haven Plus for unlimited encrypted backups.',
      now() - interval '40 days');
@@ -515,8 +518,8 @@ INSERT INTO filler_emails (kind, sender_name, sender_email, sender_avatar, subje
 -- attachment actually shows a hamster habitat, not a random stock photo).
 -- ---------------------------------------------------------------------------
 INSERT INTO filler_email_attachments (filler_email_id, filename, url, content_type, size_label) VALUES
-    ((SELECT id FROM filler_emails WHERE subject='Your Emazon order has shipped 📦'), 'wireless_headphones.jpg', '/images/attachments/headphones.svg', 'image/svg+xml', '210 KB'),
-    ((SELECT id FROM filler_emails WHERE subject='Delivered: Your Emazon package has arrived'), 'wireless_headphones.jpg', '/images/attachments/headphones.svg', 'image/svg+xml', '210 KB'),
-    ((SELECT id FROM filler_emails WHERE subject='Your Mamster order is on its way 🐾'), 'hamster_habitat.jpg', '/images/attachments/hamster-cage.svg', 'image/svg+xml', '245 KB'),
-    ((SELECT id FROM filler_emails WHERE subject='Your Order Has Shipped 📦'), 'sneakers.jpg', '/images/attachments/sneaker.svg', 'image/svg+xml', '198 KB'),
-    ((SELECT id FROM filler_emails WHERE subject='🥦 Your weekly grocery list is here!'), 'weekly_flyer.jpg', '/images/attachments/grocery-flyer.svg', 'image/svg+xml', '380 KB');
+    ((SELECT id FROM filler_emails WHERE subject='Your Emazon order has shipped 📦'), 'wireless_headphones.jpg', '/images/attachments/headphones.jpg', 'image/jpeg', '210 KB'),
+    ((SELECT id FROM filler_emails WHERE subject='Delivered: Your Emazon package has arrived'), 'wireless_headphones.jpg', '/images/attachments/headphones.jpg', 'image/jpeg', '210 KB'),
+    ((SELECT id FROM filler_emails WHERE subject='Your Mamster order is on its way 🐾'), 'hamster_habitat.jpg', '/images/attachments/hamster-cage.jpg', 'image/jpeg', '245 KB'),
+    ((SELECT id FROM filler_emails WHERE subject='Your Order Has Shipped 📦'), 'sneakers.jpg', '/images/attachments/sneaker.jpg', 'image/jpeg', '198 KB'),
+    ((SELECT id FROM filler_emails WHERE subject='🥦 Your weekly grocery list is here!'), 'weekly_flyer.jpg', '/images/attachments/grocery-flyer.jpg', 'image/jpeg', '380 KB');

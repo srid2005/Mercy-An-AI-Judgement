@@ -1,34 +1,122 @@
 {
-  "HAV-019": {
-    "duration": 280,
-    "transcript": "Cleared out the storeroom for the water-tank guys and found Dad's box. The five-page police file. His phone, dead -- I charged it. His little pocket diary, the one he wrote petrol receipts in. I sat on the floor and read all of it.\n\nAnd here's the thing. The report says he was alone on the rock. But the forest gate register is stapled at the back, and it has a scooter going in at five past six -- fifteen minutes before Dad's car -- and coming out at 7:35, \"fast,\" the guard wrote. And nobody in the report ever mentions that scooter again. Why did that never come up?\n\nI'm probably being stupid. It's been six years. I'm probably being stupid."
-  },
-  "HAV-021": {
-    "duration": 330,
-    "transcript": "I made a timeline. Dad's car in at the forest gate at 6:20, that's in the register. The scooter in at 6:05, before him. A jogger told the police she heard two men arguing up at the rock at about ten past seven, and one of them said \"stay away from her.\" That's a direct quote, it's in her statement. The report puts the fall at \"about 7:15.\" Alone.\n\nThen Dad's phone. The last call in was 5:48 that morning, from a contact he'd saved as \"R (Meera's friend).\" The police wrote one line: \"family friend, informed.\" Informed. They called him to TELL him Dad was dead, and never asked why he'd phoned Dad at ten to six on a Sunday.\n\nThe report says one thing, and the register and the jogger and the phone say something completely different, and the file just... moves on. I can't stop thinking about this. I emailed N. about it because he's the only person I can say this to who won't tell me I'm grieving weird."
-  },
-  "HAV-022": {
-    "duration": 240,
-    "transcript": "I went to Turahalli today. First time since. The gate guard from 2018 is still there, older, same chair. He remembers the young man on the scooter. Rucksack, glasses, said he was going to meet a family friend up the trail. The guard told the police all of that. Nobody ever came back to ask him anything.\n\nAnd there's the effects list. Wallet, phone, keys, water bottle, and a blue carabiner with a little club tag, \"TD 2018.\" Dad didn't own a carabiner. Dad didn't own anything with a tag on it. Someone was up on that rock with him. Someone dropped that.\n\nI haven't told Arjun any of this. I don't know how to start."
-  },
-  "HAV-025": {
-    "duration": 260,
-    "transcript": "Someone emailed me. Last night, quarter to midnight. No name. An address that's just numbers. It said, \"Whatever you think you're looking into, stop. This is the only warning you'll get.\"\n\nI have read it maybe forty times. Who has this email? I only use this address for -- for a handful of people. Someone knows I'm investigating Dad's case. Not \"someone might know.\" Someone knows.\n\nI locked the balcony door twice and then checked it again. Bruno keeps looking at the door."
-  },
-  "HAV-027": {
-    "duration": 280,
-    "transcript": "I think I'm being watched. I don't say that lightly.\n\nThe gate guard -- I went back to thank him -- said someone had already been by asking what I'd wanted. This week. Somebody knew I went to the forest, and I told exactly no one.\n\nThen Rahul called tonight, out of nowhere, just to chat, asked what I've been up to. And I said \"nothing.\" Why did I say nothing? He's the one person I could always tell everything. I think I'm just scared of everyone now. That's what this is doing to me."
-  },
-  "HAV-028": {
-    "duration": 250,
-    "transcript": "Another email. \"I know where you've been going. I know who you've been talking to.\" They know about the forest. They know about the gate guard. They might know about N.\n\nI drafted a leave request for next week so I can go to the district office in person, first thing, before anyone can pull anything else out of that file.\n\nArjun and I had a real fight tonight, a bad one, and it was about nothing, and it was about everything, and I couldn't tell him the actual reason I've been like this. I wanted to. I got as far as \"there's something about Dad\" and then I just... didn't."
-  },
-  "HAV-029": {
-    "duration": 300,
-    "transcript": "I'm close. I can feel it.\n\nThe jogger. I found her -- she's \"S. Iyer\" in the statement, she still runs there. She remembers more than the statement says. A young voice, and an older one, and the older one said, loudly, \"I told you to stay away from her.\" Her. Dad said \"her.\" And then a bit later a young man came running down the trail past her with no rucksack and blood on his knuckles, and she thought he'd fallen.\n\nAnd then there's Dad's little pocket diary. Same year, three separate pages, the same note: \"Talked to R. again. Warned him off.\" And a note on his phone from the Saturday night, the last thing he ever typed: \"Sun. Talk to R at the rock. End it.\"\n\nI've been staring at that R for an hour. I don't want to say the name. I'm not going to say the name until I'm sure, because once I say it I can't unsay it."
-  },
-  "HAV-030": {
-    "duration": 220,
-    "transcript": "Rahul messaged tonight. About passwords, of all things -- \"you still use that?\" -- and then, out of nowhere, about the cave. Whether I remembered our kingdom. Whether I still cheated at hide-and-seek.\n\nIt was sweet. It should have been sweet. Instead I sat here afterwards with Dad's diary open in my lap, looking at one letter, and I felt sick.\n\nI'm going through his Loop in the morning. Every trek photo. Then I'll know. I need to know before I say anything to anyone."
-  }
+ "HAV-019": {
+  "duration": 280,
+  "transcript": "Cleared out the storeroom for the water-tank guys and found Dad's box. The five-page police file. His phone, dead -- I charged it. His little pocket diary, the one he wrote petrol receipts in. I sat on the floor and read all of it.\n\nAnd here's the thing. The report says he was alone on the rock. But the forest gate register is stapled at the back, and it has a scooter going in at five past six -- fifteen minutes before Dad's car -- and coming out at 7:35, \"fast,\" the guard wrote. And nobody in the report ever mentions that scooter again. Why did that never come up?\n\nI'm probably being stupid. It's been six years. I'm probably being stupid."
+ },
+ "HAV-021": {
+  "duration": 330,
+  "transcript": "I made a timeline. Dad's car in at the forest gate at 6:20, that's in the register. The scooter in at 6:05, before him. A jogger told the police she heard two men arguing up at the rock at about ten past seven, and one of them said \"stay away from her.\" That's a direct quote, it's in her statement. The report puts the fall at \"about 7:15.\" Alone.\n\nThen Dad's phone. The last call in was 5:48 that morning, from a contact he'd saved as \"R (Meera's friend).\" The police wrote one line: \"family friend, informed.\" Informed. They called him to TELL him Dad was dead, and never asked why he'd phoned Dad at ten to six on a Sunday.\n\nThe report says one thing, and the register and the jogger and the phone say something completely different, and the file just... moves on. I can't stop thinking about this. I emailed N. about it because he's the only person I can say this to who won't tell me I'm grieving weird."
+ },
+ "HAV-022": {
+  "duration": 240,
+  "transcript": "I went to Turahalli today. First time since. The gate guard from 2018 is still there, older, same chair. He remembers the young man on the scooter. Rucksack, glasses, said he was going to meet a family friend up the trail. The guard told the police all of that. Nobody ever came back to ask him anything.\n\nAnd there's the effects list. Wallet, phone, keys, water bottle, and a blue carabiner with a little club tag, \"TD 2018.\" Dad didn't own a carabiner. Dad didn't own anything with a tag on it. Someone was up on that rock with him. Someone dropped that.\n\nI haven't told Arjun any of this. I don't know how to start."
+ },
+ "HAV-025": {
+  "duration": 260,
+  "transcript": "Someone emailed me. Last night, quarter to midnight. No name. An address that's just numbers. It said, \"Whatever you think you're looking into, stop. This is the only warning you'll get.\"\n\nI have read it maybe forty times. Who has this email? I only use this address for -- for a handful of people. Someone knows I'm investigating Dad's case. Not \"someone might know.\" Someone knows.\n\nI locked the balcony door twice and then checked it again. Bruno keeps looking at the door."
+ },
+ "HAV-027": {
+  "duration": 280,
+  "transcript": "I think I'm being watched. I don't say that lightly.\n\nThe gate guard -- I went back to thank him -- said someone had already been by asking what I'd wanted. This week. Somebody knew I went to the forest, and I told exactly no one.\n\nThen Rahul called tonight, out of nowhere, just to chat, asked what I've been up to. And I said \"nothing.\" Why did I say nothing? He's the one person I could always tell everything. I think I'm just scared of everyone now. That's what this is doing to me."
+ },
+ "HAV-028": {
+  "duration": 250,
+  "transcript": "Another email. \"I know where you've been going. I know who you've been talking to.\" They know about the forest. They know about the gate guard. They might know about N.\n\nI drafted a leave request for next week so I can go to the district office in person, first thing, before anyone can pull anything else out of that file.\n\nArjun and I had a real fight tonight, a bad one, and it was about nothing, and it was about everything, and I couldn't tell him the actual reason I've been like this. I wanted to. I got as far as \"there's something about Dad\" and then I just... didn't."
+ },
+ "HAV-029": {
+  "duration": 300,
+  "transcript": "I'm close. I can feel it.\n\nThe jogger. I found her -- she's \"S. Iyer\" in the statement, she still runs there. She remembers more than the statement says. A young voice, and an older one, and the older one said, loudly, \"I told you to stay away from her.\" Her. Dad said \"her.\" And then a bit later a young man came running down the trail past her with no rucksack and blood on his knuckles, and she thought he'd fallen.\n\nAnd then there's Dad's little pocket diary. Same year, three separate pages, the same note: \"Talked to R. again. Warned him off.\" And a note on his phone from the Saturday night, the last thing he ever typed: \"Sun. Talk to R at the rock. End it.\"\n\nI've been staring at that R for an hour. I don't want to say the name. I'm not going to say the name until I'm sure, because once I say it I can't unsay it."
+ },
+ "HAV-030": {
+  "duration": 220,
+  "transcript": "Rahul messaged tonight. About passwords, of all things -- \"you still use that?\" -- and then, out of nowhere, about the cave. Whether I remembered our kingdom. Whether I still cheated at hide-and-seek.\n\nIt was sweet. It should have been sweet. Instead I sat here afterwards with Dad's diary open in my lap, looking at one letter, and I felt sick.\n\nI'm going through his Loop in the morning. Every trek photo. Then I'll know. I need to know before I say anything to anyone."
+ },
+ "HAV-001": {
+  "duration": 214,
+  "transcript": "Okay. Okay, this is... I don't know how to do this. Priya said talking helps, and I can't talk to people right now, so. Hi, camera. It's been nineteen days. The app says nobody can see this, not even them, so I guess this is where I put all of it.\n\nDad's chair is still by the window. Mum keeps setting two cups out. I keep waiting for him to call at nine like he always did, and then I remember, and it's the fourteenth all over again.\n\nI'm not okay. I'm going to say that here so I don't have to say it out loud anywhere else."
+ },
+ "HAV-002": {
+  "duration": 168,
+  "transcript": "Slept six hours last night. Six. Writing that down like it's an achievement, because it is.\n\nBruno has decided his job is to sit on my feet until I stop crying, which, honestly, works. Arjun keeps showing up with food I didn't ask for. Tonight it was that terrible biryani from the place near his office and I ate all of it. I don't know what I'd do without him. I don't say that enough.\n\nAnyway. Six hours."
+ },
+ "HAV-003": {
+  "duration": 95,
+  "transcript": "Birthday boy! Say hi, Bruno. He won't say hi. He got a cake made of chicken and he's currently trying to sit in my lap while I record this, which is why the camera keeps shaking.\n\nFour years old and still convinced he's a lapdog. Posted the photo, Rahul already commented something rude about how the dog has better hair than me. Fair."
+ },
+ "HAV-004": {
+  "duration": 140,
+  "transcript": "It's been raining since Tuesday and I've done nothing but sketch app screens for a fintech client who keeps saying \"make it pop.\" I don't know what that means. Nobody knows what that means.\n\nMade pakoras. Watched the same show for the third time. Arjun fell asleep on the sofa twenty minutes in. This is my whole update. Rain, pakoras, snoring husband-to-be. Um. Boyfriend. He's not... ignore that."
+ },
+ "HAV-005": {
+  "duration": 260,
+  "transcript": "One year. We went to the temple -- Mum, me, Arjun. Mum was fine until the priest said his name and then she wasn't.\n\nI keep thinking about the last thing he said to me, which was \"drive slow,\" which is so him it hurts. The police were very kind a year ago and very... final. He went up to the rock alone, he slipped, it happens in that forest every year, case closed. I signed things. I don't even remember what I signed.\n\nI asked for a copy of the file back then and they gave me five pages. A whole person, five pages. I put it in the storeroom because I couldn't look at it. I still can't."
+ },
+ "HAV-006": {
+  "duration": 130,
+  "transcript": "Day whatever of working from the dining table. Three video calls today and in two of them Bruno barked at the courier and everyone laughed and then went back to talking about conversion funnels. My back hurts.\n\nArjun made banana bread because apparently that's the law now. It was good. I have nothing else. This is what a diary looks like when nothing happens. That's allowed."
+ },
+ "HAV-007": {
+  "duration": 205,
+  "transcript": "So. Arjun proposed. On Dad's birthday. He said he'd been carrying the ring for two months and he wanted to ask on a day that already meant something, and then he said -- he said he asked Dad's photo first, this morning, when I was in the shower. I lost it. Obviously I said yes.\n\nI'm recording this so future me remembers exactly how it felt, because right now I feel like the last two years finally loosened their grip a little. Seventeenth of August. It's going to mean two things now."
+ },
+ "HAV-008": {
+  "duration": 180,
+  "transcript": "I'm married. I'm recording this in a hotel bathrobe.\n\nWe snuck out this morning before the family woke up and went to Rose Cafe, the one where we met, and sat at the same table by the window, and the same waiter was there -- I swear it was the same waiter -- and he didn't recognise us at all. Arjun ordered the same thing he ordered the first day. I don't know why that made me cry. Good crying. Everything is good crying today."
+ },
+ "HAV-009": {
+  "duration": 110,
+  "transcript": "New year, same deadlines. Lead designer now, officially, which mostly means more meetings about meetings. Divya's a good manager though, she actually pushes back on the sales guys. Small win: the onboarding flow I fought for shipped and nobody hated it.\n\nArjun's travelling again. The flat is very quiet when it's just me and the dog. I don't mind it. Some days I like it. I'm not sure what that says."
+ },
+ "HAV-010": {
+  "duration": 100,
+  "transcript": "Bruno's walks are slower now. He stops at every tree like he's reading the news. Seven years old. Vet says his hips are fine, he's just dramatic, which -- he learned it from me.\n\nPosted a photo. Nothing else happened today and I'm choosing to be grateful for that."
+ },
+ "HAV-011": {
+  "duration": 300,
+  "transcript": "Still hungover from the reunion. Everyone's exactly the same and also completely different. Rahul hasn't changed at all -- he's still the loudest person in any room and he still calls me \"Kapoor\" like we're twelve.\n\nWe ended up on the terrace at two a.m. talking about the cave. Our secret kingdom. God. When I wanted to disappear as a child, there was one place nobody could find me, and it was that stupid cave past the last bus stop, and Rahul was the only other person on earth who knew about it.\n\nHe got quiet for a second when Dad came up -- he was close to Dad too, Dad basically half-raised him after his own father left -- and then he laughed it off and made me do shots. Same old Rahul. I've missed him more than I realised."
+ },
+ "HAV-012": {
+  "duration": 150,
+  "transcript": "Arjun and I had the same fight again, the one where it's not really about the dishes. He works late, I work late, we pass each other in the kitchen like colleagues.\n\nI love him. I want to say that first because the rest of this sounds ungrateful. I just don't remember the last time we talked about anything that wasn't logistics. Maybe that's what year three is. Maybe everyone's like this. I'm going to try harder. I'm going to plan something."
+ },
+ "HAV-013": {
+  "duration": 190,
+  "transcript": "I'm not going to say it. I'm not even going to say it here, and this thing is locked with a password only I know.\n\nIt was one evening. It was a work thing and then it wasn't a work thing and he walked me to the car and I -- nothing happened. Something happened. Nothing that can't be undone.\n\nI'm going to delete his number. I'm recording this so that tomorrow I remember I said I'd delete his number."
+ },
+ "HAV-014": {
+  "duration": 90,
+  "transcript": "Bruno's new vet is nice. Work is work. I made dal. Arjun's mum called to ask when we're having children, which is a fun call to get on a Tuesday.\n\nThat's it. That's the entry. I didn't delete the number. I'm aware."
+ },
+ "HAV-015": {
+  "duration": 105,
+  "transcript": "Priya's frantic about Ritu's wedding photos, asked me who shot Ritu's own wedding, and I've completely blanked. Kunal Studios? Kunal something. I said I'd check.\n\nAlso she asked, very casually, if \"everything's okay with me,\" which means she's noticed something, which means I'm not hiding it as well as I think. I'm fine. I'm fine."
+ },
+ "HAV-016": {
+  "duration": 170,
+  "transcript": "He emailed me. Not a text -- an email, like it's 2009, because he says the phone feels too risky, and he's right, it is. I read it four times.\n\nI'm going to reply in the morning when I'm thinking straight, and I already know what I'm going to say, which is the problem. I have a husband. I have a whole life. I keep saying that like it's a spell that'll work if I say it enough times."
+ },
+ "HAV-017": {
+  "duration": 120,
+  "transcript": "Arjun forwarded the flight booking for the trip. He's excited. He's been planning it for weeks and he keeps sending me links to places to eat.\n\nI'm going to go and I'm going to have a good time and I'm going to be the person he thinks he's married to. That's a promise. To this camera. Which is a strange thing to make promises to."
+ },
+ "HAV-018": {
+  "duration": 200,
+  "transcript": "Thursday happened. I told Arjun I had a work thing. I'm getting good at saying that, which is the part that scares me, not the rest of it.\n\nN. wants to talk about what this is. I told him not to label it. I can't hold a label right now, I can barely hold my own face together at dinner. I'm not a bad person. I'm a person doing a bad thing, and I know the difference, and I'm not sure the difference matters."
+ },
+ "HAV-020": {
+  "duration": 85,
+  "transcript": "Normal day. Sprint review, Divya was happy, Bruno stole a chapati off the counter.\n\nI'm recording the normal days on purpose now, because I've noticed the not-normal ones are starting to pile up in here and I don't want this to become a place where I only talk when something's wrong."
+ },
+ "HAV-023": {
+  "duration": 150,
+  "transcript": "N. says stop. He said it twice, in writing, and then said \"we shouldn't talk about this here, delete the thread.\" I did. Sort of. I trashed it.\n\nI know he's scared for me and I know he's probably right, but he didn't know Dad. He doesn't know what it's like to sign a form that says \"accident\" and spend six years pretending you believed it."
+ },
+ "HAV-024": {
+  "duration": 75,
+  "transcript": "Bruno's hip thing again. X-rays fine. He's just getting old, like the rest of us. Sixteen thousand rupees to be told my dog is dramatic. Worth it. Moving on."
+ },
+ "HAV-026": {
+  "duration": 190,
+  "transcript": "Wrote to the police. A proper letter. Formal, polite, \"to whom it may concern,\" the whole thing -- asking for the full file, the joggers' statements, the phone records they never pulled. Then I didn't send it. It's sitting in drafts.\n\nBecause whoever emailed me knows I'm looking, and a request from Ravi Sharma's daughter is a flare going up. I'll go and find the jogger myself instead. Her name is in the statement. Next week. I'll take leave."
+ }
 }

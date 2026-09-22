@@ -144,7 +144,14 @@ i[data-flip="true"] {
   width: 100vw;
   height: calc(100vh - 48px);
   top: 0;
-  overflow: hidden;
+  /* clip, not hidden: a focused input inside an iframe (a login page) can
+     scroll an overflow:hidden ancestor and push whole windows off-screen */
+  overflow: clip;
+}
+.floatTab > .windowScreen,
+.edgeBrowser .siteFrame,
+.edgeBrowser .restWindow {
+  overflow: clip;
 }
 
 .dpShad {

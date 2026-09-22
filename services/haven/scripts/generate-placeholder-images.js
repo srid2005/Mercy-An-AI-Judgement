@@ -71,7 +71,7 @@ fs.mkdirSync(POSTERS, { recursive: true });
 fs.mkdirSync(AVATARS, { recursive: true });
 
 for (const [date, mood] of ENTRIES) fs.writeFileSync(path.join(POSTERS, `${date}.svg`), posterSvg(date, mood));
-fs.writeFileSync(path.join(PUBLIC, 'haven-logo.svg'), logoSvg);
+// the real logo now lives at public/images/haven-logo.png; the SVG placeholder is no longer written
 fs.writeFileSync(path.join(AVATARS, 'meera.svg'), meeraSvg);
 
 console.log(`Generated ${ENTRIES.length} posters, 1 logo, 1 avatar.`);

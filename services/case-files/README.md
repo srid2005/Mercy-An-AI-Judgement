@@ -14,7 +14,7 @@ him -- is only reachable by reading this file against the other apps.
 
 | Page | What it is | What it carries without knowing it |
 |---|---|---|
-| 1 | First information (UDR 0412/2018), particulars of the deceased with photograph | Ravi Sharma, 61, retired engineer, Malleshwaram; wife Lakshmi Sharma; daughter Meera Kapoor, w/o Arjun Kapoor. He was "alone". Car in at 06:20. |
+| 1 | First information (UDR 0412/2018), particulars of the deceased with photograph | Ravi Sharma, 61, retired engineer, Malleshwaram; wife Lakshmi Sharma; daughter Meera Sharma, 20, unmarried (she marries Arjun in 2021). He was "alone". Car in at 06:20. |
 | 2 | Scene report, exhibits 1-4 | Effects include a blue carabiner with club tag "TD 2018" that was not his. |
 | 3 | Gate register, statements, exhibit 5 | A scooter in at 06:05, out at 07:35 "fast"; "young man, rucksack, spectacles, meeting a family friend". Jogger S. Iyer heard "stay away from her" at 07:10 and saw a young man run down holding his hand. |
 | 4 | Post-mortem extract, phone note | Knuckle abrasions, a fingernail torn to the bed, a hand-shaped bruise on the upper arm, all "attributed to impact". Last call in at 05:48 from "R (Meera's friend)" -- "family friend, informed". |

@@ -21,7 +21,7 @@ would talk to real backends.
 | `smartwatch`   | planned     | 4009 | SOS event, GPS/movement log            |
 | `mercy-engine` | planned     | 4010 | aggregates evidence, computes guilt %  |
 | `city-map`     | implemented | 4011 | MERCY's 3D blueprint of the city; the police tower, the caves, real lat/lng |
-| `desktop-shell`| implemented | 3000 | Meera's laptop: lock screen (PIN 1708), Orbit browser (Loop/Wisp/Haven only via it), Quill as an app, PulseFit SOS, Explorer with the case PDF |
+| `desktop-shell`| implemented | 3000 | Meera's laptop: lock screen (PIN 1998, hint "my birth year"), Orbit browser (Loop/Wisp/Haven only via it), Quill as an app, PulseFit SOS, Explorer with the case PDF |
 
 Every planned service has a stub folder under `services/<name>/` with a
 `README.md` describing what it owns and which evidence it's responsible for.
@@ -241,10 +241,13 @@ functional nav (create-post, profile, account menu), not a static mockup.
   (floors, lit windows, doors, hatched roofs). Live traffic -- cars on the
   street graph, buses on route 7 -- runs client-side. The model is MERCY's tool, not a
   source of evidence: `/api/evidence` is empty.
-- The drone search: the model never shows where Meera is. Her watch's SOS
-  fix (±300 m, the smartwatch service's beat) lands in a hamlet of ~100
-  structures at the foot of Kettle Hill, 254 m from the cave; the player
-  brings the coordinates here, or right-clicks a building. Four drones lift
+- The drone search: the model never shows where Meera is. Her band's five
+  SOS alerts (released to the laptop's PulseFit app by the `the_confession`
+  checkpoint) are story spots to sweep in order; the cave on Kettle Hill's
+  north face yields her jacket and a voice memo naming Nikhil (`SW-06`), which
+  unlocks vehicle tracking -- his car loops through six stops and one of them,
+  drawn at random per volume and held server-side, is where she is. The
+  player brings coordinates here, or right-clicks a building or a stop. Four drones lift
   off the Police HQ roof and thread between the buildings (A* on a 10 m
   obstacle grid, client-side) with the camera behind them, sweep the building
   four ways (base ring, roof ring, spiral down, spiral up) -- or, at a cave,

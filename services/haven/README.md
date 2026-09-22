@@ -21,16 +21,17 @@ Haven never sees your password and can't reset it -- so recovery is:
    6-digit code and delivers it as a real email into Quill (via Quill's
    `x-internal-key` endpoint, sender "Haven"). The player has to go read it
    there. Codes expire in 10 minutes and are single-use.
-2. **Three security questions.** Confirming the code returns a short-lived
-   `questions`-stage token; the diary token is only issued once all three
-   answers match. They're the story's three password beats, so the whole
-   cross-app chain has to be solved to get in:
+2. **Four security questions.** Confirming the code returns a short-lived
+   `questions`-stage token; the diary token is only issued once all four
+   answers match. Each one is answered somewhere else in the case, so the
+   cross-app chain has to be walked to get in:
 
    | # | Question | Answer (any case/punctuation) | Found in |
    |---|----------|-------------------------------|----------|
-   | 1 | Dad's birthday and the place Arjun and I first met -- you know how I combine them. | `1708RoseCafe` | `notes` (planned), echoed in HAV-007/008 |
-   | 2 | When did everything change? | `14/10/2018` | social-media lock hint, `case-files`, EML-034 |
-   | 3 | The password I've used since school. Rahul still teases me about it. | `NeverForget2018` | SOC-021..024 + the year from the case |
+   | 1 | Where was I born? | `Bengaluru` | the case file, her Loop bio |
+   | 2 | What is my pet's name? | `Bruno` | Loop, Wisp, the diary titles |
+   | 3 | What is my favourite person's name? | `Arjun` | everywhere |
+   | 4 | I have always used this password, since I was a child -- but for this, use it without the year. | `NeverForget` | SOC-021..024 ("NeverForget + the year") |
 
    Answers are compared normalized (lowercase, letters and digits only).
 
@@ -56,10 +57,13 @@ Run via the root `docker compose up --build`; served at `http://localhost:4008`.
 
 ## Videos
 
-Eight recordings have real 30-second webcam videos (HAV-019, 021, 022, 025,
-027, 028, 029, 030); the rest still play the silent placeholder. The prompts
-that made them are in `VIDEO_PROMPTS.md`. For those eight, `transcript` and
-`duration_seconds` in the seed and the live database were replaced by the
+Thirty of the thirty-one recordings are real webcam videos (15-30 s each;
+the poster is a frame from the film, `/images/posters/<date>.jpg`). The
+prompts that made them are in `VIDEO_PROMPTS.md`. For every filmed entry,
+`transcript` and `duration_seconds` in the seed and the live database are the
 lines actually spoken, so text and video agree; the original long transcripts
-are kept in `db/transcripts-full.backup.json`. HAV-031 (the final recording)
-still needs its video, `2024-09-02.mp4`; its transcript stays long until then.
+are kept in `db/transcripts-full.backup.json`, and a running database gets
+the latest batch with `scripts/migrate_live_videos_batch23.sql`. HAV-031 (the
+final recording, "If something happens") still needs its video,
+`2024-09-02.mp4`; its transcript stays long and its poster the SVG until then
+-- drop the file in at that path, take its poster the same way, and rebuild.

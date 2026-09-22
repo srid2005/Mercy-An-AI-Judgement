@@ -44,6 +44,45 @@
       gap: 8px;
       font-size: 15px;
     }
+    .pfSosN {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      color: #fff;
+      background: #d6343e;
+      border-radius: 10px;
+      padding: 2px 9px;
+    }
+    .pfMeta {
+      display: flex;
+      gap: 14px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: #555;
+      span {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 6px;
+        padding: 3px 8px;
+      }
+    }
+    .pfAfter {
+      margin-top: 12px;
+      border-top: 1px dashed #f1b8b4;
+      padding-top: 10px;
+      p {
+        margin: 0 0 4px;
+        color: #7a2a24;
+      }
+    }
+    &.last {
+      border-color: #d6343e;
+      box-shadow: 0 0 0 2px rgba(214, 52, 62, 0.12);
+      .pfCoords .pfVal {
+        color: #b3261e;
+      }
+    }
     .pfDot {
       width: 10px;
       height: 10px;
@@ -98,6 +137,16 @@
       background: #fde8e8;
     }
   }
+  // before the console releases the trail there is nothing to show
+  .pfQuiet {
+    margin-top: 16px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 22px 16px;
+    text-align: center;
+    color: #888;
+  }
   .pfSection {
     margin: 20px 0 6px;
     font-weight: 600;
@@ -136,6 +185,9 @@
       &.lost .pfWhat {
         color: #999;
       }
+      &.memo .pfWhat {
+        color: #7a2a24;
+      }
     }
   }
   .pfStats {
@@ -172,13 +224,30 @@ body[data-theme="dark"] .pulsefit .pfBody {
   color: #eee;
   .pfLog,
   .pfStats > div,
-  .pfCoords {
+  .pfCoords,
+  .pfQuiet,
+  .pfMeta span {
     background: #2a2a2e;
     border-color: #3a3a3f;
+  }
+  .pfMeta {
+    color: #bbb;
   }
   .pfSos {
     background: #2e2224;
     border-color: #5a3335;
+    .pfAfter {
+      border-top-color: #5a3335;
+      p {
+        color: #e8a9a4;
+      }
+    }
+    &.last {
+      border-color: #d6343e;
+    }
+  }
+  .pfLog .pfRow.memo .pfWhat {
+    color: #e8a9a4;
   }
 }
 

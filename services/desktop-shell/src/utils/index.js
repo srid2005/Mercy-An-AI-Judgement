@@ -4,9 +4,9 @@ import icons from "./apps";
 // localStorage; an evidence image should look the same for every participant.
 var { taskbar, desktop, pinned, recent } = {
   taskbar: ["File Explorer", "Orbit", "Quill"],
-  desktop: ["Meera", "Recycle Bin", "File Explorer", "Orbit", "Quill", "Notepad", "Photos", "PulseFit"],
-  pinned: ["Orbit", "Quill", "File Explorer", "Notepad", "PulseFit", "Photos", "Settings"],
-  recent: ["Quill", "Orbit", "Notepad"],
+  desktop: ["Meera", "Recycle Bin", "File Explorer", "Orbit", "Quill", "Notes", "Photos", "PulseFit"],
+  pinned: ["Orbit", "Quill", "File Explorer", "Notes", "PulseFit", "Photos", "Settings"],
+  recent: ["Quill", "Orbit", "Notes"],
 };
 
 export const taskApps = icons.filter((x) => taskbar.includes(x.name));

@@ -46,9 +46,10 @@
                   "todo.txt": {
                     "type": "txt",
                     "info": {
-                      "icon": "txt"
+                      "icon": "txt",
+                      "evidence_id": "LAP-DOC-01"
                     },
-                    "data": "- water bill (due 5th)\n- call Mum re: Sunday\n- Bruno vet, 11am Sat\n- return Priya's dish\n- ask Arjun about Coorg dates\n- CANCEL gym before 30th!!"
+                    "data": "- water bill (due 5th)\n- call Priya re: Sunday\n- Bruno vet, 11am Sat\n- return Priya's dish\n- ask Arjun about Coorg dates\n- CANCEL gym before 30th!!"
                   }
                 }
               },
@@ -61,16 +62,18 @@
                   "notes.txt": {
                     "type": "txt",
                     "info": {
-                      "icon": "txt"
+                      "icon": "txt",
+                      "evidence_id": "LAP-DOC-02"
                     },
-                    "data": "passwords I keep forgetting (DELETE THIS LATER)\n\nwifi: KapoorHome_5G / bruno2019\nprinter: admin / admin\nLIC login: meerak84 / (saved in browser)\nDad's folder: 1708RoseCafe\nHaven: changed it. security qs are the usual three.\n\nrecipes to try\n- bisi bele bath (Mum's proportions!)\n- that lemon cake Priya made\n\nMum's medicines: Telma 40 morning, Ecosprin night"
+                    "data": "recipes to try\n- bisi bele bath (Dad's proportions, from the diary!)\n- that lemon cake Priya made\n- Coorg pandi curry -- ask the homestay aunty\n\nbooks\n- the Shashi Deshpande one Priya keeps mentioning\n- re-read Malgudi Days (Dad's copy is in the box)\n\ngifts\n- Arjun bday: the watch strap, NOT another book"
                   },
                   "Insurance": {
                     "data": {
                       "LIC_policy_2019.pdf": {
                         "type": "pdf",
                         "info": {
-                          "icon": "pdf"
+                          "icon": "pdf",
+                          "evidence_id": "LAP-DOC-03"
                         },
                         "data": "/files/docs/LIC_policy_2019.pdf"
                       }
@@ -81,7 +84,8 @@
                       "Q2_review_notes.txt": {
                         "type": "txt",
                         "info": {
-                          "icon": "txt"
+                          "icon": "txt",
+                          "evidence_id": "LAP-DOC-04"
                         },
                         "data": "Q2 review -- talking points\n- GreenLeaf account: renewal moved to Aug\n- Kartly onboarding delayed (their side)\n- ask about WFH Fridays\n- appraisal: mention the Stillwell pitch"
                       }
@@ -92,14 +96,23 @@
                       "FATHER_DEATH_CASE.pdf": {
                         "type": "pdf",
                         "info": {
-                          "icon": "pdf"
+                          "icon": "pdf",
+                          "evidence_ids": [
+                            "CASE-PARTICULARS",
+                            "CASE-ROCK",
+                            "CASE-LEDGE",
+                            "CASE-BASE",
+                            "CASE-EFFECTS",
+                            "CASE-GATE"
+                          ]
                         },
                         "data": "/files/FATHER_DEATH_CASE.pdf"
                       },
                       "2024-08-02 The box.mp4": {
                         "type": "vid",
                         "info": {
-                          "icon": "vid"
+                          "icon": "vid",
+                          "evidence_id": "HAV-019"
                         },
                         "data": "/files/videos/2024-08-02%20The%20box.mp4"
                       }
@@ -120,14 +133,16 @@
                   "PulseFit-export-Aug.csv": {
                     "type": "txt",
                     "info": {
-                      "icon": "txt"
+                      "icon": "txt",
+                      "evidence_id": "LAP-DOC-05"
                     },
                     "data": "date,steps,resting_hr,sleep_hrs\n2024-08-01,8120,61,6.9\n2024-08-02,6540,62,7.4\n2024-08-03,11230,60,6.1\n2024-08-04,4020,63,5.2\n2024-08-05,7710,61,6.8"
                   },
                   "Coorg homestay - Wanderly.pdf": {
                     "type": "pdf",
                     "info": {
-                      "icon": "pdf"
+                      "icon": "pdf",
+                      "evidence_id": "LAP-DOC-06"
                     },
                     "data": "/files/docs/Coorg%20homestay%20-%20Wanderly.pdf"
                   }
@@ -144,42 +159,48 @@
                       "IMG_20181007_073012.jpg": {
                         "type": "img",
                         "info": {
-                          "icon": "img"
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-11"
                         },
                         "data": "/files/photos/camera/IMG_20181007_073012.jpg"
                       },
                       "IMG_20240316_190455.jpg": {
                         "type": "img",
                         "info": {
-                          "icon": "img"
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-12"
                         },
                         "data": "/files/photos/camera/IMG_20240316_190455.jpg"
                       },
                       "IMG_20240505_101233.jpg": {
                         "type": "img",
                         "info": {
-                          "icon": "img"
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-13"
                         },
                         "data": "/files/photos/camera/IMG_20240505_101233.jpg"
                       },
                       "IMG_20240505_101410.jpg": {
                         "type": "img",
                         "info": {
-                          "icon": "img"
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-14"
                         },
                         "data": "/files/photos/camera/IMG_20240505_101410.jpg"
                       },
                       "IMG_20240622_123301.jpg": {
                         "type": "img",
                         "info": {
-                          "icon": "img"
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-15"
                         },
                         "data": "/files/photos/camera/IMG_20240622_123301.jpg"
                       },
                       "IMG_20240817_203344.jpg": {
                         "type": "img",
                         "info": {
-                          "icon": "img"
+                          "icon": "img",
+                          "evidence_id": "LAP-PHOTO-16"
                         },
                         "data": "/files/photos/camera/IMG_20240817_203344.jpg"
                       }
@@ -228,49 +249,56 @@
                           "IMG-20240614-WA0007.jpg": {
                             "type": "img",
                             "info": {
-                              "icon": "img"
+                              "icon": "img",
+                              "evidence_id": "LAP-PHOTO-01"
                             },
                             "data": "/files/photos/hidden/IMG-20240614-WA0007.jpg"
                           },
                           "IMG-20240614-WA0009.jpg": {
                             "type": "img",
                             "info": {
-                              "icon": "img"
+                              "icon": "img",
+                              "evidence_id": "LAP-PHOTO-02"
                             },
                             "data": "/files/photos/hidden/IMG-20240614-WA0009.jpg"
                           },
                           "IMG-20240702-WA0003.jpg": {
                             "type": "img",
                             "info": {
-                              "icon": "img"
+                              "icon": "img",
+                              "evidence_id": "LAP-PHOTO-03"
                             },
                             "data": "/files/photos/hidden/IMG-20240702-WA0003.jpg"
                           },
                           "IMG-20240702-WA0004.jpg": {
                             "type": "img",
                             "info": {
-                              "icon": "img"
+                              "icon": "img",
+                              "evidence_id": "LAP-PHOTO-04"
                             },
                             "data": "/files/photos/hidden/IMG-20240702-WA0004.jpg"
                           },
                           "IMG-20240719-WA0011.jpg": {
                             "type": "img",
                             "info": {
-                              "icon": "img"
+                              "icon": "img",
+                              "evidence_id": "LAP-PHOTO-05"
                             },
                             "data": "/files/photos/hidden/IMG-20240719-WA0011.jpg"
                           },
                           "IMG-20240719-WA0012.jpg": {
                             "type": "img",
                             "info": {
-                              "icon": "img"
+                              "icon": "img",
+                              "evidence_id": "LAP-PHOTO-06"
                             },
                             "data": "/files/photos/hidden/IMG-20240719-WA0012.jpg"
                           },
                           "IMG-20240811-WA0002.jpg": {
                             "type": "img",
                             "info": {
-                              "icon": "img"
+                              "icon": "img",
+                              "evidence_id": "LAP-PHOTO-07"
                             },
                             "data": "/files/photos/hidden/IMG-20240811-WA0002.jpg"
                           }
@@ -304,21 +332,24 @@
       "IMG-20240811-WA0005.jpg": {
         "type": "img",
         "info": {
-          "icon": "img"
+          "icon": "img",
+          "evidence_id": "LAP-PHOTO-08"
         },
         "data": "/files/photos/bin/IMG-20240811-WA0005.jpg"
       },
       "IMG-20240824-WA0001.jpg": {
         "type": "img",
         "info": {
-          "icon": "img"
+          "icon": "img",
+          "evidence_id": "LAP-PHOTO-09"
         },
         "data": "/files/photos/bin/IMG-20240824-WA0001.jpg"
       },
       "IMG-20240824-WA0006.jpg": {
         "type": "img",
         "info": {
-          "icon": "img"
+          "icon": "img",
+          "evidence_id": "LAP-PHOTO-10"
         },
         "data": "/files/photos/bin/IMG-20240824-WA0006.jpg"
       },

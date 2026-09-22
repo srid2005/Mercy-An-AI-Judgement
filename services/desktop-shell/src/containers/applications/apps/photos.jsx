@@ -4,12 +4,13 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Icon, ToolBar } from "../../../utils/general";
+import { reportEvidenceIds } from "../../../actions";
 import "./assets/photos.scss";
 
 const collect = (item, out, path) => {
   if (!item) return out;
   if (item.info && item.info.hidden) return out;
-  if (item.type === "img") out.push({ name: item.name, src: item.data, folder: path });
+  if (item.type === "img") out.push({ name: item.name, src: item.data, folder: path, evidence_id: item.info && item.info.evidence_id });
   else if (item.type === "folder" && item.data) item.data.forEach((c) => collect(c, out, path + "\\" + item.name));
   return out;
 };
@@ -30,13 +31,18 @@ export const Photos = () => {
       setIdx(i < 0 ? 0 : i);
     }
   }, [pending]);
+  const list = file ? file.list || [{ name: file.name, src: file.src, evidence_id: file.evidence_id }] : [];
+  const cur = file ? list[idx] || { name: file.name, src: file.src, evidence_id: file.evidence_id } : null;
+
+  // every picture actually shown counts as seen -- including the ones
+  // reached with the arrows or from the gallery, which Explorer never opened
+  useEffect(() => {
+    if (cur && cur.evidence_id) reportEvidenceIds([cur.evidence_id]);
+  }, [cur && cur.src]);
   if (!wnapp) return null;
 
   const pictures = files.data.getId(files.data.special["%pictures%"]);
   const gallery = collect(pictures, [], "C:\\Users\\Meera");
-
-  const list = file ? file.list || [{ name: file.name, src: file.src }] : [];
-  const cur = file ? list[idx] || { name: file.name, src: file.src } : null;
   const prev = () => setIdx((i) => (i - 1 + list.length) % list.length);
   const next = () => setIdx((i) => (i + 1) % list.length);
 

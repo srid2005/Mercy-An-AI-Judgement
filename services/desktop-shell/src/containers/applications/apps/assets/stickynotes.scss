@@ -1,0 +1,123 @@
+.stickyApp {
+  .windowScreen {
+    background: var(--bg1, #f3f3f3);
+    color: var(--txt-col, #222);
+    font-family: "Segoe UI", system-ui, sans-serif;
+  }
+  .snList {
+    width: 250px;
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+    .snSearch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 10px;
+      padding: 5px 10px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 4px;
+      input {
+        border: 0;
+        background: transparent;
+        outline: none;
+        font-size: 12px;
+        width: 100%;
+        color: inherit;
+      }
+    }
+    .snItems {
+      overflow: auto;
+      padding: 0 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .snItem {
+      padding: 10px 12px;
+      border-radius: 6px;
+      border-top: 4px solid transparent;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      &.active {
+        outline: 2px solid rgba(0, 103, 192, 0.6);
+      }
+      .snTitle {
+        font-weight: 600;
+        font-size: 12.5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .snPreview {
+        font-size: 11.5px;
+        opacity: 0.75;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 2px;
+      }
+      .snWhen {
+        font-size: 10px;
+        opacity: 0.5;
+        margin-top: 4px;
+      }
+    }
+    .snEmpty {
+      font-size: 12px;
+      opacity: 0.6;
+      padding: 10px;
+    }
+  }
+  .snNote {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 18px;
+    .snNoteHead {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+      .snNoteTitle {
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .snNoteWhen {
+        font-size: 11px;
+        opacity: 0.55;
+      }
+    }
+    .snBody {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      resize: none;
+      outline: none;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #222;
+    }
+  }
+  // note colours, like Sticky Notes
+  .yellow.snItem { border-top-color: #f5d76e; }
+  .green.snItem { border-top-color: #9ad78b; }
+  .blue.snItem { border-top-color: #8fc2f2; }
+  .pink.snItem { border-top-color: #f4a6c4; }
+  .snNote.yellow { background: #fff6bf; }
+  .snNote.green { background: #e2f6dc; }
+  .snNote.blue { background: #dfeefb; }
+  .snNote.pink { background: #fde3ee; }
+}
+body[data-theme="dark"] .stickyApp {
+  .snList .snItem {
+    background: #2a2a2e;
+    color: #eee;
+  }
+  .snNote .snBody {
+    color: #222;
+  }
+}

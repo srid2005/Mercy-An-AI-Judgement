@@ -11,8 +11,28 @@ the evidence contract every app follows.
 docker compose up --build
 ```
 
-- http://localhost:3000 -- **Meera's laptop** (start here). Lock screen PIN
-  `1708`. Quill is an app on the desktop; Loop, Wisp and Haven open only
+**The event** (the way participants play): open the desk at
+http://localhost:3030/admin (password `mercy-admin`, env `ADMIN_PASSWORD`),
+add the participants by Zinnia ID (`ZIN26-0158, Name`, one per line), press
+PREPARE TEMPLATES, and share http://<this machine's IP>:3030/ -- a
+participant enters their ID, watches the intro, meets MERCY, reads the
+briefing, accepts, and has 25 minutes (`GAME_MINUTES`) in the console.
+Every participant gets an isolated game in every service (a Postgres schema
+each, picked by the `mercy_sid` cookie -- see MULTIPLAYER.md); the desk
+watches them live, restarts one, resets the event, restarts the containers,
+reads the stack's resources, and keeps the leaderboard
+(http://localhost:3030/leaderboard for a projector). Without a session the
+game APIs answer 401; for single-player development set
+`MERCY_SINGLE_PLAYER=1` in the environment and the old `public` schema is
+used, with the addresses below opening directly.
+
+- http://localhost:3030 -- **the lobby** (start here at an event): Zinnia ID
+  login, the films, the briefing; `/done` is a participant's result,
+  `/leaderboard` the board, `/admin` the desk.
+- http://localhost:3020 -- **MERCY's console**: the judge, the laptop and the
+  city map in tabs, the clock, LEAVE THE CASE.
+- http://localhost:3000 -- **Meera's laptop** (start here in single-player). Lock screen PIN
+  `1998` (her birth year -- the hint is on the lock screen). Quill is an app on the desktop; Loop, Wisp and Haven open only
   inside the Orbit browser (bookmarks bar); the case file PDF is in
   Documents; the PulseFit alert carries the SOS coordinates.
 - http://localhost:4001 -- Meera's Social Media, password-locked. Local test
@@ -30,7 +50,7 @@ docker compose up --build
 
 ## Status
 
-`social-media`, `whatsapp`, `email`, `haven`, `city-map` and `desktop-shell` are implemented; `case-files` is a generated PDF. Everything else
+`social-media`, `whatsapp`, `email`, `haven`, `city-map`, `desktop-shell`, `mercy-engine`, `mercy-console` and `mercy-lobby` are implemented; `case-files` is a generated PDF. Everything else
 under `services/` is a stub `README.md` describing what it will own -- see
 ARCHITECTURE.md for the build order and shared conventions before adding the
 next one.

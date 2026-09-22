@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MERCY</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/style.css?v=10" />
+  </head>
+  <body data-gated="gate">
+    <div id="gate-note" aria-live="polite">CONNECTING TO MERCY…</div>
+    <div id="bg" aria-hidden="true">
+      <div class="orb o1"></div>
+      <div class="orb o2"></div>
+      <div class="orb o3"></div>
+      <div class="orb o4"></div>
+      <div id="bg-pillars"></div>
+      <div id="bg-vignette"></div>
+    </div>
+
+    <header id="topbar">
+      <div id="brand"><span class="mark">MERCY</span><span class="sub">AI JUDGEMENT</span></div>
+      <nav id="tabbar">
+        <button class="tab-btn active" data-tab="mercy">MERCY AI Judge</button>
+        <button class="tab-btn" data-tab="laptop">Meera's Laptop<span class="tab-dot" hidden></span></button>
+        <button class="tab-btn" data-tab="map">City Map<span class="tab-dot" hidden></span></button>
+      </nav>
+      <!-- the clock: 25 minutes from the lobby's "Accept & continue", driven
+           by the engine's deadline (app.js tickClock); red under five minutes -->
+      <div id="topbar-right">
+        <span id="case-no">FILE UDR 0412/2018</span>
+        <span id="hud-clock" title="Time left on the file" aria-live="off">--:--</span>
+        <button id="leave-btn" type="button" data-mode="leave">LEAVE THE CASE</button>
+      </div>
+    </header>
+
+    <main id="panels">
+      <!-- MERCY AI Judge -->
+      <section id="panel-mercy" class="panel active">
+        <!-- HUD: evidence discovered (left) -->
+        <div class="hud" id="hud-left">
+          <div class="hud-chip" id="hud-evidence">
+            <svg class="hud-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M8 14h12l4 4h16v18a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V14z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" />
+              <path d="M8 22h32" stroke="currentColor" stroke-width="2.2" opacity=".55" />
+            </svg>
+            <div class="hud-body">
+              <div class="hud-label">EVIDENCE</div>
+              <div class="hud-value"><span id="evidence-count">00</span></div>
+            </div>
+          </div>
+
+          <div id="hud-victim">
+            <button id="victim-toggle" class="hud-chip" type="button" title="The victim">
+              <svg class="hud-icon" viewBox="0 0 48 48" aria-hidden="true">
+                <circle cx="24" cy="17" r="8" fill="none" stroke="currentColor" stroke-width="2.2" />
+                <path d="M9 40c1.5-8 7.5-12 15-12s13.5 4 15 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+              </svg>
+              <div class="hud-body">
+                <div class="hud-label">VICTIM</div>
+                <div class="hud-value name">MEERA KAPOOR</div>
+              </div>
+            </button>
+
+            <div id="victim-popover" hidden>
+              <div class="pop-head"><span>THE VICTIM &middot; PARTICULARS</span><span class="pop-status">MISSING</span></div>
+              <div class="victim-card">
+                <img src="/img/mercy/meera.jpg?v=3" alt="Meera Kapoor" />
+                <div class="victim-main">
+                  <div class="victim-name">Meera Kapoor</div>
+                  <div class="victim-line">n&eacute;e Sharma &middot; <span class="victim-age">--</span> years &middot; female</div>
+                  <div class="victim-line">Lead product designer &middot; Koramangala, Bengaluru</div>
+                  <div class="victim-line mono">MISSING SINCE <span id="victim-since">--</span> &middot; <span id="victim-days">--</span></div>
+                </div>
+              </div>
+
+              <div class="victim-section">IDENTITY</div>
+              <dl class="victim-fields">
+                <dt>Full name</dt><dd>Meera Kapoor (n&eacute;e Meera Sharma)</dd>
+                <dt>Date of birth</dt><dd>12-03-1998 &middot; <span class="victim-age">--</span> years</dd>
+                <dt>Birthplace</dt><dd>Bengaluru, Karnataka</dd>
+                <dt>Father</dt><dd>Late Ravi Sharma &mdash; retired engineer (BEML). Died 14-10-2018, fall at Sunset Rock, Turahalli forest. Ruled accidental; UDR 0412/2018 closed.</dd>
+                <dt>Mother</dt><dd>Smt. Lakshmi Sharma &mdash; No. 42, 8th Cross, Malleshwaram, Bengaluru 560003</dd>
+                <dt>Husband</dt><dd>Arjun Kapoor &mdash; married February 2021. <em>The participant.</em></dd>
+                <dt>Occupation</dt><dd>Lead product designer at a Bengaluru design studio (fintech clients). Works partly from home.</dd>
+                <dt>Residence</dt><dd>Flat in Koramangala, Bengaluru, shared with the husband and one dog, Bruno.</dd>
+                <dt>Mobile</dt><dd>+91 98450 11234 &mdash; switched off since that night.</dd>
+                <dt>Identification</dt><dd>Long dark hair; small silver pendant on a chain, worn daily. No known medical conditions.</dd>
+              </dl>
+
+              <div class="victim-section">DISAPPEARANCE</div>
+              <dl class="victim-fields">
+                <dt>Last seen</dt><dd><span id="victim-lastseen">--</span>, about <span id="victim-lasttime">--</span> hrs, at the Koramangala flat. Alone; the husband was away that night.</dd>
+                <dt>Last activity</dt><dd>Her phone made its last cloud backup at <span id="victim-backup">--</span> hrs. No calls, messages or backups after that.</dd>
+                <dt>Reported</dt><dd><span id="victim-reported">--</span>, by the husband on returning to the flat. Door locked, phone and handbag gone, the dog inside.</dd>
+                <dt>Circle</dt><dd>Rahul Nair, a friend since she was seven. Priya Menon and Nikhil Rao, the same friend group since college.</dd>
+              </dl>
+
+              <div class="victim-charge">
+                <span>THE FILE</span>
+                The husband, Arjun Kapoor, is held responsible for her disappearance. He states he was at his brother's house that night and returned the next morning. Nothing on file supports that yet.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HUD: guilt (right) -->
+        <div class="hud" id="hud-guilt">
+          <button id="meter-toggle" class="hud-chip" type="button" title="Case standing">
+            <svg class="hud-icon gauge" viewBox="0 0 48 48" aria-hidden="true">
+              <path id="gauge-track" d="M10.6 37.4 A19 19 0 1 1 37.4 37.4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".28" />
+              <path id="gauge-fill" d="M10.6 37.4 A19 19 0 1 1 37.4 37.4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+              <line id="gauge-needle" x1="24" y1="24" x2="24" y2="9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+              <circle cx="24" cy="24" r="2.6" fill="currentColor" />
+            </svg>
+            <div class="hud-body">
+              <div class="hud-label">GUILT</div>
+              <div class="hud-value"><span id="guilt-percent">96.8</span><span class="unit">%</span></div>
+              <div id="cp-ticks" aria-hidden="true"></div>
+            </div>
+          </button>
+
+          <div id="meter-popover" hidden>
+            <div class="pop-head">
+              <span>CASE STANDING</span>
+              <span id="pop-pct">96.8%</span>
+            </div>
+            <div class="pop-sub">probability the participant is responsible</div>
+            <div id="cp-list"></div>
+            <div id="verdict-concluded" hidden>THE CASE IS CLOSED</div>
+          </div>
+        </div>
+
+        <!-- The evidence index: always open on the left -->
+        <aside id="evidence-panel">
+          <div id="picker" role="region" aria-label="Evidence index">
+            <div id="picker-head">
+              <span class="pk-title">EVIDENCE INDEX</span>
+              <input id="picker-search" type="text" placeholder="Search the index -- a word, or an evidence id" autocomplete="off" />
+              <button id="picker-close" type="button" title="Close">&times;</button>
+            </div>
+            <!-- the triage strip: MERCY narrating what it is doing to the index -->
+            <div id="picker-index">
+              <div class="idx-lines"></div>
+              <div class="idx-bar"><i></i></div>
+            </div>
+            <div id="picker-filters" role="tablist"></div>
+            <div id="picker-body">
+              <div id="picker-results" role="listbox"></div>
+              <!-- the stage: one tile per source the participant has actually surfaced something from -->
+              <div id="picker-scan" hidden>
+                <div class="scan-sub">SCOPE &middot; WHAT YOU HAVE SURFACED FROM THE SEIZED DEVICES</div>
+                <div class="scan-tiles"></div>
+                <div class="scan-foot"><span class="scan-clock">0.000s</span></div>
+              </div>
+              <div id="picker-sweep" hidden></div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- The hearing -->
+        <div id="chat-shell">
+          <div id="chat-bg" aria-hidden="true"></div>
+          <div id="chat-head">
+            <span class="ch-title">HEARING</span>
+            <span class="ch-sub">argue the file &middot; attach what you've found</span>
+          </div>
+          <div id="chat-log"></div>
+
+          <div id="tray"></div>
+
+          <form id="composer">
+            <button type="button" id="evidence-btn" title="Attach evidence">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+              Evidence
+            </button>
+            <textarea id="composer-text" placeholder="Tell MERCY why the file is wrong..." rows="1"></textarea>
+            <button type="submit" id="send-btn">Submit</button>
+          </form>
+        </div>
+
+        <!-- The evidence peek: a floating preview of the index row the pointer
+             (or the keyboard) is resting on. One element, filled and placed by
+             app.js; pointer-events: none so the row underneath keeps the click. -->
+        <div id="peek" class="peek" hidden aria-hidden="true"></div>
+      </section>
+
+      <!-- Meera's Laptop -->
+      <section id="panel-laptop" class="panel">
+        <iframe id="laptop-frame" title="Meera's laptop"></iframe>
+      </section>
+
+      <!-- City Map -->
+      <section id="panel-map" class="panel">
+        <iframe id="map-frame" title="City map"></iframe>
+      </section>
+    </main>
+
+    <div id="toast" hidden></div>
+
+    <!-- The ending. Raised by app.js over everything including the map and
+         laptop frames, in one of two variants (data-variant): "solved" --
+         once, when the rescue closes the case; READ THE TRANSCRIPT hides it
+         and the hearing underneath stands as the record -- or "expired",
+         when the clock runs out; that one only leads to the result page. -->
+    <div id="case-closed" role="dialog" aria-modal="true" aria-labelledby="closed-title" data-variant="solved" hidden>
+      <div class="closed-card">
+        <div class="closed-brand"><span class="mark">MERCY</span><span class="sub">AI JUDGEMENT</span></div>
+        <div class="closed-rule" aria-hidden="true"></div>
+        <h1 id="closed-title" class="closed-title">CASE CLOSED</h1>
+        <div class="closed-lines only-solved">
+          <div class="closed-line" style="--i: 0"><span class="who">Meera Kapoor</span><span class="sep">&middot;</span><span class="what">recovered alive</span></div>
+          <div class="closed-line" style="--i: 1"><span class="who">Nikhil Rao</span><span class="sep">&middot;</span><span class="what">in custody</span></div>
+          <div class="closed-line" style="--i: 2"><span class="who">Arjun Kapoor</span><span class="sep">&middot;</span><span class="what">released &mdash; the file against you is closed</span></div>
+        </div>
+        <div class="closed-lines only-expired">
+          <div class="closed-line" style="--i: 0"><span class="what">The file stands.</span></div>
+          <div class="closed-line" style="--i: 1"><span class="who">Standing:</span><span class="what"><span id="expired-pct">0.0</span>%</span></div>
+          <div class="closed-line" style="--i: 2"><span class="what">MERCY's verdict is entered.</span></div>
+        </div>
+        <!-- the final standing, in the HUD's own chip, already calm -->
+        <div class="hud calm closed-hud only-solved">
+          <div class="hud-chip">
+            <svg class="hud-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M10.6 37.4 A19 19 0 1 1 37.4 37.4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".28" />
+              <line x1="24" y1="24" x2="10.6" y2="37.4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+              <circle cx="24" cy="24" r="2.6" fill="currentColor" />
+            </svg>
+            <div class="hud-body">
+              <div class="hud-label">FINAL STANDING</div>
+              <div class="hud-value"><span id="closed-pct">0.0</span><span class="unit">%</span></div>
+            </div>
+          </div>
+        </div>
+        <div id="closed-file" class="closed-file">FILE UDR 0412/2018 &middot; CLOSED</div>
+        <div class="closed-actions">
+          <button id="closed-transcript" class="only-solved" type="button">READ THE TRANSCRIPT</button>
+          <button id="closed-leaderboard" type="button">SEE THE LEADERBOARD</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEAVE THE CASE asks once. STAY closes it; LEAVE posts /api/leave and
+         goes to the result page on the lobby. -->
+    <div id="leave-confirm" role="dialog" aria-modal="true" aria-labelledby="leave-text" hidden>
+      <div class="confirm-card">
+        <div class="confirm-kicker">LEAVE THE CASE</div>
+        <p id="leave-text" class="confirm-text">Leave the file as it stands at <b><span id="leave-pct">--</span>%</b>? You cannot come back to it.</p>
+        <div class="confirm-actions">
+          <button id="leave-stay" type="button">STAY</button>
+          <button id="leave-go" type="button">LEAVE</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/app.js?v=10"></script>
+  </body>
+</html>

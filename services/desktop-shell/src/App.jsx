@@ -91,6 +91,41 @@ function App() {
     }
   });
 
+  // SOS gate bridge. Embedded in the console's laptop iframe: the console pushes
+  // { type:'mercy:gates', gates:{ sos_released } } (on load, on every state
+  // refresh) and answers our 'mercy:gates?' handshake, so whichever side comes
+  // up first the flag lands. The check is on ev.source === window.parent, not a
+  // hard-coded origin, because the shell is served from whatever hostname the
+  // participant used. Standalone (no parent): demo mode, released unless ?sos=0.
+  useEffect(() => {
+    const embedded = window.self !== window.top;
+    if (!embedded) {
+      dispatch({ type: "SOSGATES", payload: { sos_released: new URLSearchParams(location.search).get("sos") !== "0" } });
+    } else {
+      const onMsg = (ev) => {
+        if (ev.source !== window.parent || !ev.data || ev.data.type !== "mercy:gates") return;
+        dispatch({ type: "SOSGATES", payload: ev.data.gates || {} });
+      };
+      window.addEventListener("message", onMsg);
+      window.parent.postMessage({ type: "mercy:gates?" }, "*");
+      return () => window.removeEventListener("message", onMsg);
+    }
+  }, []);
+
+  // Belt and braces for the same problem overflow:clip solves: if anything
+  // still scrolls a window container (focus inside an iframe), snap it back.
+  useEffect(() => {
+    const reset = (e) => {
+      const t = e.target;
+      if (t && t.classList && (t.classList.contains("desktop") || t.classList.contains("windowScreen") || t.classList.contains("siteFrame"))) {
+        t.scrollTop = 0;
+        t.scrollLeft = 0;
+      }
+    };
+    document.addEventListener("scroll", reset, true);
+    return () => document.removeEventListener("scroll", reset, true);
+  }, []);
+
   return (
     <div className="App">
       <ErrorBoundary FallbackComponent={ErrorFallback}>

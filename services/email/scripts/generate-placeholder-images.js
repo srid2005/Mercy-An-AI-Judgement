@@ -37,7 +37,7 @@ const anonymous = [{ file: 'unknown.svg', label: '?' }];
 // Haven: real evidence, and narratively important (the future cloud/video
 // service). Styled distinctly again -- calm, trustworthy, cloud-like --
 // so it visually stands apart from both the cast and generic filler.
-const special = [{ file: 'haven.svg', label: 'Haven' }];
+const special = []; // Haven's avatar is its real logo (avatars/haven.png), not a placeholder
 
 // Shopping-brand filler senders -- deliberately drawn as parody/spoof
 // logos (evoking a familiar marketplace look without copying any real

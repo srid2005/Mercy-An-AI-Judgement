@@ -2,7 +2,8 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const { pool } = require('./db');
+const { pool, rawPool } = require('./db');
+const tenant = require('./tenant');
 
 const PORT = process.env.PORT || 4001;
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-secret-change-me';
@@ -11,9 +12,26 @@ const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY || 'dev-internal-key';
 const EMAIL_SERVICE_URL = process.env.EMAIL_SERVICE_URL || 'http://localhost:4002';
 
 const app = express();
-app.use(cors());
+app.set('x-service', 'social-media');
+// Before any route is registered: one participant's failed query must answer
+// 500 to them alone, not take the process down for the other forty-nine.
+tenant.guardApp(app);
+// The browser sends the mercy_sid cookie cross-origin (the laptop embeds this
+// app from another port), so CORS has to allow credentials.
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
+// Whose game this request belongs to -- resolved before the auth routes,
+// which write reset PINs that must land in the participant's own schema.
+app.use(tenant.middleware);
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Calls this service makes on the participant's behalf (to itself, to Quill)
+// carry the participant next to the key, so the far side runs in the same
+// schema. In single-player there is no participant and no header.
+function playerHeader() {
+  const id = tenant.currentId();
+  return id ? { 'x-mercy-player': id } : {};
+}
 
 // ---------------------------------------------------------------------------
 // Player-facing auth: "logging in" to Meera's account inside the game.
@@ -66,7 +84,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
   try {
     await fetch(`${EMAIL_SERVICE_URL}/api/internal/deliver-mail`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-internal-key': INTERNAL_API_KEY },
+      headers: { 'Content-Type': 'application/json', 'x-internal-key': INTERNAL_API_KEY, ...playerHeader() },
       body: JSON.stringify({
         sender_name: 'Loop Security',
         sender_email: 'security@loopapp.io',
@@ -529,7 +547,7 @@ app.get('/api/evidence', requireMercyKey, async (req, res) => {
 app.get('/api/evidence/:evidenceId', requireMercyKey, async (req, res) => {
   const { evidenceId } = req.params;
   const full = await fetch(`http://localhost:${PORT}/api/evidence`, {
-    headers: { 'x-mercy-key': MERCY_API_KEY },
+    headers: { 'x-mercy-key': MERCY_API_KEY, ...playerHeader() },
   }).then((r) => r.json());
   const item = full.evidence.find((e) => e.evidence_id === evidenceId);
   if (!item) return res.status(404).json({ error: 'not found' });
@@ -579,6 +597,37 @@ function groupBy(rows, key) {
     return acc;
   }, {});
 }
+
+// ---------------------------------------------------------------------------
+// The event: one schema per participant (see /MULTIPLAYER.md). The accounts,
+// the tags on the seeded posts and the feed/DM noise are the same for
+// everyone and stay in `template`; posts, comments, DMs, follows, the
+// counter, reset PINs and replies to the filler are theirs.
+// ---------------------------------------------------------------------------
+// One cheap count for the admin panel; a null is "unknown", never a throw.
+async function countRows(sql) {
+  try {
+    return (await pool.query(sql)).rows[0].n;
+  } catch {
+    return null;
+  }
+}
+
+tenant.mount(app, {
+  service: 'social-media',
+  pool: rawPool,
+  sqlDir: path.join(__dirname, 'db'),
+  staticTables: ['users', 'tags', 'feed_filler', 'dm_filler_threads', 'app_config'],
+  // Follows come and go without a trace of which were seeded, so the panel
+  // gets the three things that carry a source and nothing for follows.
+  summary: async () => ({
+    posts: await countRows("SELECT count(*)::int AS n FROM posts WHERE source = 'player'"),
+    comments: await countRows("SELECT count(*)::int AS n FROM comments WHERE source = 'player'"),
+    dms: await countRows("SELECT count(*)::int AS n FROM messages WHERE source = 'player'"),
+    follows_changed: null,
+  }),
+});
+app.use(app.tenantErrorHandler);
 
 app.listen(PORT, () => {
   console.log(`[social-media] listening on :${PORT}`);

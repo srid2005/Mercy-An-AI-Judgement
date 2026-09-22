@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MERCY</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/lobby.css?v=1" />
+    <style>
+      /* the result: the ending's card, then the board under it */
+      .done-wrap { display: flex; flex-direction: column; align-items: center; gap: 28px; }
+      .done-card { width: min(640px, 100%); padding: 40px 36px 34px; text-align: center; }
+      .done-card .brand { justify-content: center; }
+      .done-who { font-size: 15px; color: rgba(246, 226, 191, 0.8); }
+      .done-who b { display: block; font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+      .done-who .mono { font-family: var(--mono); letter-spacing: 0.14em; color: var(--amber); }
+      .done-title { margin: 22px 0 8px; font-family: var(--mono); font-weight: 400; font-size: clamp(24px, 4.6vw, 38px); letter-spacing: 0.4em; padding-left: 0.4em;
+        color: var(--amber); text-shadow: 0 0 14px var(--amber-glow), 0 0 40px rgba(255, 140, 20, 0.4); }
+      .done-title.calm { color: #7be3a6; text-shadow: 0 0 14px rgba(90, 220, 150, 0.5), 0 0 40px rgba(90, 220, 150, 0.3); }
+      .done-sub { font-size: 14px; line-height: 1.55; color: rgba(246, 226, 191, 0.75); min-height: 1.5em; }
+      .done-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 26px 0 8px; }
+      .stat { padding: 12px 8px 10px; border-radius: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 176, 67, 0.3); box-shadow: inset 0 0 18px rgba(255, 140, 20, 0.08); }
+      .stat .l { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.26em; color: rgba(246, 226, 191, 0.6); margin-bottom: 6px; }
+      .stat .v { font-family: var(--mono); font-size: 26px; letter-spacing: 0.04em; color: var(--amber); text-shadow: 0 0 10px var(--amber-glow); }
+      .stat .v .unit { font-size: 15px; opacity: 0.85; margin-left: 2px; }
+      .stat.calm .v { color: #7be3a6; text-shadow: 0 0 10px rgba(90, 220, 150, 0.5); }
+      .done-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 22px; }
+      .done-foot { margin-top: 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+      .board-wrap { width: min(980px, 100%); }
+      .board-wrap .glass-head .pk-title { color: var(--hud-text); }
+      @media (max-width: 800px) {
+        .done-card { padding: 30px 20px 26px; }
+        .done-stats { grid-template-columns: repeat(2, 1fr); }
+      }
+    </style>
+  </head>
+  <body class="dark">
+    <div id="bg" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <div class="brand light"><span class="mark">MERCY</span><span class="sub">AI JUDGEMENT</span></div>
+      <div class="right"><span class="case-no">FILE UDR 0412/2018</span></div>
+    </header>
+
+    <main class="page done-wrap">
+      <section class="hud-card done-card" id="card">
+        <div class="brand light"><span class="mark">MERCY</span><span class="sub">AI JUDGEMENT</span></div>
+        <div class="rule" aria-hidden="true"></div>
+        <div class="done-who"><b id="me-name">&nbsp;</b><span class="mono" id="me-id">&nbsp;</span></div>
+        <h1 class="done-title" id="title">&nbsp;</h1>
+        <div class="done-sub" id="sub"></div>
+        <div class="done-stats">
+          <div class="stat"><div class="l">TIME</div><div class="v" id="st-time">--:--</div></div>
+          <div class="stat" id="st-guilt-box"><div class="l">FINAL STANDING</div><div class="v"><span id="st-guilt">--</span><span class="unit">%</span></div></div>
+          <div class="stat"><div class="l">CHECKPOINTS</div><div class="v"><span id="st-cp">-</span><span class="unit">/<span id="st-cp-total">7</span></span></div></div>
+          <div class="stat"><div class="l">STANDING</div><div class="v"><span id="st-rank">-</span><span class="unit">/<span id="st-players">-</span></span></div></div>
+        </div>
+        <div class="done-actions">
+          <a class="btn" id="back-btn" href="#" hidden>BACK TO THE CONSOLE</a>
+        </div>
+        <div class="done-foot">
+          <span class="file-no" id="file-line">FILE UDR 0412/2018</span>
+          <button class="link" id="logout-btn" type="button">NOT YOU? LOG OUT</button>
+        </div>
+      </section>
+
+      <section class="board-wrap">
+        <div class="glass-head"><span class="pk-title">LEADERBOARD</span><span class="file-no" id="board-note">updates every 10 s</span></div>
+        <div class="table-wrap">
+          <table class="board compact">
+            <thead><tr><th>#</th><th>NAME</th><th class="id-col">ID</th><th>RESULT</th><th class="num">TIME</th><th class="num">STANDING</th><th class="num">CHECKPOINTS</th></tr></thead>
+            <tbody id="board"><tr class="empty"><td colspan="7">loading…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" hidden></div>
+    <script src="/js/board.js?v=1"></script>
+    <script src="/js/done.js?v=1"></script>
+  </body>
+</html>

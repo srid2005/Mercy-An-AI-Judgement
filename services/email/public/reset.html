@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="robots" content="noindex" />
+<title>Reset</title>
+</head>
+<body>
+<script>
+  // The lobby loads this page in a hidden iframe when a participant logs in,
+  // once per front-end origin: on a shared machine, whatever the previous
+  // participant left in Quill's storage must not carry into the next game.
+  // Storage is per origin, so only this app's own keys are touched. The
+  // parent is told either way -- a blocked storage is not worth stalling a
+  // login over.
+  try { localStorage.clear(); } catch (e) {}
+  try { sessionStorage.clear(); } catch (e) {}
+  window.parent.postMessage({ type: 'mercy:reset-done', origin: location.origin }, '*');
+</script>
+</body>
+</html>

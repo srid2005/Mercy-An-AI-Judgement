@@ -129,7 +129,11 @@ CREATE TABLE props (
     rotation_deg DOUBLE PRECISION NOT NULL DEFAULT 0
 );
 
--- Every drone search the player has launched.
+-- Every drone search the player has launched. The id is evidence identity
+-- (mercy-engine files each row as MAP-<id>), so the sequence is never reset.
+-- outcome: clear (nothing) | clue (a story spot on the SOS trail) |
+--          trace (the cave: jacket + band + recording, nobody there) |
+--          found (Meera located -- only ever at app_config.truth_stop)
 CREATE TABLE searches (
     id           SERIAL PRIMARY KEY,
     lat          DOUBLE PRECISION NOT NULL,
@@ -138,5 +142,72 @@ CREATE TABLE searches (
     building_id  INTEGER REFERENCES buildings(id),
     found        BOOLEAN NOT NULL,
     result       TEXT NOT NULL,
-    searched_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+    searched_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    outcome      TEXT NOT NULL DEFAULT 'clear' CHECK (outcome IN ('clear', 'clue', 'trace', 'found')),
+    spot_slug    TEXT,                         -- story_spots.slug or 'stop-<seq>' when the sweep hit one
+    evidence_ids TEXT[] NOT NULL DEFAULT '{}', -- evidence the sweep surfaces (the cave returns SW-06)
+    items        JSONB                         -- what the drones picked up, for the card
+);
+
+-- The SOS trail: places whose sweep returns a written clue instead of the
+-- generic "No trace" text. Matched by priority, first spot whose circle
+-- (radius_m around lat/lng) contains the search point. A spot with
+-- requires_spots answers with the row named by sealed_slug until every
+-- listed spot has a searches row (the cave stays sealed until sos-1..sos-4
+-- have been swept). Seeded by 03_story.sql.
+CREATE TABLE story_spots (
+    slug            TEXT PRIMARY KEY,
+    priority        INT NOT NULL,
+    lat             DOUBLE PRECISION,
+    lng             DOUBLE PRECISION,
+    radius_m        INT NOT NULL,
+    outcome         TEXT NOT NULL,             -- clear | clue | trace
+    result          TEXT NOT NULL,
+    items           JSONB,
+    evidence_ids    TEXT[] NOT NULL DEFAULT '{}',
+    requires_spots  TEXT[] NOT NULL DEFAULT '{}',
+    sealed_slug     TEXT
+);
+
+-- Vehicles the model can track once tracking is unlocked (a 'trace' row in
+-- searches). mode says how the car behaves once it is followed: 'chase' --
+-- it drives to its next unsearched stop and waits there until the drones
+-- have searched it (Nikhil); 'loop' -- it drives its stops round and round,
+-- dwelling at each (everyone else); 'parked' -- it never moves. lat/lng is
+-- where the car is first drawn: on the road for a chase, its stop 1 for a
+-- loop, its bay for a parked car.
+CREATE TABLE vehicles (
+    slug    TEXT PRIMARY KEY,
+    owner   TEXT,
+    plate   TEXT,
+    model   TEXT,
+    note    TEXT,
+    mode    TEXT NOT NULL DEFAULT 'loop',
+    lat     DOUBLE PRECISION,
+    lng     DOUBLE PRECISION
+);
+
+-- The stops a tracked vehicle drives to, in seq order. Every stop is a named
+-- building. result_clear / result_found are the sweep texts for a search at
+-- the stop; which stop is the true one lives ONLY in app_config.truth_stop
+-- (drawn at seed time by 03_story.sql) -- there is no is_truth column, and
+-- the server never sends result_* to the browser. A search at a stop is
+-- logged with spot_slug 'stop-<seq>' (Nikhil) or 'stop-<vehicle>-<seq>'
+-- (anyone else), which is how GET /api/vehicles/:slug knows what has been
+-- searched -- and, for a chase, which stop the car goes to next.
+CREATE TABLE vehicle_stops (
+    id            SERIAL PRIMARY KEY,
+    vehicle       TEXT REFERENCES vehicles(slug),
+    seq           INT,
+    name          TEXT,
+    note          TEXT,
+    lat           DOUBLE PRECISION,
+    lng           DOUBLE PRECISION,
+    building_id   INT REFERENCES buildings(id),
+    dwell_s       INT DEFAULT 40,
+    logged_label  TEXT,                        -- ANPR read time shown on the card
+    cctv_code     TEXT,                        -- the camera that read the plate
+    result_clear  TEXT,
+    result_found  TEXT,
+    UNIQUE (vehicle, seq)
 );

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MERCY</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/lobby.css?v=1" />
+    <style>
+      /* the projector: the brand large, the board the width of the room */
+      .proj-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; padding: 14px 0 22px; border-bottom: 1px solid rgba(255, 176, 67, 0.35); margin-bottom: 8px; }
+      .proj-head h1 { margin: 6px 0 0; font-family: var(--mono); font-weight: 400; font-size: clamp(26px, 4vw, 44px); letter-spacing: 0.44em; color: var(--amber);
+        text-shadow: 0 0 14px var(--amber-glow), 0 0 40px rgba(255, 140, 20, 0.4); }
+      .proj-counts { display: flex; gap: 22px; font-family: var(--mono); font-size: 13px; letter-spacing: 0.22em; color: rgba(246, 226, 191, 0.6); }
+      .proj-counts b { display: block; font-size: 30px; letter-spacing: 0.04em; color: var(--amber); text-shadow: 0 0 10px var(--amber-glow); }
+      .proj-foot { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+      .page.proj { width: min(1400px, 100%); }
+    </style>
+  </head>
+  <body class="dark">
+    <div id="bg" aria-hidden="true"></div>
+
+    <main class="page proj">
+      <header class="proj-head">
+        <div>
+          <div class="brand light big"><span class="mark">MERCY</span><span class="sub">AI JUDGEMENT</span></div>
+          <h1>LEADERBOARD</h1>
+        </div>
+        <div class="proj-counts">
+          <div>SOLVED<b id="c-solved">0</b></div>
+          <div>FINISHED<b id="c-finished">0</b></div>
+          <div>PLAYING<b id="c-playing">0</b></div>
+          <div>ON THE LIST<b id="c-total">0</b></div>
+        </div>
+      </header>
+      <div class="table-wrap">
+        <table class="board">
+          <thead><tr><th>#</th><th>NAME</th><th>ID</th><th>RESULT</th><th class="num">TIME</th><th class="num">STANDING</th><th class="num">CHECKPOINTS</th></tr></thead>
+          <tbody id="board"><tr class="empty"><td colspan="7">loading…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="proj-foot">
+        <span class="file-no">FILE UDR 0412/2018</span>
+        <span class="file-no" id="note">updates every 5 s</span>
+      </div>
+    </main>
+
+    <script src="/js/board.js?v=1"></script>
+    <script src="/js/leaderboard.js?v=1"></script>
+  </body>
+</html>

@@ -59,6 +59,12 @@ const apps = [
     action: "PULSEFIT",
   },
   {
+    name: "Notes",
+    icon: "notes",
+    type: "app",
+    action: "STICKY",
+  },
+  {
     name: "Notepad",
     icon: "notepad",
     type: "app",

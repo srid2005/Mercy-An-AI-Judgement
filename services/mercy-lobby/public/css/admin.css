@@ -1,0 +1,118 @@
+/* The desk (/admin). On lobby.css: the console's tab pill, glass panels for
+   the tables and forms, HUD chips for the counts, bars for the resources. */
+
+#login { z-index: 5; padding: 24px; overflow-y: auto; }
+#login.active { display: flex; }
+#desk { position: relative; z-index: 1; }
+
+/* ---------------------------------------------------------------- tabs */
+#tabbar { display: flex; gap: 4px; padding: 4px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55); border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 1px 0 #fff, 0 4px 14px rgba(95, 62, 20, 0.08); }
+.tab-btn { border: 0; background: transparent; color: var(--ink-dim); font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+  padding: 8px 16px; border-radius: 999px; cursor: pointer; transition: color 0.2s, background 0.2s, box-shadow 0.2s; }
+.tab-btn:hover { color: var(--ink); }
+.tab-btn.active { background: linear-gradient(135deg, #3a2a18, #1f170f); color: #ffd79a;
+  box-shadow: 0 6px 16px rgba(50, 30, 8, 0.32), 0 0 0 1px rgba(255, 176, 67, 0.35); }
+.tab { display: none; flex-direction: column; gap: 18px; }
+.tab.active { display: flex; animation: rise 0.28s ease-out; }
+
+/* -------------------------------------------------------------- counts */
+.counts { display: flex; flex-wrap: wrap; gap: 10px; }
+.count { display: flex; flex-direction: column; gap: 4px; min-width: 118px; padding: 9px 16px 8px 13px; border-radius: 12px; position: relative; overflow: hidden;
+  background: var(--hud-bg); color: var(--amber); border: 1px solid rgba(255, 176, 67, 0.55);
+  box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.14), 0 0 18px rgba(255, 140, 20, 0.28), 0 10px 26px rgba(50, 30, 8, 0.22), inset 0 0 22px rgba(255, 140, 20, 0.1); }
+.count::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px); opacity: 0.6; }
+.count .l { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.26em; opacity: 0.78; }
+.count b { font-family: var(--mono); font-weight: 400; font-size: 26px; line-height: 1; letter-spacing: 0.04em; text-shadow: 0 0 10px var(--amber-glow); }
+.count.hot { border-color: var(--amber-line); box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.2), 0 0 26px rgba(255, 140, 20, 0.45), 0 10px 26px rgba(50, 30, 8, 0.25), inset 0 0 22px rgba(255, 140, 20, 0.16); }
+.count.good { --amber: #7be3a6; --amber-glow: rgba(90, 220, 150, 0.5); border-color: rgba(123, 227, 166, 0.6); }
+
+/* ------------------------------------------------------------- layout */
+.two-col { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 18px; align-items: start; }
+.side { display: flex; flex-direction: column; gap: 18px; }
+.res-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; align-items: stretch; }
+.hint { font-size: 12.5px; color: var(--ink-dim); }
+.dim { color: var(--ink-soft) !important; }
+.glass-head .search { width: 260px; height: 34px; font-size: 13px; }
+.glass-head .pk-title.light { color: var(--hud-text); }
+
+/* --------------------------------------------------------------- forms */
+.form-body { display: flex; flex-direction: column; gap: 10px; padding: 4px 16px 16px; }
+.lbl { font-family: var(--mono); font-size: 10px; letter-spacing: 0.24em; color: var(--ink-dim); margin-top: 2px; }
+.field.mono { font-family: var(--mono); letter-spacing: 0.14em; text-transform: uppercase; }
+.form .note { font-size: 12px; line-height: 1.45; color: var(--ink-dim); }
+.bulk-result { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; line-height: 1.6; color: var(--ink-dim); white-space: pre-wrap; }
+.bulk-result:empty { display: none; }
+.bulk-result .bad { color: #b83a25; }
+
+/* --------------------------------------------------------- the table */
+.table.players th, .table.players td { padding-left: 10px; padding-right: 10px; }
+.table.players td.actions { white-space: nowrap; text-align: right; }
+.table.players td.actions .btn + .btn { margin-left: 6px; }
+.table .left { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.table .left.low { color: #b83a25; }
+.table .chase { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; color: var(--ink-dim); white-space: nowrap; }
+.table .chase b { color: var(--amber-2); font-weight: 400; }
+.table .chase .ok { color: #1f8a51; }
+.table .name { font-weight: 600; }
+.table .id { font-family: var(--mono); letter-spacing: 0.1em; }
+.table tr.playing td { background: rgba(255, 176, 67, 0.06); }
+.table .idle { color: var(--ink-soft); font-size: 11px; font-family: var(--mono); display: block; }
+
+/* -------------------------------------------------------------- board */
+.board-panel { padding: 0 0 6px; }
+.board-panel .glass-head { padding: 14px 18px 10px; }
+
+/* ---------------------------------------------------------- resources */
+.host-body { display: flex; flex-direction: column; gap: 8px; padding: 4px 16px 16px; }
+.host-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 13px; color: var(--ink-dim); }
+.host-row .l { font-family: var(--mono); font-size: 10px; letter-spacing: 0.24em; }
+.host-row .v b { font-family: var(--mono); font-weight: 400; color: var(--ink); }
+.bar { position: relative; height: 6px; border-radius: 4px; background: rgba(34, 20, 8, 0.1); overflow: hidden; }
+.bar > i { position: absolute; top: 0; bottom: 0; left: 0; width: var(--p, 0%); border-radius: 4px; background: var(--amber-2); box-shadow: 0 0 8px var(--amber-glow); transition: width 0.6s ease-out; }
+.bar > i.hot { background: var(--red); box-shadow: 0 0 8px rgba(229, 83, 58, 0.5); }
+.table .barcol { width: 120px; }
+.table .bar { min-width: 80px; }
+.room-body { display: flex; flex-wrap: wrap; gap: 10px; padding: 4px 16px 16px; }
+.state { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; }
+.state.running { color: #1f8a51; }
+.state.exited, .state.dead { color: #b83a25; }
+.state.restarting, .state.paused, .state.created { color: var(--amber-2); }
+.err { color: #b83a25; font-family: var(--mono); font-size: 11px; }
+
+/* --------------------------------------------------------------- event */
+.event-card { padding: 26px 28px 24px; }
+.event-card .l { font-family: var(--mono); font-size: 10px; letter-spacing: 0.26em; color: rgba(246, 226, 191, 0.6); margin-bottom: 8px; }
+.event-card .url { font-family: var(--mono); font-size: clamp(18px, 2.4vw, 28px); letter-spacing: 0.06em; color: var(--amber); text-shadow: 0 0 10px var(--amber-glow); word-break: break-all; cursor: copy; }
+.event-card .clock { font-family: var(--mono); font-size: 44px; letter-spacing: 0.08em; color: #fff; line-height: 1; margin-bottom: 10px; }
+.actions-body { display: flex; flex-direction: column; gap: 14px; padding: 4px 16px 16px; }
+.action { display: grid; grid-template-columns: 220px 1fr; gap: 14px; align-items: center; font-size: 12.5px; line-height: 1.45; color: var(--ink-dim); }
+.action .btn { width: 100%; }
+.log { max-height: 520px; overflow-y: auto; padding: 4px 16px 14px; font-family: var(--mono); font-size: 11.5px; line-height: 1.7; scrollbar-width: thin; }
+.log .ev { display: grid; grid-template-columns: 78px 150px 1fr; gap: 12px; padding: 4px 0; border-bottom: 1px dashed rgba(34, 20, 8, 0.08); }
+.log .ev .t { color: var(--ink-soft); }
+.log .ev .k { color: var(--amber-2); letter-spacing: 0.12em; }
+.log .ev .k.bad { color: #b83a25; }
+.log .ev .d { color: var(--ink); word-break: break-word; }
+.log:empty::before { content: "nothing yet"; color: var(--ink-soft); }
+
+/* ---------------------------------------------------------- responsive */
+@media (max-width: 1100px) {
+  .two-col { grid-template-columns: minmax(0, 1fr); }
+  .side { flex-direction: row; }
+  .side .form { flex: 1; }
+}
+@media (max-width: 800px) {
+  .topbar { height: auto; flex-wrap: wrap; padding: 10px 16px; gap: 10px; }
+  #tabbar { order: 3; width: 100%; justify-content: space-between; }
+  .tab-btn { padding: 7px 10px; font-size: 10px; letter-spacing: 0.12em; }
+  .res-grid { grid-template-columns: minmax(0, 1fr); }
+  .side { flex-direction: column; }
+  .glass-head .search { width: 100%; }
+  .action { grid-template-columns: 1fr; }
+  .log .ev { grid-template-columns: 70px 1fr; }
+  .log .ev .d { grid-column: 1 / -1; }
+  .count { min-width: 100px; }
+}

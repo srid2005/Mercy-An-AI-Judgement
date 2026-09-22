@@ -9,9 +9,12 @@
 -- current no matter when this stack is actually run. t(x) remaps every
 -- literal to be relative to now() at seed time, anchored on the latest
 -- story timestamp (Nikhil's "why don't you post anything?" message)
--- mapping to interval '3 days' ago, preserving every other event's exact gap from it.
+-- mapping to interval '1 day' ago, preserving every other event's exact gap from it.
 CREATE FUNCTION t(orig TIMESTAMPTZ) RETURNS TIMESTAMPTZ AS $$
-  SELECT (now() - interval '3 days') + (orig - TIMESTAMPTZ '2024-09-02 21:40:00+05:30');
+  -- Pinned to 21:40 IST *yesterday* whatever the clock says at seed time, so
+  -- "that night" is a night in every app and every derived time stays true.
+  SELECT ((date_trunc('day', now() AT TIME ZONE 'Asia/Kolkata') - interval '1 day' + interval '21 hours 40 minutes') AT TIME ZONE 'Asia/Kolkata')
+         + (orig - TIMESTAMPTZ '2024-09-02 21:40:00+05:30');
 $$ LANGUAGE SQL STABLE;
 
 CREATE TABLE users (
@@ -611,7 +614,26 @@ INSERT INTO messages (evidence_id, thread_id, sender_id, body, sent_at) VALUES
     ('WA-196', (SELECT id FROM threads WHERE thread_key='college-batch'), (SELECT id FROM users WHERE username='rahul'),
      'good answer', t('2024-08-10 21:11:30+05:30'));
 
-INSERT INTO evidence_counters (service, next_seq) VALUES ('whatsapp', 197);
+
+-- ---------------------------------------------------------------------------
+-- THE ALIBI: the night she was taken, on her phone, unread. Arjun texts from
+-- his brother's; his brother Vikram texts her too. Nothing is opened, because
+-- by 22:10 she is gone. (WA-197..199; the_alibi checkpoint in mercy-engine.)
+-- ---------------------------------------------------------------------------
+INSERT INTO users (username, display_name, avatar_url, phone_number) VALUES
+    ('vikram', 'Vikram Kapoor', '/images/avatars/vikram.svg', '+91 98450 66120');
+INSERT INTO threads (thread_key, kind) VALUES ('meera-vikram', 'direct');
+INSERT INTO thread_participants (thread_id, user_id)
+    SELECT (SELECT id FROM threads WHERE thread_key='meera-vikram'), id FROM users WHERE username IN ('meera','vikram');
+INSERT INTO messages (evidence_id, thread_id, sender_id, body, sent_at) VALUES
+    ('WA-197', (SELECT id FROM threads WHERE thread_key='arjun-meera'), (SELECT id FROM users WHERE username='arjun'),
+     'Reached bhaiya''s. Mum''s already asleep, Vikram''s making chai and pretending he isn''t going to lecture me. Call me when you''re up :)', t('2024-09-02 22:20:00+05:30')),
+    ('WA-198', (SELECT id FROM threads WHERE thread_key='arjun-meera'), (SELECT id FROM users WHERE username='arjun'),
+     'Going to sleep. Back by 10 tomorrow and we''ll talk properly, I promise. Love you.', t('2024-09-03 00:41:00+05:30')),
+    ('WA-199', (SELECT id FROM threads WHERE thread_key='meera-vikram'), (SELECT id FROM users WHERE username='vikram'),
+     'Hey Meera, Vikram here. Arjun''s staying over tonight, he''s fine -- mum made him eat two plates. He''s worried about you, that''s all. Talk to him tomorrow, ok?', t('2024-09-02 23:12:00+05:30'));
+
+INSERT INTO evidence_counters (service, next_seq) VALUES ('whatsapp', 200);
 
 -- ---------------------------------------------------------------------------
 -- FILLER: bank alerts, delivery bot, promo broadcast, wrong-number stranger.

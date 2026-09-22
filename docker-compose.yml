@@ -8,10 +8,14 @@ volumes:
   email_data:
   haven_data:
   city_map_data:
+  mercy_engine_data:
+  lobby_data:
 
 services:
   social-media-db:
     image: postgres:16-alpine
+    command: ["postgres", "-c", "max_connections=200"]
+    restart: unless-stopped
     environment:
       POSTGRES_DB: social_media
       POSTGRES_USER: mercy
@@ -38,12 +42,17 @@ services:
       MERCY_API_KEY: dev-mercy-key
       INTERNAL_API_KEY: dev-internal-key
       EMAIL_SERVICE_URL: http://email:4002
+      MERCY_SESSION_SECRET: ${MERCY_SESSION_SECRET:-dev-session-secret-change-me}
+      MERCY_SINGLE_PLAYER: ${MERCY_SINGLE_PLAYER:-0}
     ports:
       - "4001:4001"
     networks: [mercy-net]
+    restart: unless-stopped
 
   whatsapp-db:
     image: postgres:16-alpine
+    command: ["postgres", "-c", "max_connections=200"]
+    restart: unless-stopped
     environment:
       POSTGRES_DB: whatsapp
       POSTGRES_USER: mercy
@@ -67,12 +76,18 @@ services:
       PORT: 4003
       DATABASE_URL: postgres://mercy:mercy_dev_pw@whatsapp-db:5432/whatsapp
       MERCY_API_KEY: dev-mercy-key
+      MERCY_SESSION_SECRET: ${MERCY_SESSION_SECRET:-dev-session-secret-change-me}
+      INTERNAL_API_KEY: dev-internal-key
+      MERCY_SINGLE_PLAYER: ${MERCY_SINGLE_PLAYER:-0}
     ports:
       - "4003:4003"
     networks: [mercy-net]
+    restart: unless-stopped
 
   email-db:
     image: postgres:16-alpine
+    command: ["postgres", "-c", "max_connections=200"]
+    restart: unless-stopped
     environment:
       POSTGRES_DB: email
       POSTGRES_USER: mercy
@@ -98,12 +113,17 @@ services:
       JWT_SECRET: dev-only-secret-change-me
       MERCY_API_KEY: dev-mercy-key
       INTERNAL_API_KEY: dev-internal-key
+      MERCY_SESSION_SECRET: ${MERCY_SESSION_SECRET:-dev-session-secret-change-me}
+      MERCY_SINGLE_PLAYER: ${MERCY_SINGLE_PLAYER:-0}
     ports:
       - "4002:4002"
     networks: [mercy-net]
+    restart: unless-stopped
 
   haven-db:
     image: postgres:16-alpine
+    command: ["postgres", "-c", "max_connections=200"]
+    restart: unless-stopped
     environment:
       POSTGRES_DB: haven
       POSTGRES_USER: mercy
@@ -130,12 +150,17 @@ services:
       MERCY_API_KEY: dev-mercy-key
       INTERNAL_API_KEY: dev-internal-key
       EMAIL_SERVICE_URL: http://email:4002
+      MERCY_SESSION_SECRET: ${MERCY_SESSION_SECRET:-dev-session-secret-change-me}
+      MERCY_SINGLE_PLAYER: ${MERCY_SINGLE_PLAYER:-0}
     ports:
       - "4008:4008"
     networks: [mercy-net]
+    restart: unless-stopped
 
   city-map-db:
     image: postgres:16-alpine
+    command: ["postgres", "-c", "max_connections=200"]
+    restart: unless-stopped
     environment:
       POSTGRES_DB: city_map
       POSTGRES_USER: mercy
@@ -159,9 +184,13 @@ services:
       PORT: 4011
       DATABASE_URL: postgres://mercy:mercy_dev_pw@city-map-db:5432/city_map
       MERCY_API_KEY: dev-mercy-key
+      MERCY_SESSION_SECRET: ${MERCY_SESSION_SECRET:-dev-session-secret-change-me}
+      INTERNAL_API_KEY: dev-internal-key
+      MERCY_SINGLE_PLAYER: ${MERCY_SINGLE_PLAYER:-0}
     ports:
       - "4011:4011"
     networks: [mercy-net]
+    restart: unless-stopped
 
   # Meera's laptop -- the shell the participant works inside. Static React
   # build behind nginx; it opens the other services on their own ports.
@@ -170,6 +199,131 @@ services:
     ports:
       - "3000:80"
     networks: [mercy-net]
+    restart: unless-stopped
+
+  mercy-engine-db:
+    image: postgres:16-alpine
+    command: ["postgres", "-c", "max_connections=200"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mercy_engine
+      POSTGRES_USER: mercy
+      POSTGRES_PASSWORD: mercy_dev_pw
+    volumes:
+      - mercy_engine_data:/var/lib/postgresql/data
+      - ./services/mercy-engine/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks: [mercy-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mercy -d mercy_engine"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # The judge. Reads evidence from every other service (x-mercy-key), tracks
+  # what the participant has actually discovered, and hosts the argument.
+  # Comes up after everything it might need to resolve an evidence id from.
+  mercy-engine:
+    build: ./services/mercy-engine
+    depends_on:
+      mercy-engine-db:
+        condition: service_healthy
+      social-media:
+        condition: service_started
+      email:
+        condition: service_started
+      whatsapp:
+        condition: service_started
+      haven:
+        condition: service_started
+      city-map:
+        condition: service_started
+    environment:
+      PORT: 4010
+      DATABASE_URL: postgres://mercy:mercy_dev_pw@mercy-engine-db:5432/mercy_engine
+      MERCY_API_KEY: dev-mercy-key
+      SOCIAL_MEDIA_URL: http://social-media:4001
+      EMAIL_URL: http://email:4002
+      WHATSAPP_URL: http://whatsapp:4003
+      HAVEN_URL: http://haven:4008
+      CITY_MAP_URL: http://city-map:4011
+      MERCY_SESSION_SECRET: ${MERCY_SESSION_SECRET:-dev-session-secret-change-me}
+      INTERNAL_API_KEY: dev-internal-key
+      MERCY_SINGLE_PLAYER: ${MERCY_SINGLE_PLAYER:-0}
+      LOBBY_URL: http://mercy-lobby:3030
+      GAME_MINUTES: ${GAME_MINUTES:-25}
+      # MERCY's brain: stub (no model) or vertex (Gemini on Google Cloud; see DEPLOY_GCP.md).
+      # On a Compute Engine VM the container authenticates as the VM's service
+      # account through the metadata server; elsewhere mount a key file below.
+      MERCY_LLM_PROVIDER: ${MERCY_LLM_PROVIDER:-stub}
+      GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-zinnia-mercy}
+      GOOGLE_CLOUD_LOCATION: ${GOOGLE_CLOUD_LOCATION:-global}
+      VERTEX_MODEL: ${VERTEX_MODEL:-gemini-2.5-flash}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
+    # volumes:
+    #   - ./secrets/gcp-key.json:/run/secrets/gcp-key.json:ro   # then GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcp-key.json in .env
+    ports:
+      - "4010:4010"
+    networks: [mercy-net]
+    restart: unless-stopped
+
+  # The main screen. Three tabs: itself (native), Meera's laptop and the
+  # City Map (both iframed on their existing ports, unchanged). Talks to
+  # mercy-engine straight from the browser; no backend of its own.
+  mercy-console:
+    build: ./services/mercy-console
+    ports:
+      - "3020:80"
+    networks: [mercy-net]
+    restart: unless-stopped
+
+  # -------------------------------------------------------------------------
+  # The event: participants log in with their Zinnia ID, watch the intro and
+  # the briefing, and are sent to the console with a session cookie every
+  # service honours; the admin panel (/admin) creates them, watches them,
+  # restarts them and reads the stack's resources. See /MULTIPLAYER.md.
+  # -------------------------------------------------------------------------
+  lobby-db:
+    image: postgres:16-alpine
+    command: ["postgres", "-c", "max_connections=100"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lobby
+      POSTGRES_USER: mercy
+      POSTGRES_PASSWORD: mercy_dev_pw
+    volumes:
+      - lobby_data:/var/lib/postgresql/data
+      - ./services/mercy-lobby/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks: [mercy-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mercy -d lobby"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mercy-lobby:
+    build: ./services/mercy-lobby
+    depends_on:
+      lobby-db:
+        condition: service_healthy
+    environment:
+      PORT: 3030
+      DATABASE_URL: postgres://mercy:mercy_dev_pw@lobby-db:5432/lobby
+      MERCY_SESSION_SECRET: ${MERCY_SESSION_SECRET:-dev-session-secret-change-me}
+      INTERNAL_API_KEY: dev-internal-key
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-mercy-admin}
+      GAME_MINUTES: ${GAME_MINUTES:-25}
+      # the stateful services, as the lobby reaches them inside the network
+      SERVICE_URLS: social-media=http://social-media:4001,email=http://email:4002,whatsapp=http://whatsapp:4003,haven=http://haven:4008,city-map=http://city-map:4011,mercy-engine=http://mercy-engine:4010
+      # the ports participants use, on whatever host they reached the lobby on
+      CONSOLE_PORT: 3020
+      COMPOSE_PROJECT: mercy-aijudgement
+    volumes:
+      # the Docker Engine API, for the resources page and "restart services"
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "3030:3030"
+    networks: [mercy-net]
+    restart: unless-stopped
 
   # -------------------------------------------------------------------------
   # Everything below is planned but not yet implemented. Each will follow the
@@ -181,5 +335,4 @@ services:
   # photos:
   # video-diary:   (the laptop's local copies -- the cloud side is `haven`, above)
   # smartwatch:
-  # mercy-engine:
   # (case-files is a PDF, not a service; desktop-shell is above)

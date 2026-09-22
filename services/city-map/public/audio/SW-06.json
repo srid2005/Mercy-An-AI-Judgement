@@ -1,0 +1,53 @@
+{
+ "evidence_id": "SW-06",
+ "title": "Voice memo · PulseFit Band 3",
+ "recorded_label": "02:15",
+ "duration_s": 48.6,
+ "cues": [
+  {
+   "t": 0.6,
+   "text": "[whisper] It's Meera. Meera Sharma. I don't know what time it is -- two, maybe."
+  },
+  {
+   "t": 6.54,
+   "text": "If anyone gets this -- Arjun, if you get this -- it wasn't Rahul."
+  },
+  {
+   "t": 11.68,
+   "text": "Rahul came to the door to tell me. About Dad. About who lied for him that morning."
+  },
+  {
+   "t": 16.88,
+   "text": "And I ran from him. I ran to Nikhil's car."
+  },
+  {
+   "t": 20.08,
+   "text": "[breath] It's Nikhil. Nikhil Rao. He was Rahul's alibi in 2018. The emails were him."
+  },
+  {
+   "t": 26.9,
+   "text": "The church, the auditorium, the vet's, the park -- I kept pressing the band."
+  },
+  {
+   "t": 32.18,
+   "text": "He gave me something at the vet's. I can't stay awake."
+  },
+  {
+   "t": 35.83,
+   "text": "[gravel] We're in the cave from the photos. He's turning the car round."
+  },
+  {
+   "t": 39.39,
+   "text": "He said he's moving me somewhere nobody will look."
+  },
+  {
+   "t": 41.8,
+   "text": "I'm leaving the band. I'm leaving my jacket so you know it was me."
+  },
+  {
+   "t": 45.66,
+   "text": "It's Nikhil. Not Rahul. Nikh-- [recording ends]"
+  }
+ ],
+ "placeholder": "Synthesised placeholder. Replace public/audio/SW-06-band-memo.(m4a|mp3|wav) with the real recording; keep or retime the cues."
+}

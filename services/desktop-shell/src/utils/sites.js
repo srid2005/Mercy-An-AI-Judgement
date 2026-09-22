@@ -44,11 +44,12 @@ export const PASSWORDS = [
   { domain: "loop.social", user: "meera", pass: null, saved: false, note: "Never saved for this site" },
 ];
 
-// Browsing history. Times are relative to the night the SOS was sent, which
-// the whole story pins at three days before "now" (the services' t() shift).
+// Browsing history. Day 0 is the evening she was taken, which every service
+// pins at yesterday 21:40 (their t() shift); the band's SOS came at 02:14
+// the following morning, after the last entry here.
 const T0 = new Date();
-T0.setDate(T0.getDate() - 3);
-T0.setHours(2, 14, 0, 0); // the SOS
+T0.setDate(T0.getDate() - 1);
+T0.setHours(21, 40, 0, 0);
 const at = (dayOffset, hh, mm) => {
   const d = new Date(T0);
   d.setDate(d.getDate() + dayOffset);
@@ -58,9 +59,9 @@ const at = (dayOffset, hh, mm) => {
 
 // newest first
 export const HISTORY = [
-  { t: at(0, 1, 52), site: "haven", path: "/", title: "Haven -- New recording" },
-  { t: at(0, 1, 31), site: "wisp", path: "/", title: "Wisp Web" },
-  { t: at(0, 1, 12), site: "loop", path: "/#/messages", title: "Messages · Loop" },
+  { t: at(0, 21, 52), site: "haven", path: "/", title: "Haven -- New recording" },
+  { t: at(0, 21, 31), site: "wisp", path: "/", title: "Wisp Web" },
+  { t: at(0, 21, 12), site: "loop", path: "/#/messages", title: "Messages · Loop" },
   { t: at(-1, 23, 40), site: "loop", path: "/#/profile/rahul", title: "Rahul Nair (@rahul) · Loop" },
   { t: at(-1, 23, 22), site: "loop", path: "/#/profile/trail.diaries", title: "Trail Diaries (@trail.diaries) · Loop" },
   { t: at(-1, 23, 5), site: "loop", path: "/#/profile/rahul", title: "Rahul Nair (@rahul) · Loop" },

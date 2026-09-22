@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>reset</title>
+    <style>body { margin: 16px; font: 13px/1.4 "Share Tech Mono", ui-monospace, monospace; color: #77694f; background: #f7f0e4; }</style>
+  </head>
+  <body>
+    <p id="msg">clearing…</p>
+    <script>
+      // The lobby loads this page in a hidden iframe when a participant logs
+      // in: whatever the last game left in this origin's storage (the ending
+      // already shown, for one) is gone before the next one starts. Storage
+      // can be blocked; the parent is told either way.
+      try { localStorage.clear(); } catch (e) {}
+      try { sessionStorage.clear(); } catch (e) {}
+      document.getElementById("msg").textContent = "cleared";
+      try { window.parent.postMessage({ type: "mercy:reset-done", origin: location.origin }, "*"); } catch (e) {}
+    </script>
+  </body>
+</html>

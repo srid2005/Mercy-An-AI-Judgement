@@ -4,12 +4,13 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Sign in</title>
+<link rel="icon" type="image/png" href="/images/favicon.png" />
 <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
   <div class="lock-screen">
     <div class="lock-card">
-      <div class="wordmark">Quill</div>
+      <div class="brand"><img class="brand-logo" src="/images/quill-logo.png" alt="" /><div class="wordmark">Quill</div></div>
       <img id="account-avatar" class="lock-avatar" src="/images/avatars/meera.png" alt="" />
       <div id="account-name" class="account-name">Loading…</div>
       <div id="account-email" class="account-email"></div>
@@ -24,6 +25,10 @@
     </div>
     <button class="switch-account" id="show-hint-btn" type="button">Get help signing in</button>
   </div>
+  <script>
+    // already signed in on this device: go straight to the app, like any real site
+    try { if (localStorage.getItem('eml_token')) location.replace('/inbox.html' + location.hash); } catch (e) {}
+  </script>
   <script src="/js/lock.js"></script>
     <script>
       // MERCY desktop shell: tell the Orbit browser where we are so its address bar follows.
@@ -40,6 +45,24 @@
         history.replaceState = function () { rs.apply(this, arguments); send(); };
         var t = document.querySelector('title');
         if (t && window.MutationObserver) new MutationObserver(send).observe(t, { childList: true, characterData: true, subtree: true });
+      })();
+    </script>
+    <script>
+      // MERCY desktop shell: every evidence badge on screen is something the
+      // participant has now actually seen -- tell the console so it can be
+      // picked up in the "+ Evidence" search later.
+      (function () {
+        var seen = new Set();
+        var report = function () {
+          document.querySelectorAll(".evidence-badge").forEach(function (el) {
+            var id = (el.textContent || "").trim();
+            if (!id || seen.has(id)) return;
+            seen.add(id);
+            try { window.top.postMessage({ type: "mercy:evidence-seen", evidence_id: id }, "*"); } catch (e) {}
+          });
+        };
+        report();
+        if (window.MutationObserver) new MutationObserver(report).observe(document.body, { childList: true, subtree: true, characterData: true });
       })();
     </script>
   </body>

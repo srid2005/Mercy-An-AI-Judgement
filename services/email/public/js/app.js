@@ -553,6 +553,14 @@ function route() {
   document.getElementById('menu-btn').addEventListener('click', () => {
     document.getElementById('sidebar').classList.toggle('collapsed');
   });
+  // Refresh: re-run whatever the current view is. A Haven sign-in code or a
+  // Loop reset PIN arrives while this page is already open, so the inbox has
+  // to be asked again; on a thread it re-reads the thread.
+  const refreshBtn = document.getElementById('refresh-btn');
+  refreshBtn.addEventListener('click', async () => {
+    refreshBtn.classList.add('spinning');
+    try { await route(); } finally { setTimeout(() => refreshBtn.classList.remove('spinning'), 400); }
+  });
 
   document.querySelectorAll('.folder-item').forEach((el) => {
     el.addEventListener('click', () => {

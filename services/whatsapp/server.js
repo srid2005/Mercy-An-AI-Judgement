@@ -1,15 +1,33 @@
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
-const { pool } = require('./db');
+const { pool, rawPool } = require('./db');
+const tenant = require('./tenant');
 
 const PORT = process.env.PORT || 4003;
 const MERCY_API_KEY = process.env.MERCY_API_KEY || 'dev-mercy-key';
 
 const app = express();
-app.use(cors());
+app.set('x-service', 'whatsapp');
+// Before any route is registered: one participant's failed query must answer
+// 500 to them alone, not take the process down for the other forty-nine.
+tenant.guardApp(app);
+// The browser sends the mercy_sid cookie cross-origin (the laptop embeds this
+// app from another port), so CORS has to allow credentials.
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
+// Whose game this request belongs to: with no login of its own, the cookie
+// is the only thing that keeps one participant's messages out of another's.
+app.use(tenant.middleware);
 app.use(express.static(path.join(__dirname, 'public')));
+
+// The loopback this service makes to itself carries the participant next to
+// the key, so the inner request runs in the same schema. In single-player
+// there is no participant and no header.
+function playerHeader() {
+  const id = tenant.currentId();
+  return id ? { 'x-mercy-player': id } : {};
+}
 
 // ---------------------------------------------------------------------------
 // No player login here -- unlike social-media, a real messaging app doesn't
@@ -271,7 +289,7 @@ app.get('/api/evidence', requireMercyKey, async (req, res) => {
 
 app.get('/api/evidence/:evidenceId', requireMercyKey, async (req, res) => {
   const full = await fetch(`http://localhost:${PORT}/api/evidence`, {
-    headers: { 'x-mercy-key': MERCY_API_KEY },
+    headers: { 'x-mercy-key': MERCY_API_KEY, ...playerHeader() },
   }).then((r) => r.json());
   const item = full.evidence.find((e) => e.evidence_id === req.params.evidenceId);
   if (!item) return res.status(404).json({ error: 'not found' });
@@ -279,6 +297,31 @@ app.get('/api/evidence/:evidenceId', requireMercyKey, async (req, res) => {
 });
 
 app.get('/api/health', (req, res) => res.json({ ok: true, service: 'whatsapp' }));
+
+// ---------------------------------------------------------------------------
+// The event: one schema per participant (see /MULTIPLAYER.md). Contacts,
+// the chats and who is in them are the same for everyone and stay in
+// `template`; the messages, the counter and the filler chatter are theirs.
+// ---------------------------------------------------------------------------
+// One cheap count for the admin panel; a null is "unknown", never a throw.
+async function countRows(sql) {
+  try {
+    return (await pool.query(sql)).rows[0].n;
+  } catch {
+    return null;
+  }
+}
+
+tenant.mount(app, {
+  service: 'whatsapp',
+  pool: rawPool,
+  sqlDir: path.join(__dirname, 'db'),
+  staticTables: ['users', 'threads', 'thread_participants', 'filler_threads', 'app_config'],
+  summary: async () => ({
+    sent: await countRows("SELECT count(*)::int AS n FROM messages WHERE source = 'player'"),
+  }),
+});
+app.use(app.tenantErrorHandler);
 
 app.listen(PORT, () => {
   console.log(`[whatsapp] listening on :${PORT}`);

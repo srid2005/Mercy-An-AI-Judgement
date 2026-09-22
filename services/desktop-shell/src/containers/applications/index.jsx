@@ -11,6 +11,7 @@ export * from "./apps/notepad";
 export * from "./apps/photos";
 export * from "./apps/pulsefit";
 export * from "./apps/settings";
+export * from "./apps/stickynotes";
 export * from "./apps/video";
 
 export const ScreenPreview = () => {

@@ -30,6 +30,7 @@ const posts = [
   { file: 'ad-coffee.svg', title: 'SPONSORED', subtitle: 'brewhouse.coffee -- delivery ad' },
   { file: 'meme-1.svg', title: 'MEME', subtitle: 'daily.memez' },
   { file: 'meme-2.svg', title: 'MEME', subtitle: 'daily.memez' },
+  { file: 'chai-night.svg', title: 'FAMILY PHOTO', subtitle: "Vikram & Arjun, late-night chai at their mother's -- the night Meera vanished" },
 ];
 
 const avatars = [
@@ -47,6 +48,7 @@ const avatars = [
   { file: 'brewhouse.coffee.svg', label: 'brewhouse.coffee' },
   { file: 'kavya.raje29.svg', label: 'kavya.raje29' },
   { file: 'stylehub.deals.svg', label: 'stylehub.deals' },
+  { file: 'vikram.svg', label: 'vikram' },
 ];
 
 function esc(str) {

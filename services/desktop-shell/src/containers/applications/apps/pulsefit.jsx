@@ -1,33 +1,66 @@
 // PulseFit -- the smartwatch companion app. This is where the participant gets
-// the last fix from Meera's band, in play: the SOS event, the coordinates, the
-// movement log before the signal was lost.
-import React from "react";
+// the SOS trail from Meera's band, in play: five alerts through the night, the
+// coordinates of each, the movement log before the signal was lost. Nothing
+// SOS-related is in the DOM until the console releases the trail
+// (state.sos.released); once it is, every alert on screen is filed as evidence
+// (SW-01..05) whenever the window is visible -- the photos.jsx pattern.
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { ToolBar } from "../../../utils/general";
-import { SOS } from "../../../utils/sos";
+import { BAND, SOS_ALERTS } from "../../../utils/sos";
+import { reportEvidenceIds } from "../../../actions";
 import "./assets/pulsefit.scss";
 
-
-const dayLabel = () => {
+// the trail ran across midnight: rows before it are dated yesterday, after it today
+const dayLabel = (nextDay) => {
   const d = new Date();
-  d.setDate(d.getDate() - 3);
+  if (!nextDay) d.setDate(d.getDate() - 1);
   return d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 };
 
+// qualifiers the band attached to the poorer fixes
+const FIX_NOTE = {
+  "SW-04": "under trees",
+  "SW-05": "degraded fix, no line of sight",
+};
+
+const LAST = SOS_ALERTS[SOS_ALERTS.length - 1];
 const LOG = [
-  ["22:10", "Home", "Stationary · resting HR 64"],
-  ["23:48", "Home", "Awake · HR 81"],
-  ["00:31", "Home", "HR 96 · moving indoors"],
-  ["01:37", "In vehicle", "24 min · 11.8 km"],
-  ["02:01", "Walking", "Unpaved · 0.9 km · HR 118"],
-  ["02:12", "Stationary", "HR 132"],
-  ["02:14", "SOS", "Long-press SOS · sent to paired laptop"],
-  ["02:16", "Signal lost", "Last fix 12.952185, 77.503411 (±300 m)"],
+  ["21:40", "Home", "HR 71"],
+  ["21:58", "Walking", "0.4 km · HR 124"],
+  ["22:03", "In vehicle", "—"],
+  ["22:41", "SOS", "Long-press SOS · near St Aldric's Church"],
+  ["22:50", "In vehicle", "HR 122"],
+  ["23:25", "Running", "40 s · HR 146"],
+  ["23:27", "SOS", "Long-press SOS · near the Auditorium"],
+  ["23:33", "In vehicle", "HR 130"],
+  ["00:19", "SOS", "Long-press SOS · near the Veterinary Hospital"],
+  ["00:36", "In vehicle", "HR 88, falling"],
+  ["01:12", "SOS", "Long-press SOS · Eco-Park"],
+  ["01:49", "In vehicle", "HR 60"],
+  ["02:12", "Stationary", "HR 58"],
+  ["02:14", "SOS", `Long-press SOS · ${LAST.place} (±${LAST.accuracy} m)`],
+  ["02:15", "Voice memo", "0:41 · stored on band · upload pending"],
+  [BAND.lostTime, "Signal lost", `Last fix ${LAST.lat.toFixed(6)}, ${LAST.lng.toFixed(6)} (±${LAST.accuracy} m) · battery ${BAND.battery}%`],
 ];
+
+const rowClass = (what) => (what === "SOS" ? " sos" : what === "Signal lost" ? " lost" : what === "Voice memo" ? " memo" : "");
+
+const copyCoords = (a) => {
+  const text = `${a.lat.toFixed(6)}, ${a.lng.toFixed(6)}`;
+  if (navigator.clipboard) navigator.clipboard.writeText(text);
+};
 
 export const PulseFit = () => {
   const wnapp = useSelector((state) => state.apps.pulsefit);
+  const sos = useSelector((state) => state.sos);
   const dispatch = useDispatch();
+
+  // every alert on screen counts as seen -- the toast and the lock screen
+  // report nothing, the participant has to open the app
+  useEffect(() => {
+    if (wnapp && !wnapp.hide && sos.released) reportEvidenceIds(SOS_ALERTS.map((a) => a.id));
+  }, [wnapp && wnapp.hide, sos.released]);
   if (!wnapp) return null;
 
   return (
@@ -47,44 +80,67 @@ export const PulseFit = () => {
         <div className="restWindow flex-grow pfBody win11Scroll">
           <div className="pfHead">
             <div>
-              <div className="pfDevice">{SOS.device}</div>
-              <div className="pfOwner">Paired · Meera's band · battery {SOS.battery}% at last sync</div>
+              <div className="pfDevice">{BAND.device}</div>
+              <div className="pfOwner">Paired · {BAND.owner}'s band · battery {BAND.battery}% at last sync</div>
             </div>
             <div className="pfStatus lost">Disconnected</div>
           </div>
 
-          <div className="pfSos">
-            <div className="pfSosTitle">
-              <span className="pfDot" /> SOS alert
-            </div>
-            <div className="pfSosWhen">
-              {dayLabel()}, {SOS.sosTime}
-            </div>
-            <p>Meera triggered SOS from the band. The alert was delivered to this laptop (paired device). The band stopped reporting at {SOS.lostTime}.</p>
-            <div className="pfCoords">
-              <div>
-                <div className="pfLbl">Last known location</div>
-                <div className="pfVal">
-                  {SOS.lat.toFixed(6)}, {SOS.lng.toFixed(6)}
+          {sos.released ? (
+            <>
+              {SOS_ALERTS.map((a) => (
+                <div key={a.id} className={"pfSos" + (a.last ? " last" : "")}>
+                  <div className="pfSosTitle">
+                    <span className="pfDot" /> SOS alert
+                    <span className="pfSosN">SOS {a.n}/5</span>
+                  </div>
+                  <div className="pfSosWhen">
+                    {dayLabel(a.nextDay)}, {a.time}
+                  </div>
+                  <p>
+                    Long-press SOS from the band, near {a.place}, {a.district}. Delivered to this laptop (paired device).
+                  </p>
+                  <div className="pfCoords">
+                    <div>
+                      <div className="pfLbl">Location at {a.time}</div>
+                      <div className="pfVal">
+                        {a.lat.toFixed(6)}, {a.lng.toFixed(6)}
+                      </div>
+                      <div className="pfSub">
+                        ±{a.accuracy} m{FIX_NOTE[a.id] ? ` · ${FIX_NOTE[a.id]}` : ""}
+                      </div>
+                    </div>
+                    <div className="pfBtn prtclk" onClick={() => copyCoords(a)}>
+                      Copy coordinates
+                    </div>
+                  </div>
+                  <div className="pfMeta">
+                    <span>HR {a.hr}</span>
+                    <span>battery {a.battery}%</span>
+                  </div>
+                  {a.last ? (
+                    <div className="pfAfter">
+                      <p>02:15 Voice memo · 0:41 · stored on band · upload pending (no signal)</p>
+                      <p>The band stopped reporting at {BAND.lostTime}.</p>
+                    </div>
+                  ) : null}
                 </div>
-                <div className="pfSub">accuracy ±{SOS.accuracy} m · GPS fix degraded (no line of sight)</div>
-              </div>
-              <div className="pfBtn prtclk" onClick={() => navigator.clipboard && navigator.clipboard.writeText(`${SOS.lat.toFixed(6)}, ${SOS.lng.toFixed(6)}`)}>
-                Copy coordinates
-              </div>
-            </div>
-          </div>
+              ))}
 
-          <div className="pfSection">Activity log · night of the alert</div>
-          <div className="pfLog">
-            {LOG.map((r, i) => (
-              <div key={i} className={"pfRow" + (r[1] === "SOS" ? " sos" : r[1] === "Signal lost" ? " lost" : "")}>
-                <span className="pfTime">{r[0]}</span>
-                <span className="pfWhat">{r[1]}</span>
-                <span className="pfDetail">{r[2]}</span>
+              <div className="pfSection">Activity log · last night</div>
+              <div className="pfLog">
+                {LOG.map((r, i) => (
+                  <div key={i} className={"pfRow" + rowClass(r[1])}>
+                    <span className="pfTime">{r[0]}</span>
+                    <span className="pfWhat">{r[1]}</span>
+                    <span className="pfDetail">{r[2]}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          ) : (
+            <div className="pfQuiet">No alerts on this device.</div>
+          )}
 
           <div className="pfSection">This week</div>
           <div className="pfStats">

@@ -1,13 +1,11 @@
-# smartwatch (planned)
+# smartwatch (folded in -- not a service)
 
-Owns: the SOS alert and the movement/GPS log after it. The first GPS fix is
-real but stale -- Rahul moved Meera after the SOS fired -- so the log itself
-(timestamped movement events) is the evidence, not just a single coordinate.
+The band's story lives in two places instead of a container:
 
-- Evidence prefix: `SW-`
-- Own DB: sos_events, movement_log (timestamp, lat, lng)
-- Player-auth lock: password = Meera's birthday (already known to the player
-  via `social-media`'s seeded profile/posts once that data is added there).
-- Follows the same shape as `services/social-media`.
-
-Not implemented yet.
+- **Evidence** `SW-01..SW-05` (the five SOS alerts) and `SW-06` (the voice
+  memo recovered with her jacket from the cave) are seeded straight into
+  `services/mercy-engine/db/init.sql`, like the `CASE-` and `LAP-` rows.
+- **UI** is the laptop's PulseFit app (`services/desktop-shell`,
+  `src/utils/sos.js` + `apps/pulsefit.jsx`), gated on the console's
+  `mercy:gates` message; the alerts' places are story spots on the City Map
+  (`services/city-map/db/03_story.sql`).

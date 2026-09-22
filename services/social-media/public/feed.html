@@ -82,5 +82,40 @@
   <div class="toast" id="toast"></div>
 
   <script src="/js/app.js"></script>
-</body>
+    <script>
+      // MERCY desktop shell: tell the Orbit browser where we are so its address bar follows.
+      (function () {
+        if (window.parent === window) return;
+        var send = function () {
+          try { parent.postMessage({ type: 'mercy:route', path: location.pathname + location.search + location.hash, title: document.title }, '*'); } catch (e) {}
+        };
+        send();
+        addEventListener('hashchange', send);
+        addEventListener('popstate', send);
+        var ps = history.pushState, rs = history.replaceState;
+        history.pushState = function () { ps.apply(this, arguments); send(); };
+        history.replaceState = function () { rs.apply(this, arguments); send(); };
+        var t = document.querySelector('title');
+        if (t && window.MutationObserver) new MutationObserver(send).observe(t, { childList: true, characterData: true, subtree: true });
+      })();
+    </script>
+    <script>
+      // MERCY desktop shell: every evidence badge on screen is something the
+      // participant has now actually seen -- tell the console so it can be
+      // picked up in the "+ Evidence" search later.
+      (function () {
+        var seen = new Set();
+        var report = function () {
+          document.querySelectorAll(".evidence-badge").forEach(function (el) {
+            var id = (el.textContent || "").trim();
+            if (!id || seen.has(id)) return;
+            seen.add(id);
+            try { window.top.postMessage({ type: "mercy:evidence-seen", evidence_id: id }, "*"); } catch (e) {}
+          });
+        };
+        report();
+        if (window.MutationObserver) new MutationObserver(report).observe(document.body, { childList: true, subtree: true, characterData: true });
+      })();
+    </script>
+  </body>
 </html>

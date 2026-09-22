@@ -43,5 +43,5 @@ export const KIND_LABEL = {
   police: 'Police', civic: 'Civic', station: 'Station', bus_stop: 'Bus stop', cave: 'Cave', hill: 'Peak', lake: 'Lake', park: 'Park',
   hospital: 'Hospital', cafe: 'Café', residential: 'Residential', commercial: 'Commercial', office: 'Office', tech: 'Tech',
   industrial: 'Industrial', district: 'District', home: 'Home', family: 'Family', workplace: 'Workplace', poi: 'Point of interest',
-  utility: 'Utility', vet: 'Veterinary hospital', auditorium: 'Auditorium', eco: 'Eco-park', school: 'School', church: 'Church', theatre: 'Theatre', stadium: 'Stadium', temple: 'Temple', university: 'University', market: 'Market hall', fire_station: 'Fire station', library: 'Library', pylon: 'Pylon', cell: 'Cell mast', water: 'Water tower', radio: 'Radio relay', substation: 'Substation', you: 'You', sos: 'SOS', tower: 'Tower',
+  utility: 'Utility', vet: 'Veterinary hospital', auditorium: 'Auditorium', eco: 'Eco-park', school: 'School', church: 'Church', theatre: 'Theatre', stadium: 'Stadium', temple: 'Temple', university: 'University', market: 'Market hall', fire_station: 'Fire station', library: 'Library', pylon: 'Pylon', cell: 'Cell mast', water: 'Water tower', radio: 'Radio relay', substation: 'Substation', you: 'You', sos: 'SOS', tower: 'Tower', vehicle: 'Vehicle', stop: 'Stop',
 };

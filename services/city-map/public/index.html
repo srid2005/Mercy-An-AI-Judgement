@@ -31,16 +31,36 @@
       <button id="jump-you" class="chip you">You</button>
       <button id="jump-fit" class="chip">City</button>
       <button id="jump-overview" class="chip">Whole basin</button>
+      <button id="jump-track" class="chip track locked" title="Vehicle tracking">Vehicle tracking</button>
+      <!-- MERCY's field link, replayable: the band memo once the cave has given up its trace, the rescue footage once Meera is found -->
+      <button id="memo-chip" class="chip memo" hidden>▶ Band memo</button>
+      <button id="rescue-chip" class="chip rescue" hidden>▶ Rescue footage</button>
     </div>
-    <div class="mission-row">
-      <div id="mission" class="mission" data-state="idle">Right-click any building, or enter coordinates, to send the drones.</div>
-      <button id="speed" class="chip small" hidden>▶▶ ×4</button>
-    </div>
-    <div id="keys" class="keys" hidden>
-      <div><b>W A S D</b> / arrows — move</div>
-      <div><b>Q E</b> — turn · <b>R F</b> — zoom · <b>Shift</b> — faster</div>
-      <div><b>Left-drag</b> — orbit · <b>Right-drag</b> — slide · <b>Scroll</b> — zoom</div>
-      <div><b>Double-click</b> — jump there · <b>Right-click</b> — send drones</div>
+    <!-- vehicle tracking: the button above opens it once the drones have brought back something to follow -->
+    <section id="trackpanel" class="trackpanel" hidden>
+      <div class="tp-head"><span>VEHICLE TRACKING</span><button id="track-close" class="tp-close" type="button" title="Close">&times;</button></div>
+      <div class="tp-search"><input id="track-q" type="search" placeholder="Search a person's name or a number plate" autocomplete="off" spellcheck="false" /></div>
+      <ul id="track-results" class="tp-results" hidden></ul>
+      <p id="track-hint" class="hint">Type a name or a plate. Anyone the cameras have read can be followed: the car, live, and every place it stops at -- one at a time, as it gets there.</p>
+      <div id="vehicle-card"></div>
+      <ul id="stops"></ul>
+    </section>
+    <div class="hud-stack">
+      <div class="mission-row">
+        <div id="mission" class="mission" data-state="idle">Right-click any building, or enter coordinates, to send the drones.</div>
+        <button id="speed" class="chip small" title="Playback speed of drones and cars; sweeps always run at normal speed">▶ ×1 normal</button>
+      </div>
+      <!-- the frames the drones brought back from the last flight: filled by app.js after every search -->
+      <div id="footage" class="footage" data-state="idle" hidden>
+        <div class="footage-head"><span>Drone footage</span><span id="footage-n"></span></div>
+        <div id="footage-body"></div>
+      </div>
+      <div id="keys" class="keys" hidden>
+        <div><b>W A S D</b> / arrows — move</div>
+        <div><b>Q E</b> — turn · <b>R F</b> — zoom · <b>Shift</b> — faster</div>
+        <div><b>Left-drag</b> — orbit · <b>Right-drag</b> — slide · <b>Scroll</b> — zoom</div>
+        <div><b>Double-click</b> — jump there · <b>Right-click</b> — send drones</div>
+      </div>
     </div>
     <div id="readout" class="readout"><span>Move over the model</span></div>
     <div id="legend" class="legend">
@@ -51,6 +71,15 @@
       <div><i style="border:1px dashed #8fdcff;background:transparent"></i>Flight route</div><div><i style="background:#39ff88"></i>Drone scan / found</div>
       <div><i style="background:#ff9f43"></i>Caves · searched</div><div><i style="background:#33c39a;opacity:.7"></i>Trees</div>
       <div><i style="background:#7fb6e0"></i>Lamps · cars · props</div><div><i style="background:#39ff88;opacity:.5"></i>Bus route 7</div>
+      <div><i style="background:#ffcc4d"></i>Clue · swept</div><div><i style="background:#ff5fd2;box-shadow:0 0 6px #ff5fd2"></i>Trace</div>
+      <div id="legend-track" hidden><i style="background:#ff3b30;box-shadow:0 0 6px #ff3b30"></i>Tracked car · stops</div>
+    </div>
+
+    <!-- MERCY's field link: the overlay MERCY takes the stage with at the cave (the band memo) and at the rescue; app.js fills #mercy-body -->
+    <div id="mercy-overlay" class="mercy-overlay" role="dialog" aria-modal="true" aria-label="MERCY field link" hidden>
+      <div class="mercy-mark"><span>MERCY</span><em>AI JUDGEMENT · FIELD LINK</em></div>
+      <button id="mercy-close" class="mercy-close" type="button" aria-label="Close">×</button>
+      <div id="mercy-body" class="mercy-body"></div>
     </div>
 
     <aside class="rail">
@@ -75,6 +104,25 @@
       </section>
     </aside>
   </main>
+
+  <!-- one drone frame large, over the model; opened from any thumbnail, closed by ×, Esc or a click outside -->
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Drone footage" hidden>
+    <div class="lb-frame">
+      <div class="lb-bar">
+        <span class="lb-title">Drone footage</span>
+        <span id="lb-kind" class="ftag"></span>
+        <span id="lb-count" class="lb-count"></span>
+        <button id="lb-close" class="lb-close" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="lb-stage">
+        <div id="lb-img" class="lb-img"></div>
+        <button id="lb-prev" class="lb-nav prev" type="button" aria-label="Previous frame">‹</button>
+        <button id="lb-next" class="lb-nav next" type="button" aria-label="Next frame">›</button>
+      </div>
+      <div id="lb-cap" class="lb-cap"></div>
+      <div class="lb-keys"><b>←</b> <b>→</b> frames · <b>Esc</b> close</div>
+    </div>
+  </div>
 
   <script type="module" src="/js/app.js"></script>
 </body>

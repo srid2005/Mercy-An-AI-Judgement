@@ -35,6 +35,8 @@ button { font-family: inherit; }
   gap: 10px;
 }
 
+.app-bar .brand { display: inline-flex; align-items: center; gap: 9px; }
+.app-bar .brand-logo { width: 30px; height: 30px; border-radius: 8px; }
 .app-bar .wordmark {
   font-weight: 700;
   font-size: 19px;

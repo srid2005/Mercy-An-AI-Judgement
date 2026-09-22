@@ -99,6 +99,56 @@
     }
   }
 }
+// Explorer: the "open a file to file it as evidence" banner
+.msfiles .evHint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 12px 0;
+  padding: 8px 10px 8px 12px;
+  border-radius: 6px;
+  background: rgba(0, 103, 192, 0.1);
+  border: 1px solid rgba(0, 103, 192, 0.35);
+  color: var(--txt-col, #222);
+  font-size: 12px;
+  line-height: 1.4;
+  animation: evHintIn 0.25s ease-out;
+  .evHintIcon {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #0067c0;
+    color: #fff;
+    font-weight: 700;
+    font-size: 11px;
+    font-family: Georgia, serif;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .evHintText {
+    flex: 1;
+  }
+  .evHintClose {
+    opacity: 0.6;
+    font-size: 11px;
+    padding: 2px 4px;
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+@keyframes evHintIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 .msfiles .conticon[data-locked="true"] .lockBadge {
   position: absolute;
   margin-top: 30px;

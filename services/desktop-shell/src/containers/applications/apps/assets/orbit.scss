@@ -6,8 +6,28 @@
     height: 14px;
     border-radius: 3px;
   }
+  .overTool {
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
   .btab {
     gap: 6px;
+    flex: 0 1 176px;
+    min-width: 100px;
+    opacity: 0.62;
+    cursor: pointer;
+    &.active {
+      opacity: 1;
+    }
+    &:hover {
+      opacity: 0.85;
+    }
+    &.active:hover {
+      opacity: 1;
+    }
     .tabtitle {
       max-width: 220px;
       overflow: hidden;
@@ -61,9 +81,9 @@
       font-weight: 600;
       color: #12898f;
       img {
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
+        width: 44px;
+        height: 44px;
+        object-fit: contain;
       }
     }
     .ntSearch {

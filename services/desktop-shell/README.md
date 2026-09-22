@@ -12,18 +12,19 @@ knows and works through what she left on it.
 
 | Thing | Where | Notes |
 |---|---|---|
-| Lock screen | on every load | PIN `1708` (their first date, 17/08). A PulseFit SOS notification sits on the lock screen. Hint appears after two wrong tries. |
-| PulseFit toast | after unlock | "SOS sent 02:14, last known location 12.952185, 77.503411 (±300 m), signal lost 02:16". This is where the participant gets the coordinates for the drone search, in play. |
-| PulseFit app | desktop icon | The SOS event, the movement log of that night, "Copy coordinates". |
+| Lock screen | on every load | PIN `1998` (her birth year). The hint "my birth year" is always shown under the field, like a Windows password hint. A PulseFit "5 SOS alerts" card sits on the lock screen -- only once the console has released the trail (`mercy:gates`, after the `the_confession` checkpoint); standalone the shell runs in demo mode (`?sos=0` to see the gated state). |
+| PulseFit toasts | after unlock | Five alerts in story order (22:41 St Aldric's Church, 23:27 Auditorium, 00:19 Veterinary Hospital, 01:12 Eco-Park, 02:14 Kettle Hill north face), paced one at a time; each is a cue, not evidence. |
+| PulseFit app | desktop icon | The five SOS cards with coordinates and "Copy coordinates", the band's movement log for the night (signal lost 02:16, a 41 s voice memo stored on the band). Opening it files SW-01..05 as evidence. |
 | Quill | desktop + taskbar | The mail client, as a native app window (iframe of port 4002). |
 | Orbit | desktop + taskbar | Meera's browser. Loop, Wisp and Haven are reachable **only** through it, from the bookmarks bar, the history page or a typed address. The address bar shows story domains (`loop.social`, `wisp.chat`, `haven.cloud`, `quill.mail`); the real services run on their ports. Every other site shows an "offline / sandbox" page. |
 | Orbit history | clock icon / `orbit://history` | Seeded evidence: her searches ("request copy of UDR police file karnataka", "turahalli forest gate guard register", "trail diaries trekking club bengaluru 2018 batch"), Rahul's and Trail Diaries' profiles, Haven at 01:52 the night she vanished. Live browsing is appended. |
 | Orbit passwords | key icon / `orbit://passwords` | Saved logins. Revealing one needs the Windows PIN. Loop was never saved; Haven's was removed 12 days ago, so those two stay puzzles. |
-| File Explorer | desktop + taskbar | `C:\Users\Meera`. `.txt` files open in Notepad (`notes.txt` carries the folder/PDF password among other things). PDFs open in Orbit's built-in viewer. |
+| Notes | desktop + start menu | Sticky-Notes-style app, eight notes. The one titled "logins (CHANGE THESE!!)" carries the protected folder's password among wifi and printer logins; the others are groceries, Mum's medicines, the Coorg trip, the district-office plan, things Dad said. |
+| File Explorer | desktop + taskbar | `C:\Users\Meera`. `.txt` files open in Notepad. PDFs open in Orbit's built-in viewer. |
 | Recycle Bin | desktop + Explorer sidebar | Three of the affair photos (WhatsApp-style `IMG-2024xxxx-WAxxxx.jpg` names), an old to-do, a deleted booking PDF. |
 | Hidden folder | `C:\Users\Meera\AppData\Local\.n` | The other seven affair photos. AppData and `.n` are hidden: not listed in their parent folders unless "Hidden items" is ticked in the ribbon. The path is exposed by Explorer's **Recent** list in the sidebar (two of the photos sit there among her other recent files; the case file and the Dad folder are deliberately not listed), and it can be typed into the address bar. |
 | Photos | desktop | Image viewer. Opening a picture from Explorer shows it with prev/next through that folder; the desktop icon shows the Pictures gallery (Camera Roll only, hidden folders never appear). Explorer shows real thumbnails for pictures. |
-| Protected folder | `C:\Users\Meera\Documents\Dad` | Password `1708RoseCafe` (Notes gives it). Explorer shows a lock panel until it is entered; unlocked for the session. Inside: `FATHER_DEATH_CASE.pdf` (the unlocked copy; the folder is the lock) and the local copy of the first diary video, `2024-08-02 The box.mp4`. Neither appears in the Recent list; the participant reaches the folder by browsing Documents. |
+| Protected folder | `C:\Users\Meera\Documents\Dad` | Password `1708RoseCafe` (the Notes app gives it). Explorer shows a lock panel until it is entered; unlocked for the session. Inside: `FATHER_DEATH_CASE.pdf` (the unlocked copy; the folder is the lock) and the local copy of the first diary video, `2024-08-02 The box.mp4`. Neither appears in the Recent list; the participant reaches the folder by browsing Documents. |
 | Movies & TV | opened from Explorer | Video player for `.mp4` files in the tree. Files live in `public/files/videos/`. |
 | Notepad, Settings | desktop | Dressing. |
 

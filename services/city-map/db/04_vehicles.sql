@@ -1,0 +1,121 @@
+-- ---------------------------------------------------------------------------
+-- The other cars on the ANPR log. Vehicle tracking takes any name the cameras
+-- have read tonight, so the participant has people to try before -- or
+-- instead of -- the one the memo names. None of these goes anywhere that
+-- matters: every stop answers with its own result_clear and no result_found,
+-- and app_config.truth_stop is drawn from Nikhil's stops only (03_story.sql).
+-- mode: 'loop' cars drive their stops round and round, dwelling at each;
+-- 'parked' cars never move. Keyed, so the file is safe to re-run.
+-- Live volumes: scripts/migrate_live_vehicles.sql carries the same rows.
+-- ---------------------------------------------------------------------------
+INSERT INTO vehicles (slug, owner, plate, model, note, mode, lat, lng) VALUES
+('rahul', 'Rahul Nair', 'KA 03 MJ 2210', 'white Maruti Swift',
+ $v$Read by CCTV-20 and CCTV-36 last night, 21:04 and 23:48, both on Harrow Road. Gave a statement at Police HQ this morning; in and out of the city since.$v$,
+ 'loop', 12.975355, 77.50915),
+('priya', 'Priya Menon', 'KA 05 P 8834', 'red Honda City',
+ $v$Meera's closest friend. Read on the Inner Ring Road three times this morning; she has been driving between the hospital and the police station since dawn.$v$,
+ 'loop', 13.004485, 77.48743),
+('vikram', 'Vikram Kapoor', 'KA 41 N 5507', 'black Toyota Innova',
+ $v$Your brother. Read on the Outer Ring Road at 08:20 coming in from the north; parked under the Exchange most of the day.$v$,
+ 'loop', 12.993605, 77.506523),
+('arjun', 'Arjun Kapoor', 'KA 05 MK 1187', 'blue Honda Amaze',
+ $v$Your car. Held in the Police HQ pound since the arrest; forensics have been through it twice.$v$,
+ 'parked', 13.0, 77.5),
+('ravi', 'Ravi Sharma', 'KA 51 R 3391', 'silver Mahindra XUV300',
+ $v$Meera's father. Drove in from Mysuru overnight; read at the Southgate terminus at 05:50 and on the Police HQ perimeter four times since.$v$,
+ 'loop', 13.0, 77.5),
+('deepa', 'Deepa Krishnan', 'KA 05 MA 4470', 'grey Hyundai i20',
+ $v$A plate one digit off. Read on Garden Avenue and the Inner Ring Road: a court, a school run, a library, the same every day.$v$,
+ 'loop', 13.0, 77.503875),
+('farhan', 'Farhan Sheikh', 'KA 01 AC 9012', 'yellow Maruti Dzire (cab)',
+ $v$A cab. On the ANPR log forty times a day; the last read was on the Outer Ring Road eight minutes ago.$v$,
+ 'loop', 12.996111, 77.5),
+('sunita', 'Sunita Iyer', 'KA 05 MC 6620', 'white Tata Nexon',
+ $v$A resident of Garden Quarter with no connection to the case; read at the same three cameras every day.$v$,
+ 'loop', 13.009317, 77.476478)
+ON CONFLICT (slug) DO NOTHING;
+
+INSERT INTO vehicle_stops (vehicle, seq, name, note, lat, lng, building_id, dwell_s, logged_label, cctv_code, result_clear, result_found) VALUES
+-- Rahul Nair
+('rahul', 1, 'Harrow Court -- residents'' car park', 'ANPR read 07:50 at CCTV-20 (Inner Ring Road at Harrow Road)',
+ 12.975355, 77.50915, (SELECT id FROM buildings WHERE name = 'Harrow Court'), 45, '07:50', 'CCTV-20',
+ $v$Harrow Court, the residents' car park. Rahul Nair's Swift is registered to flat 3B. Nothing in the car, nothing in the bay. No trace of her.$v$, NULL),
+('rahul', 2, 'City Police Headquarters -- visitors'' car park', 'ANPR read 09:12 at CCTV-06 (Police HQ perimeter E)',
+ 13.0, 77.5, (SELECT id FROM buildings WHERE name = 'City Police Headquarters'), 40, '09:12', 'CCTV-06',
+ $v$Police HQ, the visitors' car park. He came in to give his statement and waited an hour. The drones searched the car park of the building you are sitting in. No trace of her.$v$, NULL),
+('rahul', 3, 'Meridian Grand Theatre -- stage door', 'ANPR read 11:35 at CCTV-02 (Central Plaza SE)',
+ 12.997958, 77.51181, (SELECT id FROM buildings WHERE name = 'Meridian Grand Theatre'), 50, '11:35', 'CCTV-02',
+ $v$Meridian Grand Theatre, the stage door. Rahul Nair does the lighting for the evening show; his name is on the crew sheet. Flight cases, a kettle, a rota. No trace of her.$v$, NULL),
+('rahul', 4, 'Central Station -- short-stay bays', 'ANPR read 12:20 at CCTV-13 (Central Station, bus bays)',
+ 12.996111, 77.5, (SELECT id FROM buildings WHERE name = 'Central Station'), 35, '12:20', 'CCTV-13',
+ $v$Central Station, the short-stay bays. Twelve minutes, a coffee, back in the car. No trace of her.$v$, NULL),
+-- Priya Menon
+('priya', 1, 'Meridian General Hospital -- staff car park', 'ANPR read 06:40 at CCTV-32 (Meridian General Hospital, A&E)',
+ 13.004485, 77.48743, (SELECT id FROM buildings WHERE name = 'Meridian General Hospital'), 50, '06:40', 'CCTV-32',
+ $v$Meridian General, the staff car park. Priya Menon is on the ward rota, 07:00 to 15:00, and has asked every ambulance crew that came in about Meera. No trace of her.$v$, NULL),
+('priya', 2, 'City Police Headquarters -- front steps', 'ANPR read 08:05 at CCTV-05 (Police HQ perimeter N)',
+ 13.0, 77.5, (SELECT id FROM buildings WHERE name = 'City Police Headquarters'), 40, '08:05', 'CCTV-05',
+ $v$Police HQ. She has been at the front desk twice today asking what is being done. No trace of her.$v$, NULL),
+('priya', 3, 'Block 14, Garden Quarter -- visitors'' bay', 'ANPR read 13:10 at CCTV-28 (Inner Ring Road at Garden Avenue)',
+ 13.009317, 77.476478, (SELECT id FROM buildings WHERE name = 'Block 14, Garden Quarter'), 45, '13:10', 'CCTV-28',
+ $v$Block 14, Garden Quarter -- your own building. She sat in the car outside for twenty minutes and did not go up. No trace of her.$v$, NULL),
+('priya', 4, 'Meridian Temple -- car park', 'ANPR read 17:45 at CCTV-24 (Inner Ring Road at Mill Road)',
+ 12.989608, 77.491105, (SELECT id FROM buildings WHERE name = 'Meridian Temple'), 40, '17:45', 'CCTV-24',
+ $v$Meridian Temple. A lamp lit, a name on a slip of paper at the shrine. No trace of her.$v$, NULL),
+-- Vikram Kapoor
+('vikram', 1, 'Meridian Exchange -- basement car park', 'ANPR read 08:41 at CCTV-31 (Meridian Exchange)',
+ 12.993605, 77.506523, (SELECT id FROM buildings WHERE name = 'Meridian Exchange'), 60, '08:41', 'CCTV-31',
+ $v$Meridian Exchange, the basement. Vikram Kapoor's bay, level -2. A child seat, a gym bag, and a parking ticket from last night stamped 21:52 at the Exchange -- he was here before he drove home to your mother's. No trace of her.$v$, NULL),
+('vikram', 2, 'Kestrel Tower -- client visit', 'ANPR read 12:05 at CCTV-30 (Kestrel Tower lobby)',
+ 13.006075, 77.506197, (SELECT id FROM buildings WHERE name = 'Kestrel Tower'), 45, '12:05', 'CCTV-30',
+ $v$Kestrel Tower. A meeting on the 14th floor, signed in and out. No trace of her.$v$, NULL),
+('vikram', 3, 'Northfield Primary School -- pick-up lane', 'ANPR read 15:30 at CCTV-41 (Northfield Commons)',
+ 13.036516, 77.493432, (SELECT id FROM buildings WHERE name = 'Northfield Primary School'), 40, '15:30', 'CCTV-41',
+ $v$Northfield Primary, the pick-up lane. Two children, two school bags. No trace of her.$v$, NULL),
+-- Ravi Sharma
+('ravi', 1, 'City Police Headquarters -- visitors'' car park', 'ANPR read 06:10 at CCTV-07 (Police HQ perimeter S)',
+ 13.0, 77.5, (SELECT id FROM buildings WHERE name = 'City Police Headquarters'), 60, '06:10', 'CCTV-07',
+ $v$Police HQ. Ravi Sharma has not left the building for more than an hour at a time since he arrived. No trace of her.$v$, NULL),
+('ravi', 2, 'Kettle Hill hostel -- car park', 'ANPR read 14:20 at CCTV-44 (Southgate village)',
+ 12.954065, 77.500818, (SELECT id FROM buildings WHERE name = 'Kettle Hill hostel'), 45, '14:20', 'CCTV-44',
+ $v$Kettle Hill hostel. A room taken for the week; a bag not unpacked. No trace of her.$v$, NULL),
+('ravi', 3, 'Central Station -- arrivals', 'ANPR read 16:05 at CCTV-12 (Central Station, north concourse)',
+ 12.996111, 77.5, (SELECT id FROM buildings WHERE name = 'Central Station'), 40, '16:05', 'CCTV-12',
+ $v$Central Station. He met Lakshmi Sharma off the 15:40 from Mysuru. No trace of her.$v$, NULL),
+-- Deepa Krishnan
+('deepa', 1, 'High Court -- staff car park', 'ANPR read 09:05 at CCTV-10 (High Court steps)',
+ 13.0, 77.503875, (SELECT id FROM buildings WHERE name = 'High Court'), 60, '09:05', 'CCTV-10',
+ $v$High Court, the staff car park. Deepa Krishnan is a clerk of the court; her i20 is one digit off the plate you are looking for, and that is all it is. No trace of her.$v$, NULL),
+('deepa', 2, 'Meridian Grammar School -- pick-up lane', 'ANPR read 15:25 at CCTV-39 (Garden Avenue, north end)',
+ 13.013487, 77.480352, (SELECT id FROM buildings WHERE name = 'Meridian Grammar School'), 40, '15:25', 'CCTV-39',
+ $v$Meridian Grammar School, the pick-up lane. No trace of her.$v$, NULL),
+('deepa', 3, 'City Library -- car park', 'ANPR read 16:10 at CCTV-14 (Inner Ring Road at North Avenue)',
+ 13.00275, 77.502805, (SELECT id FROM buildings WHERE name = 'City Library'), 45, '16:10', 'CCTV-14',
+ $v$City Library. Three books and a DVD returned. No trace of her.$v$, NULL),
+-- Farhan Sheikh (cab)
+('farhan', 1, 'Central Station -- taxi rank', 'ANPR read 09:58 at CCTV-13 (Central Station, bus bays)',
+ 12.996111, 77.5, (SELECT id FROM buildings WHERE name = 'Central Station'), 40, '09:58', 'CCTV-13',
+ $v$Central Station, the taxi rank. Farhan Sheikh's cab, fourth in the queue. Sandwich wrappers and a phone charger. No trace of her.$v$, NULL),
+('farhan', 2, 'Meridian General Hospital -- A&E drop-off', 'ANPR read 10:31 at CCTV-32 (Meridian General Hospital, A&E)',
+ 13.004485, 77.48743, (SELECT id FROM buildings WHERE name = 'Meridian General Hospital'), 30, '10:31', 'CCTV-32',
+ $v$Meridian General, the A&E drop-off. A fare, three minutes. No trace of her.$v$, NULL),
+('farhan', 3, 'Meridian University -- main gate', 'ANPR read 11:04 at CCTV-15 (Outer Ring Road at North Avenue)',
+ 13.02377, 77.511306, (SELECT id FROM buildings WHERE name = 'Meridian University'), 35, '11:04', 'CCTV-15',
+ $v$Meridian University, the main gate. Two students, a fare to the station. No trace of her.$v$, NULL),
+('farhan', 4, 'Eastmark High School -- gate', 'ANPR read 11:52 at CCTV-19 (Outer Ring Road at East Avenue)',
+ 12.981913, 77.531957, (SELECT id FROM buildings WHERE name = 'Eastmark High School'), 35, '11:52', 'CCTV-19',
+ $v$Eastmark High School. Waiting for a fare that did not show. No trace of her.$v$, NULL),
+('farhan', 5, 'City Hall -- rank', 'ANPR read 12:40 at CCTV-09 (City Hall entrance)',
+ 13.003798, 77.5, (SELECT id FROM buildings WHERE name = 'City Hall'), 35, '12:40', 'CCTV-09',
+ $v$City Hall. A fare with a briefcase. No trace of her.$v$, NULL),
+-- Sunita Iyer
+('sunita', 1, 'Block 14, Garden Quarter -- residents'' bays', 'ANPR read 08:15 at CCTV-28 (Inner Ring Road at Garden Avenue)',
+ 13.009317, 77.476478, (SELECT id FROM buildings WHERE name = 'Block 14, Garden Quarter'), 50, '08:15', 'CCTV-28',
+ $v$Block 14, Garden Quarter -- your building, the residents' bays. Sunita Iyer lives on the fourth floor. No trace of her.$v$, NULL),
+('sunita', 2, 'City Museum -- staff entrance', 'ANPR read 08:50 at CCTV-11 (City Museum forecourt)',
+ 13.0, 77.496125, (SELECT id FROM buildings WHERE name = 'City Museum'), 60, '08:50', 'CCTV-11',
+ $v$City Museum. Sunita Iyer curates the textile gallery. No trace of her.$v$, NULL),
+('sunita', 3, 'Meridian Temple -- car park', 'ANPR read 18:20 at CCTV-24 (Inner Ring Road at Mill Road)',
+ 12.989608, 77.491105, (SELECT id FROM buildings WHERE name = 'Meridian Temple'), 40, '18:20', 'CCTV-24',
+ $v$Meridian Temple. No trace of her.$v$, NULL)
+ON CONFLICT (vehicle, seq) DO NOTHING;

@@ -10,10 +10,18 @@ const BP = {
   fill: 0x0b3358, water: 0x3aa5ff, waterFill: 0x0d3d6b, park: 0x33c39a, road: 0xbfe9ff, street: 0x4f95c6, bus: 0x39ff88,
   foot: 0xffb454, police: 0xffffff, beacon: 0xff3b30, cave2: 0xff9f43, stop: 0x39ff88, cctv: 0xf5d76e,
   power: 0xc7a6ff, cell: 0xffffff, water2: 0x7fd3ff, you: 0xff2a1e, drone: 0xdfeeff, scan: 0x39ff88, route: 0x8fdcff,
+  sos: 0xff5fd2, clue: 0xffc44d,   // magenta: the cave trace (the --sos tint); amber: a swept story spot
 };
 const ROAD_LIFT = { highway: 1.4, arterial: 1.2, street: 1.0, bus_route: 2.2, footpath: 2.0 };
-const FLIGHT = { altitude: 22, speed: 170, lag: 26, scanFor: 6 };   // metres above the ground, metres per second, metres between drones
+const FLIGHT = { altitude: 22, speed: 330, lag: 26, scanFor: 5 };   // metres above the ground, metres per second, metres between drones
+const CAR = { len: 4.4, wid: 1.8 }, BUS = { len: 11, wid: 2.5 };     // vehicle footprints, metres
+const TRACK = { speed: 34, dwell: 40, lane: 3.0 };                   // the tracked car: metres per second, seconds at each stop (loop mode), keep-left offset
+const CAR_SCALE = 1.6, TRAIL_MAX = 6000, TRAIL_STEP = 6;             // the tracked car: times life size; its breadcrumb trail, points and metres between them
+const FOLLOW = { up: 100, back: 28 };                               // the tracking view: metres above and behind the car
+const CAR_COLORS = { grey: 0x8b949e, gray: 0x8b949e, silver: 0xc8ced6, white: 0xe6eaee, black: 0x22262c, red: 0xc62828, blue: 0x2f5fd0, maroon: 0x7a1d2e, yellow: 0xe0b100, green: 0x2f7d4f, brown: 0x6b4a2b, orange: 0xe07a1f };
+function carColor(model) { for (const w of String(model || '').toLowerCase().split(/[^a-z]+/)) if (CAR_COLORS[w] !== undefined) return CAR_COLORS[w]; return CAR_COLORS.grey; }
 const UP = new THREE.Vector3(0, 1, 0);
+const TMP = new THREE.Vector3(), TMP2 = new THREE.Vector3();   // per-frame scratch
 const SPECIAL = new Set(['school', 'church', 'theatre', 'stadium', 'temple', 'university', 'market', 'fire_station', 'library', 'vet', 'auditorium']);
 
 export class BlueprintScene {
@@ -26,8 +34,10 @@ export class BlueprintScene {
     this.pickables = [];
     this.pulses = [];
     this.showLabels = true;
-    this.timeScale = 1;
+    this.timeScale = 3;       // the world runs fast by default; rate() drops it to 1 while the drones scan
     this.keys = new Set();
+    this.tracked = null;      // the followed car (see trackVehicle)
+    this.follow = false;
 
     const canvas = container.querySelector('canvas');
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -885,9 +895,14 @@ outgoingLight = col; diffuseColor.a = alpha;
   // --- live traffic: cars driving the street graph, buses shuttling route 7 ------------------
   buildTraffic() {
     this.vehicles = [];
+    // edge templates in local coords: x forward, z right, y up (shared with the tracked car)
+    const box = (x0, x1, y0, y1, z0, z1) => { const k = [[x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1], [x0, y1, z0], [x1, y1, z0], [x1, y1, z1], [x0, y1, z1]]; return [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]].flatMap(([i, j]) => [k[i], k[j]]); };
+    this.vehicleTemplate = {
+      car: [...box(-2.2, 2.2, 0.4, 1.35, -0.9, 0.9), ...box(-1.1, 1.2, 1.35, 2.0, -0.8, 0.8), [-2.2, 1.35, -0.9], [-1.1, 2.0, -0.8], [-2.2, 1.35, 0.9], [-1.1, 2.0, 0.8], [2.2, 1.35, -0.9], [1.2, 2.0, -0.8], [2.2, 1.35, 0.9], [1.2, 2.0, 0.8]],
+      bus: [...box(-5.5, 5.5, 0.5, 3.2, -1.25, 1.25), ...[-4, -2, 0, 2, 4].flatMap((x) => [[x, 1.6, -1.25], [x, 2.9, -1.25], [x, 1.6, 1.25], [x, 2.9, 1.25]]), [-5.5, 1.6, -1.25], [5.5, 1.6, -1.25], [-5.5, 1.6, 1.25], [5.5, 1.6, 1.25]],
+    };
     const nodes = this.graph;
     if (!nodes || !nodes.length) return;
-    const CAR = { len: 4.4, wid: 1.8 }, BUS = { len: 11, wid: 2.5 };
     const usable = nodes.map((n, i) => i).filter((i) => nodes[i].adj.length > 0);
     for (let i = 0; i < 150; i++) {
       const u = usable[Math.floor(Math.random() * usable.length)];
@@ -903,12 +918,6 @@ outgoingLight = col; diffuseColor.a = alpha;
       this.busRoute = { pts, cum, length: cum[cum.length - 1] };
       for (let i = 0; i < 6; i++) this.vehicles.push({ kind: 'bus', s: (i / 6) * this.busRoute.length, way: i % 2 ? 1 : -1, speed: 8, ...BUS, pos: new THREE.Vector3(), dir: new THREE.Vector3(1, 0, 0) });
     }
-    // edge templates in local coords: x forward, z right, y up
-    const box = (x0, x1, y0, y1, z0, z1) => { const k = [[x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1], [x0, y1, z0], [x1, y1, z0], [x1, y1, z1], [x0, y1, z1]]; return [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]].flatMap(([i, j]) => [k[i], k[j]]); };
-    this.vehicleTemplate = {
-      car: [...box(-2.2, 2.2, 0.4, 1.35, -0.9, 0.9), ...box(-1.1, 1.2, 1.35, 2.0, -0.8, 0.8), [-2.2, 1.35, -0.9], [-1.1, 2.0, -0.8], [-2.2, 1.35, 0.9], [-1.1, 2.0, 0.8], [2.2, 1.35, -0.9], [1.2, 2.0, -0.8], [2.2, 1.35, 0.9], [1.2, 2.0, 0.8]],
-      bus: [...box(-5.5, 5.5, 0.5, 3.2, -1.25, 1.25), ...[-4, -2, 0, 2, 4].flatMap((x) => [[x, 1.6, -1.25], [x, 2.9, -1.25], [x, 1.6, 1.25], [x, 2.9, 1.25]]), [-5.5, 1.6, -1.25], [5.5, 1.6, -1.25], [-5.5, 1.6, 1.25], [5.5, 1.6, 1.25]],
-    };
     const total = this.vehicles.reduce((a, v) => a + this.vehicleTemplate[v.kind].length, 0);
     this.trafficBuf = new Float32Array(total * 3);
     const g = new THREE.BufferGeometry();
@@ -924,7 +933,7 @@ outgoingLight = col; diffuseColor.a = alpha;
   updateTraffic(dt) {
     if (!this.vehicles || !this.vehicles.length || !this.propsGroup.visible) return;
     const nodes = this.graph;
-    const step = dt * this.timeScale;
+    const step = dt * this.rate();
     const buf = this.trafficBuf;
     const m = new THREE.Matrix4(), tmp = new THREE.Vector3();
     let o = 0, li = 0;
@@ -958,13 +967,8 @@ outgoingLight = col; diffuseColor.a = alpha;
         v.dir.subVectors(b, a); v.dir.y = 0; v.dir.normalize(); if (v.way < 0) v.dir.negate();
         v.pos.set(tmp.x + v.dir.z * 4.5, this.ground(tmp.x, tmp.z) + 0.6, tmp.z - v.dir.x * 4.5);
       }
+      o = this.writeVehicle(v, this.vehicleTemplate[v.kind], buf, o);
       const cs = v.dir.x, sn = v.dir.z;   // rotation from local +x to dir, in the xz plane
-      const tpl = this.vehicleTemplate[v.kind];
-      for (const [lx, ly, lz] of tpl) {
-        buf[o++] = v.pos.x + lx * cs - lz * sn;
-        buf[o++] = v.pos.y + ly;
-        buf[o++] = v.pos.z + lx * sn + lz * cs;
-      }
       const half = v.len / 2, w = v.wid / 2 - 0.2, hy = v.kind === 'bus' ? 1.2 : 0.9;
       for (const side of [-1, 1]) {
         m.makeTranslation(v.pos.x + half * cs - side * w * sn, v.pos.y + hy, v.pos.z + half * sn + side * w * cs);
@@ -977,6 +981,297 @@ outgoingLight = col; diffuseColor.a = alpha;
     this.trafficLines.geometry.attributes.position.needsUpdate = true;
     this.headlights.instanceMatrix.needsUpdate = true;
     this.taillights.instanceMatrix.needsUpdate = true;
+  }
+  // Write one vehicle's edge template into a line buffer at `offset`, rotated from
+  // local +x to v.dir in the xz plane and placed at v.pos; returns the next offset.
+  writeVehicle(v, tpl, buf, offset) {
+    const cs = v.dir.x, sn = v.dir.z;
+    let o = offset;
+    for (const [lx, ly, lz] of tpl) {
+      buf[o++] = v.pos.x + lx * cs - lz * sn;
+      buf[o++] = v.pos.y + ly;
+      buf[o++] = v.pos.z + lx * sn + lz * cs;
+    }
+    return o;
+  }
+
+  // --- the tracked car ------------------------------------------------------------------------
+  // One solid car -- a low-poly hatchback at CAR_SCALE times life size, body colour from the
+  // model text, glass, wheels, lamps, lit by lamps of its own, plus a red x-ray outline that
+  // shows through the buildings -- in its own group in this.scene, not propsGroup, so it
+  // survives the props toggle, the auto-degrade and the 9 km cull. It moves leg by leg:
+  // trackVehicle() puts it where the server says it is, driveTo(stop) routes it there through
+  // the street graph (driveway, shortest path, driveway; a straight line where the graph
+  // cannot join) and pulls up at the kerb outside; on arrival the stop is revealed -- pylon and
+  // label -- and hooks.onVehicleArrive fires. What happens next is v.mode's:
+  //   chase  -- the car waits at the stop, for as long as it takes, until app.js calls
+  //             driveTo() again (once the drones have searched the place);
+  //   loop   -- it dwells stop.dwell_s and drives on to the next stop by itself, round and round;
+  //   parked -- it never moves.
+  // Idempotent: the same vehicle is never built twice, a different one replaces the old.
+  // v = { slug, owner, plate, model, note, mode, start: {lat, lng}, at_seq,
+  //       stops: [{ seq, name, note, lat, lng, building_id, dwell_s, logged_label, cctv_code, state, outcome }] }
+  buildCar(color) {
+    const grp = new THREE.Group();
+    const lit = (c) => new THREE.MeshLambertMaterial({ color: c });
+    const flat = (c) => new THREE.MeshBasicMaterial({ color: c });
+    // side profile, metres, x forward and y up, extruded across the width (z)
+    const profile = (pts) => { const s = new THREE.Shape(); s.moveTo(pts[0][0], pts[0][1]); for (const [x, y] of pts.slice(1)) s.lineTo(x, y); s.closePath(); return s; };
+    const BODY = [[-2.25, 0.34], [-2.25, 0.86], [-2.05, 0.98], [-1.75, 1.02], [-1.55, 1.42], [-1.1, 1.56], [0.35, 1.56], [0.95, 1.2], [1.75, 1.02], [2.2, 0.9], [2.3, 0.62], [2.3, 0.34]];
+    const bodyGeo = new THREE.ExtrudeGeometry(profile(BODY), { depth: 1.8, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 2 });
+    bodyGeo.translate(0, 0, -0.9);
+    const body = new THREE.Mesh(bodyGeo, lit(color));
+    // the glass: side windows as a slab a touch wider than the body; windscreen and hatch as
+    // quads lifted just off their slopes
+    const GLASS = [[-1.5, 1.08], [-1.4, 1.4], [-1.05, 1.5], [0.3, 1.5], [0.82, 1.2], [0.82, 1.08]];
+    const glassGeo = new THREE.ExtrudeGeometry(profile(GLASS), { depth: 1.92, bevelEnabled: false });
+    glassGeo.translate(0, 0, -0.96);
+    const glassMat = new THREE.MeshLambertMaterial({ color: 0x141c26, side: THREE.DoubleSide });
+    const glass = new THREE.Mesh(glassGeo, glassMat);
+    const pane = (a, b, w, lift) => {
+      const d = new THREE.Vector2(b[0] - a[0], b[1] - a[1]).normalize();
+      const n = new THREE.Vector2(-d.y, d.x); if (n.y < 0) n.negate();   // the normal that points up
+      const ax = a[0] + n.x * lift, ay = a[1] + n.y * lift, bx = b[0] + n.x * lift, by = b[1] + n.y * lift, h = w / 2;
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute([ax, ay, -h, bx, by, -h, bx, by, h, ax, ay, -h, bx, by, h, ax, ay, h], 3));
+      g.computeVertexNormals();
+      return new THREE.Mesh(g, glassMat);
+    };
+    const windscreen = pane([0.9, 1.23], [0.42, 1.52], 1.7, 0.09);
+    const hatch = pane([-1.5, 1.435], [-1.15, 1.545], 1.6, 0.09);
+    // wheels, hubs, lamps, plates
+    const wheelGeo = new THREE.CylinderGeometry(0.34, 0.34, 0.24, 18); wheelGeo.rotateX(Math.PI / 2);
+    const hubGeo = new THREE.CylinderGeometry(0.17, 0.17, 0.26, 12); hubGeo.rotateX(Math.PI / 2);
+    const tyre = lit(0x0f1216), hub = lit(0x9aa3ad);
+    for (const x of [1.45, -1.4]) for (const z of [0.9, -0.9]) {
+      const w = new THREE.Mesh(wheelGeo, tyre); w.position.set(x, 0.34, z);
+      const c = new THREE.Mesh(hubGeo, hub); c.position.set(x, 0.34, z);
+      grp.add(w, c);
+    }
+    const lampGeo = new THREE.BoxGeometry(0.08, 0.16, 0.38);
+    for (const z of [0.6, -0.6]) {
+      const head = new THREE.Mesh(lampGeo, flat(0xfff4d6)); head.position.set(2.34, 0.8, z);
+      const tail = new THREE.Mesh(lampGeo, flat(0xff2a1e)); tail.position.set(-2.29, 0.86, z);
+      grp.add(head, tail);
+    }
+    const plateGeo = new THREE.BoxGeometry(0.03, 0.12, 0.5);
+    const front = new THREE.Mesh(plateGeo, flat(0xf2f4f6)); front.position.set(2.36, 0.52, 0);
+    const rear = new THREE.Mesh(plateGeo, flat(0xf2f4f6)); rear.position.set(-2.31, 0.6, 0);
+    // the x-ray outline: the body's edges, drawn through everything
+    const ghost = new THREE.LineSegments(new THREE.EdgesGeometry(bodyGeo, 25), new THREE.LineBasicMaterial({ color: BP.you, transparent: true, opacity: 0.32, depthTest: false }));
+    ghost.renderOrder = 6;
+    grp.add(body, glass, windscreen, hatch, front, rear, ghost);
+    grp.traverse((o) => { o.frustumCulled = false; });
+    grp.scale.setScalar(CAR_SCALE);
+    grp.userData.pick = [body, glass];
+    return grp;
+  }
+  // The kerb outside a stop: the building's edge on the side the nearest street is, so the car
+  // pulls up at the door rather than driving into the footprint.
+  kerbXY(stop) {
+    const b = this.geo.toXY(stop.lat, stop.lng);
+    const bld = stop.building_id != null ? this.data.buildings.find((x) => x.id === stop.building_id) : null;
+    const edge = bld ? Math.max(bld.width_m, bld.depth_m) / 2 + 7 : 10;
+    if (!this.graph || !this.graph.length) return b;
+    const n = this.graph[this.nearestNode(b)];
+    const dx = n.x - b.x, dy = n.y - b.y, d = Math.hypot(dx, dy);
+    if (d < 1) return b;
+    const k = Math.min(d, edge) / d;
+    return { x: b.x + dx * k, y: b.y + dy * k };
+  }
+  trackVehicle(v) {
+    if (!v) return null;
+    if (this.tracked && v.slug && this.tracked.v.slug === v.slug) { this.setStops(v.stops); return this.tracked; }
+    this.untrackVehicle();
+    if (!this.carLamps) {
+      // the cars' materials are the only lit ones in the model, so these touch nothing else
+      const hemi = new THREE.HemisphereLight(0xdfe9ff, 0x141c28, 1.15);
+      const sun = new THREE.DirectionalLight(0xffffff, 1.05); sun.position.set(300, 500, 200);
+      this.carLamps = new THREE.Group(); this.carLamps.add(hemi, sun); this.scene.add(this.carLamps);
+    }
+    const stops = (v.stops || []).slice().sort((a, b) => (a.seq || 0) - (b.seq || 0));
+    const at = v.at_seq != null ? stops.find((s) => s.seq === v.at_seq) || null : null;
+    const start = v.start || v;
+    let p0;
+    if (at) { const k = this.kerbXY(at); p0 = new THREE.Vector3(k.x, this.geo.elevationXY(k.x, k.y), -k.y); }
+    else p0 = this.pos(start.lat, start.lng);
+    const grp = new THREE.Group();
+    const mesh = this.buildCar(carColor(v.model));
+    const feature = { type: 'vehicle', slug: v.slug, owner: v.owner, plate: v.plate, model: v.model, note: v.note, lat: start.lat, lng: start.lng, building_id: null, stop_seq: null };
+    for (const o of mesh.userData.pick) { o.userData.feature = feature; this.pickables.push(o); }
+    const glow = this.glow(p0.clone(), 0x9a1c14, 56);   // a halo on the road under the car; the car itself hides it where they overlap
+    glow.userData.feature = feature;
+    this.pickables.push(glow);
+    // the breadcrumb trail: where the car has been since it was picked up, grown as it drives
+    const trailBuf = new Float32Array(TRAIL_MAX * 3);
+    const trailGeo = new THREE.BufferGeometry();
+    trailGeo.setAttribute('position', new THREE.BufferAttribute(trailBuf, 3).setUsage(THREE.DynamicDrawUsage));
+    trailGeo.setDrawRange(0, 0);
+    const trail = new THREE.Line(trailGeo, new THREE.LineBasicMaterial({ color: BP.you, transparent: true, opacity: 0.55, depthTest: false }));
+    trail.frustumCulled = false; trail.renderOrder = 5;
+    grp.add(mesh, glow, trail);
+    const label = this.addLabel(start.lat, start.lng, '', 'track', 16);
+    const pulse = { glow, ring: null, dot: null, rate: 4 };
+    this.pulses.push(pulse);
+    grp.frustumCulled = false;
+    this.scene.add(grp);
+    this.trackedGroup = grp;
+    this.tracked = {
+      v, mode: v.mode || 'chase', stops, revealed: new Map(), leg: null, at: null, dwell: 0, frozen: false, speed: TRACK.speed,
+      kind: 'car', ...CAR, pos: p0.clone(), dir: new THREE.Vector3(1, 0, 0),
+      mesh, glow, label, labels: [label], picks: [glow, ...mesh.userData.pick], pulse, feature,
+      trail: { buf: trailBuf, geo: trailGeo, n: 0, last: new THREE.Vector3(1e9, 0, 1e9) },
+    };
+    // what the participant already knows: every searched stop, and the one the car is at
+    for (const s of stops) if (s.state === 'searched') this.revealStop(s);
+    if (at) {
+      // parked facing away from the street it came in from
+      const b = this.geo.toXY(at.lat, at.lng);
+      TMP2.set(b.x - p0.x, 0, -b.y - p0.z); if (TMP2.lengthSq() > 1e-6) this.tracked.dir.copy(TMP2).normalize();
+      this.arrive(at, false);
+    }
+    this.setLabel();
+    this.updateTracked(0);
+    return this.tracked;
+  }
+  // The stops as the server now describes them (states, outcomes); anything searched is shown.
+  setStops(stops) {
+    const t = this.tracked;
+    if (!t) return;
+    t.stops = (stops || []).slice().sort((a, b) => (a.seq || 0) - (b.seq || 0));
+    if (t.at) t.at = t.stops.find((s) => s.seq === t.at.seq) || t.at;
+    if (t.leg) t.leg.dest = t.stops.find((s) => s.seq === t.leg.dest.seq) || t.leg.dest;
+    for (const s of t.stops) {
+      if (s.state === 'searched') this.revealStop(s);
+      const r = t.revealed.get(s.seq);
+      if (r) for (const c of r.marker.children) if (c.userData.feature) Object.assign(c.userData.feature, s);
+    }
+  }
+  revealStop(stop) {
+    const t = this.tracked;
+    if (!t || t.revealed.has(stop.seq)) return;
+    const m = this.marker(stop.lat, stop.lng, BP.you, { type: 'stop', ...stop }, 50, 10);
+    this.trackedGroup.add(m);   // re-parents the pylon from this.scene into the tracked group
+    t.picks.push(...m.children.filter((c) => c.userData.feature));
+    const label = this.addLabel(stop.lat, stop.lng, `STOP ${stop.seq} · ${stop.name}`, 'stopn', 62);
+    t.labels.push(label);
+    t.revealed.set(stop.seq, { marker: m, label });
+  }
+  isRevealed(seq) { return !!(this.tracked && this.tracked.revealed.has(seq)); }
+  // Drive from wherever the car is now to the kerb outside `stop`. Returns the leg's length in metres.
+  driveTo(stop) {
+    const t = this.tracked;
+    if (!t || !stop || t.frozen) return 0;
+    const a = { x: t.pos.x, y: -t.pos.z }, b = this.kerbXY(stop);
+    const pts = [];
+    const push = (x, y) => { const p = new THREE.Vector3(x, this.geo.elevationXY(x, y), -y); if (!pts.length || pts[pts.length - 1].distanceTo(p) > 0.5) pts.push(p); };
+    push(a.x, a.y);
+    const path = this.graph && this.graph.length ? this.route(a, b) : null;
+    for (const n of path || []) push(n.x, n.y);
+    push(b.x, b.y);
+    if (pts.length < 2) { this.arrive(stop, true); return 0; }
+    const cum = [0];
+    for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
+    const from = t.at;
+    t.leg = { pts, cum, length: cum[cum.length - 1], s: 0, dest: stop };
+    t.at = null; t.dwell = 0;
+    this.setLabel();
+    if (this.hooks.onVehicleDepart) this.hooks.onVehicleDepart(t.v, stop, from);
+    return t.leg.length;
+  }
+  arrive(stop, fire) {
+    const t = this.tracked;
+    if (!t) return;
+    t.leg = null; t.at = stop;
+    t.dwell = t.mode === 'loop' ? (stop.dwell_s ?? TRACK.dwell) : Infinity;
+    this.revealStop(stop);
+    this.setLabel();
+    if (fire && this.hooks.onVehicleArrive) this.hooks.onVehicleArrive(t.v, stop);
+  }
+  setLabel() {
+    const t = this.tracked;
+    if (!t) return;
+    const who = `● ${String(t.v.plate || t.v.owner || t.v.slug || '').toUpperCase()}`;
+    t.label.el.textContent = t.frozen ? `${who} · STOPPED` : t.at ? `${who} · AT STOP ${t.at.seq}` : t.leg ? `${who} · MOVING` : t.mode === 'parked' ? `${who} · PARKED` : who;
+  }
+  untrackVehicle() {
+    const t = this.tracked;
+    if (!t) return;
+    this.scene.remove(this.trackedGroup);
+    for (const l of t.labels) l.el.remove();
+    this.labels = this.labels.filter((l) => !t.labels.includes(l));
+    this.pickables = this.pickables.filter((p) => !t.picks.includes(p));
+    this.pulses = this.pulses.filter((p) => p !== t.pulse);
+    this.tracked = null; this.trackedGroup = null; this.follow = false;
+  }
+  // Called every frame right after updateTraffic, whether or not the props are visible.
+  updateTracked(dt) {
+    const t = this.tracked;
+    if (!t) return;
+    const step = dt * this.rate();
+    if (!t.frozen) {
+      if (t.leg) {
+        const L = t.leg;
+        L.s = Math.min(L.length, L.s + t.speed * step);
+        const { pts, cum } = L;
+        let i = 1; while (i < cum.length - 1 && cum[i] < L.s) i++;
+        const a = pts[i - 1], b = pts[i], u = (L.s - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1);
+        TMP.lerpVectors(a, b, u);
+        TMP2.subVectors(b, a); TMP2.y = 0;
+        if (TMP2.lengthSq() > 1e-6) t.dir.copy(TMP2).normalize();
+        // keep left on the road; straight in at the kerb
+        const lane = L.s >= L.length ? 0 : TRACK.lane;
+        t.pos.set(TMP.x + t.dir.z * lane, this.ground(TMP.x, TMP.z), TMP.z - t.dir.x * lane);
+        if (L.s >= L.length) this.arrive(L.dest, true);
+      } else if (t.at && t.mode === 'loop' && t.stops.length > 1) {
+        t.dwell -= step;
+        if (t.dwell <= 0) { const i = t.stops.indexOf(t.at); this.driveTo(t.stops[(i + 1) % t.stops.length]); }
+      }
+    }
+    // the pose
+    t.mesh.position.copy(t.pos);
+    t.mesh.rotation.y = Math.atan2(-t.dir.z, t.dir.x);
+    t.glow.position.set(t.pos.x, t.pos.y + 0.8, t.pos.z);
+    t.label.pos.set(t.pos.x, t.pos.y + 16, t.pos.z);
+    // breadcrumbs
+    const tr = t.trail;
+    if (tr.n < TRAIL_MAX && t.pos.distanceTo(tr.last) > TRAIL_STEP) {
+      tr.buf[tr.n * 3] = t.pos.x; tr.buf[tr.n * 3 + 1] = t.pos.y + 1.5; tr.buf[tr.n * 3 + 2] = t.pos.z;
+      tr.n++; tr.last.copy(t.pos);
+      tr.geo.setDrawRange(0, tr.n);
+      tr.geo.attributes.position.needsUpdate = true;
+    }
+    // the feature app.js gets on a right-click: where the car is now, and whose
+    // building it is stopped at (null on the road)
+    const ll = this.geo.toLatLng(t.pos.x, -t.pos.z);
+    t.feature.lat = ll.lat; t.feature.lng = ll.lng;
+    t.feature.building_id = t.at ? (t.at.building_id ?? null) : null;
+    t.feature.stop_seq = t.at ? (t.at.seq ?? null) : null;
+  }
+  // Camera follow: the tracking view is from high above and a little behind the car, looking
+  // down at it; after the glide in, the orbit target rides with the car and the eye keeps
+  // whatever offset the participant orbits or zooms to.
+  followVehicle(on) {
+    this.follow = !!on && !!this.tracked;
+    if (!this.follow || this.chase) return;
+    const t = this.tracked, p = t.pos;
+    const off = new THREE.Vector3(-t.dir.x, 0, -t.dir.z).multiplyScalar(FOLLOW.back); off.y = FOLLOW.up;
+    this.tween = { t: 0, dur: 1.1, fromT: this.controls.target.clone(), fromC: this.camera.position.clone(), toT: p.clone(), toC: p.clone().add(off) };
+  }
+  updateFollow() {
+    if (!this.follow || !this.tracked || this.chase) return;
+    const p = this.tracked.pos;
+    if (this.tween) { const tw = this.tween; TMP.subVectors(p, tw.toT); tw.toT.copy(p); tw.toC.add(TMP); return; }
+    TMP.subVectors(p, this.controls.target);
+    this.controls.target.copy(p);
+    this.camera.position.add(TMP);
+  }
+  // She has been found: the car stops where it is and says so.
+  stopTracking() {
+    const t = this.tracked;
+    if (!t) return;
+    t.frozen = true; t.leg = null; t.dwell = Infinity;
+    this.setLabel();
   }
 
   // draw the drones through the rock while they are inside a cave
@@ -1101,11 +1396,11 @@ outgoingLight = col; diffuseColor.a = alpha;
     const near = (meta.building && this.data.buildings.find((b) => b.id === meta.building.id)) || this.data.buildings.find((b) => Math.hypot((b.lng - lng) * 108400, (b.lat - lat) * 110574) < 30);
     const g0 = this.ground(target.x, target.z);
     const scan = near
-      ? { cx: this.pos(near.lat, near.lng).x, cz: this.pos(near.lat, near.lng).z, y0: this.ground(this.pos(near.lat, near.lng).x, this.pos(near.lat, near.lng).z), y1: this.ground(this.pos(near.lat, near.lng).x, this.pos(near.lat, near.lng).z) + near.height_m, r: Math.hypot(near.width_m, near.depth_m) / 2 + 8, scanFor: 9 }
+      ? { cx: this.pos(near.lat, near.lng).x, cz: this.pos(near.lat, near.lng).z, y0: this.ground(this.pos(near.lat, near.lng).x, this.pos(near.lat, near.lng).z), y1: this.ground(this.pos(near.lat, near.lng).x, this.pos(near.lat, near.lng).z) + near.height_m, r: Math.hypot(near.width_m, near.depth_m) / 2 + 8, scanFor: 7 }
       : { cx: target.x, cz: target.z, y0: g0, y1: g0 + 24, r: 24, scanFor: FLIGHT.scanFor };
     // a cave is different: two drones work the entrance, two fly the tunnel
     const cave = (this.caves || []).find((c) => Math.hypot(c.x - target.x, c.z - target.z) < 45);
-    if (cave) Object.assign(scan, { kind: 'cave', cave, cx: cave.x, cz: cave.z, y0: cave.y0, y1: cave.y0 + 30, r: 30, scanFor: 11 });
+    if (cave) Object.assign(scan, { kind: 'cave', cave, cx: cave.x, cz: cave.z, y0: cave.y0, y1: cave.y0 + 30, r: 30, scanFor: 9 });
     this.mission = { phase: 'out', dist: 0, curve: plan.curve, length: plan.length, target, lat, lng, meta, track, rings, scan, scanT: 0, reported: false, resolved: false };
     for (const d of this.drones) { d.visible = true; d.position.copy(this.pad); }
     this.chase = true;
@@ -1123,14 +1418,24 @@ outgoingLight = col; diffuseColor.a = alpha;
     m.rings.forEach((r) => this.scene.remove(r));
   }
   resolveMission() { if (this.mission) this.mission.resolved = true; }
-  markSearch(lat, lng, found, radius) {
+  // A searched point, by outcome: 'found' (green, pulsing), 'trace' (magenta,
+  // pulsing -- the jacket and the band), 'clue' (amber -- a swept story spot),
+  // anything else 'clear' (orange). A boolean still reads as found / clear.
+  markSearch(lat, lng, outcome, radius) {
+    if (typeof outcome !== 'string') outcome = outcome ? 'found' : 'clear';
+    const STYLE = {
+      found: { color: BP.scan, label: '✔ FOUND · MEERA LOCATED', cls: 'found', opacity: 1, pulse: true },
+      trace: { color: BP.sos, label: '⚠ TRACE · JACKET + BAND · RECORDING', cls: 'trace', opacity: 1, pulse: true },
+      clue: { color: BP.clue, label: '● CLUE · SWEPT', cls: 'clue', opacity: 0.85, pulse: false },
+      clear: { color: BP.cave2, label: '✕ SEARCHED · NO TRACE', cls: 'searched', opacity: 0.7, pulse: false },
+    };
+    const st = STYLE[outcome] || STYLE.clear;
     const p = this.pos(lat, lng);
-    const color = found ? BP.scan : BP.cave2;
-    const ring = this.groundCircle(lat, lng, radius, color, { dash: 12, gap: 8, opacity: found ? 1 : 0.7 });
-    const cross = this.lines([p.x - 12, p.y + 2, p.z, p.x + 12, p.y + 2, p.z, p.x, p.y + 2, p.z - 12, p.x, p.y + 2, p.z + 12], color, { xray: true });
+    const ring = this.groundCircle(lat, lng, radius, st.color, { dash: 12, gap: 8, opacity: st.opacity });
+    const cross = this.lines([p.x - 12, p.y + 2, p.z, p.x + 12, p.y + 2, p.z, p.x, p.y + 2, p.z - 12, p.x, p.y + 2, p.z + 12], st.color, { xray: true });
     this.scene.add(ring, cross);
-    this.addLabel(lat, lng, found ? '✔ FOUND · MEERA LOCATED' : '✕ SEARCHED · NO TRACE', found ? 'found' : 'searched', 30);
-    if (found) { const g = this.glow(new THREE.Vector3(p.x, p.y + 30, p.z), BP.scan, 110); this.scene.add(g); this.pulses.push({ glow: g, ring, dot: null, rate: 2 }); }
+    this.addLabel(lat, lng, st.label, st.cls, 30);
+    if (st.pulse) { const g = this.glow(new THREE.Vector3(p.x, p.y + 30, p.z), st.color, 110); this.scene.add(g); this.pulses.push({ glow: g, ring, dot: null, rate: 2 }); }
   }
   placeDrones(curve, length, headDist, reverse) {
     const tan = new THREE.Vector3(), right = new THREE.Vector3(), p = new THREE.Vector3();
@@ -1164,7 +1469,7 @@ outgoingLight = col; diffuseColor.a = alpha;
   updateMission(dt, now) {
     const m = this.mission;
     if (!m || m.phase === 'done') return;
-    const step = FLIGHT.speed * dt * this.timeScale;
+    const step = FLIGHT.speed * dt * this.rate();
     this.drones.forEach((d, i) => { d.userData.strobe.material.color.setHex(Math.sin(now * 9 + i * 1.3) > 0.7 ? 0xffffff : 0x223344); });
     if (m.phase === 'out') {
       m.dist += step;
@@ -1174,7 +1479,7 @@ outgoingLight = col; diffuseColor.a = alpha;
     } else if (m.phase === 'scan') {
       // Four sweeps of the building at once: one drone rings the base, one rings
       // the roof, one spirals down from the roof, one spirals up from the base.
-      m.scanT += dt * this.timeScale;
+      m.scanT += dt * this.rate();
       const s = m.scanT, sc = m.scan;
       const T = sc.scanFor, w = 1.1;
       const lowY = sc.y0 + 6, highY = sc.y1 + 8;
@@ -1237,6 +1542,8 @@ outgoingLight = col; diffuseColor.a = alpha;
         this.camera.lookAt(this.camLook);
       }
       }
+      // the app pins the flight's frames to the building as the sweep runs
+      if (this.hooks.onScanProgress) this.hooks.onScanProgress(m, Math.min(1, s / T));
       if (s >= T && !m.reported) { m.reported = true; this.hooks.onScanComplete(m); }
       if (m.resolved && s >= T) {
         const c = m.target;
@@ -1256,6 +1563,10 @@ outgoingLight = col; diffuseColor.a = alpha;
     }
   }
   setTimeScale(x) { this.timeScale = x; }
+  // What one second of wall clock is worth to everything that moves: the
+  // flights, the cars, the turbines. The sweep itself always runs at 1x -- the
+  // frames pop in on its clock, and that is the beat worth watching.
+  rate() { return this.mission && this.mission.phase === 'scan' ? 1 : this.timeScale; }
 
   // --- camera + navigation --------------------------------------------------------------------
   resetView() {
@@ -1275,6 +1586,7 @@ outgoingLight = col; diffuseColor.a = alpha;
   releaseCamera() {
     if (this.chase) { this.chase = false; this.controls.enabled = true; this.camera.up.set(0, 1, 0); }
     this.tween = null;
+    this.follow = false;   // Fly here / Reset / Overview drop the car
   }
   flyTo(lat, lng, distance = 900) {
     this.releaseCamera();
@@ -1361,11 +1673,22 @@ outgoingLight = col; diffuseColor.a = alpha;
     this.flyTo(ll.lat, ll.lng, Math.max(160, this.camera.position.distanceTo(this.controls.target) * 0.5));
   }
 
+  // Where the current sweep's subject sits on screen (its top), in CSS pixels
+  // of the container -- for HTML that must ride the building through the
+  // orbiting camera. Null when there is no mission or it is behind the camera.
+  scanAnchor() {
+    const m = this.mission;
+    if (!m || !m.scan) return null;
+    const sc = m.scan;
+    const v = new THREE.Vector3(sc.cx, sc.y1 + 6, sc.cz).project(this.camera);
+    if (v.z >= 1) return null;
+    return { x: ((v.x + 1) / 2) * this.container.clientWidth, y: ((1 - v.y) / 2) * this.container.clientHeight };
+  }
   updateLabels() {
     const w = this.container.clientWidth, h = this.container.clientHeight;
     const v = new THREE.Vector3();
     const camPos = this.camera.position;
-    const maxDist = { police: 1e9, found: 1e9, range: 1e9, track: 1e9, gap: 40000, peak: 60000, searched: 30000, cave2: 20000, stop: 30000, place: 9000, infra: 6000, cctv: 2600 };
+    const maxDist = { police: 1e9, found: 1e9, trace: 1e9, range: 1e9, track: 1e9, gap: 40000, peak: 60000, searched: 30000, clue: 30000, stopn: 30000, cave2: 20000, stop: 30000, place: 9000, infra: 6000, cctv: 2600 };
     for (const l of this.labels) {
       v.copy(l.pos).project(this.camera);
       const allowed = l.cls === 'cctv' ? this.showCCTV : true;
@@ -1374,7 +1697,7 @@ outgoingLight = col; diffuseColor.a = alpha;
       if (visible) { l.el.style.left = `${((v.x + 1) / 2) * w}px`; l.el.style.top = `${((1 - v.y) / 2) * h}px`; }
     }
     const viewDist = camPos.distanceTo(this.controls.target);
-    if (this.streets) this.streets.visible = viewDist < 16000 || this.chase;
+    if (this.streets) this.streets.visible = viewDist < 16000 || this.chase || this.follow;
     // vegetation, props and traffic only when close enough to matter
     this.propsGroup.visible = this.showProps && !this.degraded && (viewDist < 9000 || this.chase);
   }
@@ -1390,10 +1713,12 @@ outgoingLight = col; diffuseColor.a = alpha;
     const now = this.clock.getElapsedTime();
     this.updateMission(dt, now);
     this.updateTraffic(dt);
+    this.updateTracked(dt);   // the tracked car moves whether or not the props are on
+    this.updateFollow();
     this.updateNav(dt);
     if (this.controls.enabled) this.controls.update();
     if (this.beacon) this.beacon.material.color.setHex(Math.sin(now * 4) > 0 ? BP.beacon : 0x661a14);
-    for (const t of this.turbines || []) t.children[0].rotation.x += dt * this.timeScale * t.userData.spin * 2;
+    for (const t of this.turbines || []) t.children[0].rotation.x += dt * this.rate() * t.userData.spin * 2;
     for (const l of this.mastLights || []) l.material.color.setHex(Math.sin(now * 2.5 + l.position.x * 0.01) > 0.3 ? BP.beacon : 0x441010);
     for (const g of this.pulses) {
       const pulse = 0.5 + 0.5 * Math.sin(now * g.rate);

@@ -2,7 +2,8 @@ const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const { pool } = require('./db');
+const { pool, rawPool } = require('./db');
+const tenant = require('./tenant');
 
 const PORT = process.env.PORT || 4002;
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-secret-change-me';
@@ -10,9 +11,26 @@ const MERCY_API_KEY = process.env.MERCY_API_KEY || 'dev-mercy-key';
 const INTERNAL_API_KEY = process.env.INTERNAL_API_KEY || 'dev-internal-key';
 
 const app = express();
-app.use(cors());
+app.set('x-service', 'email');
+// Before any route is registered: one participant's failed query must answer
+// 500 to them alone, not take the process down for the other forty-nine.
+tenant.guardApp(app);
+// The browser sends the mercy_sid cookie cross-origin (the laptop embeds this
+// app from another port), so CORS has to allow credentials.
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
+// Whose game this request belongs to -- resolved before the login route, and
+// before deliver-mail, whose keyed callers name the participant in a header.
+app.use(tenant.middleware);
 app.use(express.static(path.join(__dirname, 'public')));
+
+// The loopback this service makes to itself carries the participant next to
+// the key, so the inner request runs in the same schema. In single-player
+// there is no participant and no header.
+function playerHeader() {
+  const id = tenant.currentId();
+  return id ? { 'x-mercy-player': id } : {};
+}
 
 // ---------------------------------------------------------------------------
 // Player auth: a real login screen, like the social-media app -- this is
@@ -507,7 +525,7 @@ app.get('/api/evidence', requireMercyKey, async (req, res) => {
 
 app.get('/api/evidence/:evidenceId', requireMercyKey, async (req, res) => {
   const full = await fetch(`http://localhost:${PORT}/api/evidence`, {
-    headers: { 'x-mercy-key': MERCY_API_KEY },
+    headers: { 'x-mercy-key': MERCY_API_KEY, ...playerHeader() },
   }).then((r) => r.json());
   const item = full.evidence.find((e) => e.evidence_id === req.params.evidenceId);
   if (!item) return res.status(404).json({ error: 'not found' });
@@ -515,6 +533,36 @@ app.get('/api/evidence/:evidenceId', requireMercyKey, async (req, res) => {
 });
 
 app.get('/api/health', (req, res) => res.json({ ok: true, service: 'email' }));
+
+// ---------------------------------------------------------------------------
+// The event: one schema per participant (see /MULTIPLAYER.md). People and
+// attachments are the same for everyone and stay in `template`; threads,
+// mail, drafts, the counter and the filler are theirs -- mail they send,
+// trash, and the codes Haven and Loop deliver all land there.
+// ---------------------------------------------------------------------------
+// One cheap count for the admin panel; a null is "unknown", never a throw.
+async function countRows(sql) {
+  try {
+    return (await pool.query(sql)).rows[0].n;
+  } catch {
+    return null;
+  }
+}
+
+tenant.mount(app, {
+  service: 'email',
+  pool: rawPool,
+  sqlDir: path.join(__dirname, 'db'),
+  staticTables: ['users', 'email_attachments', 'filler_email_attachments', 'app_config'],
+  summary: async () => ({
+    sent: await countRows("SELECT count(*)::int AS n FROM emails WHERE source = 'player'"),
+    drafts: await countRows("SELECT count(*)::int AS n FROM drafts WHERE source = 'player'"),
+    // Delivered mail has no marker of its own; it is whatever filler arrived
+    // after the seed, and every id handed out since is past the seed's last.
+    delivered: await countRows('SELECT count(*)::int AS n FROM filler_emails WHERE id > (SELECT COALESCE(max(id), 0) FROM template.filler_emails)'),
+  }),
+});
+app.use(app.tenantErrorHandler);
 
 app.listen(PORT, () => {
   console.log(`[email] listening on :${PORT}`);

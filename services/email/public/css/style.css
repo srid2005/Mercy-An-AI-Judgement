@@ -55,7 +55,12 @@ button { font-family: inherit; }
   box-shadow: 0 2px 18px rgba(40, 30, 90, 0.06);
 }
 
-.lock-card .wordmark { margin-bottom: 20px; }
+/* the logo next to the name: small in the bar, larger on the lock card */
+.brand { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; text-decoration: none; }
+.brand-logo { width: 30px; height: 30px; object-fit: contain; }
+.lock-card .brand { flex-direction: column; gap: 6px; margin-bottom: 18px; }
+.lock-card .brand-logo { width: 64px; height: 64px; }
+.lock-card .wordmark { margin-bottom: 0; }
 
 .lock-avatar {
   width: 72px;
@@ -159,6 +164,27 @@ button { font-family: inherit; }
 }
 
 .app-bar .spacer { flex: 1; }
+
+/* fetch new mail: the sign-in codes and reset PINs land in the inbox after
+   the page has been opened, so the participant needs a way to ask again */
+.app-bar .refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 7px 14px;
+  font-size: 13px;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.app-bar .refresh-btn:hover { color: var(--text); border-color: var(--text-dim); }
+.app-bar .refresh-btn svg { width: 16px; height: 16px; }
+.app-bar .refresh-btn.spinning svg { animation: quill-spin 0.8s linear infinite; }
+.app-bar .refresh-btn.spinning { pointer-events: none; opacity: 0.7; }
+@keyframes quill-spin { to { transform: rotate(360deg); } }
+@media (max-width: 720px) { .app-bar .refresh-btn span { display: none; } .app-bar .refresh-btn { padding: 7px 9px; } }
 
 .app-bar .nav-avatar {
   width: 32px;

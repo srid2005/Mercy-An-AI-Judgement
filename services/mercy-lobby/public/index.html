@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MERCY</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/lobby.css?v=1" />
+  </head>
+  <body>
+    <div id="bg" aria-hidden="true">
+      <div class="orb o1"></div>
+      <div class="orb o2"></div>
+      <div class="orb o3"></div>
+      <div class="orb o4"></div>
+      <div id="bg-pillars"></div>
+      <div id="bg-vignette"></div>
+    </div>
+
+    <!-- One document, four stages. The click on ENTER is the user gesture
+         the fullscreen and the film's sound both need, so nothing here
+         navigates until the console. -->
+
+    <!-- 1. the ticket -->
+    <section id="stage-login" class="stage active">
+      <form class="hud-card login-card" id="login-form" autocomplete="off">
+        <div class="brand light big"><span class="mark">MERCY</span><span class="sub">AI JUDGEMENT</span></div>
+        <div class="rule" aria-hidden="true"></div>
+        <h1>ENTER YOUR ZINNIA ID</h1>
+        <input id="zinnia" class="field id" type="text" placeholder="ZIN26-0158" maxlength="10" spellcheck="false" autocapitalize="characters" autocorrect="off" inputmode="text" aria-label="Zinnia ID" />
+        <button id="login-btn" class="btn wide" type="submit">ENTER</button>
+        <div id="login-error" class="error" role="alert"></div>
+        <div class="login-note">Your ID is on your ticket. The file opens in fullscreen; put your headphones on.</div>
+        <div class="file-no">FILE UDR 0412/2018</div>
+      </form>
+    </section>
+
+    <!-- 2. the intro film -->
+    <section id="stage-intro" class="stage black">
+      <video id="intro-video" class="film" src="/media/intro.mp4" preload="auto" playsinline></video>
+      <button id="intro-play" class="film-play" type="button" hidden><span class="btn amber">PLAY WITH SOUND</span></button>
+      <button id="intro-skip" class="link film-skip" type="button">SKIP &rarr;</button>
+    </section>
+
+    <!-- 3. the angel -->
+    <section id="stage-angel" class="stage black">
+      <div class="angel-name" aria-live="polite"><span class="mark">MERCY</span><span class="sub">AI JUDGEMENT</span></div>
+      <div class="angel-wrap">
+        <img id="angel" class="angel" src="/media/angel.png" alt="A stone angel, arms raised" draggable="false" />
+      </div>
+      <div class="angel-hint" id="angel-hint">HOVER THE ANGEL</div>
+      <div class="angel-foot"><button id="angel-continue" class="btn" type="button">CONTINUE</button></div>
+    </section>
+
+    <!-- 4. the briefing: the story film if there is one, else MERCY's own words -->
+    <section id="stage-briefing" class="stage black">
+      <video id="story-video" class="film" preload="auto" playsinline hidden></video>
+      <button id="story-play" class="film-play" type="button" hidden><span class="btn amber">PLAY WITH SOUND</span></button>
+      <button id="story-skip" class="link film-skip" type="button" hidden>SKIP &rarr;</button>
+
+      <div id="brief-card" class="brief-card" hidden>
+        <span class="eyebrow">MERCY</span>
+        <p id="brief-text" class="brief-text"></p>
+        <div id="brief-dots" class="brief-dots" aria-hidden="true"></div>
+      </div>
+      <div id="brief-tap" class="brief-tap" hidden>CLICK TO CONTINUE</div>
+
+      <form id="rules-card" class="hud-card rules-card" hidden>
+        <div class="brand light"><span class="mark">MERCY</span><span class="sub">AI JUDGEMENT</span></div>
+        <div class="rule" aria-hidden="true"></div>
+        <h2>THE RULES</h2>
+        <ul>
+          <li><span><b><span class="minutes">25</span> minutes</b> from the moment you accept. The clock does not pause.</span></li>
+          <li><span>Everything is on <b>her laptop</b>, inside the console. Nothing outside it counts.</span></li>
+          <li><span><b>Attach what you find and argue it.</b> MERCY moves the needle only for evidence that holds.</span></li>
+          <li><span>You may <b>leave the file</b> at any time. It stands where you left it.</span></li>
+          <li><span>One game per ID. <b>Do not swap seats.</b> Your file is yours alone.</span></li>
+        </ul>
+        <label class="check"><input id="rules-ok" type="checkbox" /> I understand</label>
+        <div class="actions">
+          <span class="file-no">FILE UDR 0412/2018</span>
+          <button id="accept-btn" class="btn" type="submit" disabled>ACCEPT &amp; CONTINUE</button>
+        </div>
+        <div id="accept-error" class="error" role="alert"></div>
+      </form>
+    </section>
+
+    <div id="toast" hidden></div>
+    <div id="reset-frames" hidden aria-hidden="true"></div>
+
+    <script src="/js/lobby.js?v=1"></script>
+  </body>
+</html>

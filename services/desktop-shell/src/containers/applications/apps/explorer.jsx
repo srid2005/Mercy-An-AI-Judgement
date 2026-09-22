@@ -302,10 +302,28 @@ const ContentArea = ({ searchtxt }) => {
   };
 
   const handleKey = (e) => {
-    if (e.key == "Backspace") {
+    // Backspace = "up one folder", but not while typing in the password box
+    if (e.key == "Backspace" && e.target.tagName !== "INPUT") {
       dispatch({ type: "FILEPREV" });
     }
   };
+
+  // "open a file to file it as evidence" -- shown on entering any folder
+  // that has something openable in it, once per folder per session
+  const [hint, setHint] = useState(null);
+  const hasFiles = !locked && visible.some((x) => x.type !== "folder");
+  useEffect(() => {
+    if (!hasFiles) {
+      setHint(null);
+      return;
+    }
+    const seenKey = "mercyHint:" + fdata.id;
+    if (sessionStorage.getItem(seenKey)) return;
+    sessionStorage.setItem(seenKey, "1");
+    setHint(fdata.id);
+    const t = setTimeout(() => setHint((h) => (h === fdata.id ? null : h)), 9000);
+    return () => clearTimeout(t);
+  }, [fdata.id, hasFiles]);
 
   return (
     <div
@@ -314,6 +332,17 @@ const ContentArea = ({ searchtxt }) => {
       onKeyDown={handleKey}
       tabIndex="-1"
     >
+      {hint === fdata.id ? (
+        <div className="evHint" onClick={(e) => e.stopPropagation()}>
+          <span className="evHintIcon">i</span>
+          <div className="evHintText">
+            <b>Open a file to view it.</b> Anything you open here -- a photo, a note, a document -- is filed as evidence in MERCY's <b>+ Evidence</b> list.
+          </div>
+          <span className="evHintClose prtclk" onClick={() => setHint(null)}>
+            ✕
+          </span>
+        </div>
+      ) : null}
       <div className="contentwrap win11Scroll" style={locked ? { display: "flex" } : null}>
         {locked ? (
           <div className="lockPanel">

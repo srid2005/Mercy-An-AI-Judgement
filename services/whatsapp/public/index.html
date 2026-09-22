@@ -4,11 +4,12 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Wisp</title>
+<link rel="icon" type="image/png" href="/images/favicon.png" />
 <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
   <header class="app-bar">
-    <span class="wordmark">Wisp</span>
+    <span class="brand"><img class="brand-logo" src="/images/wisp-logo.png" alt="" /><span class="wordmark">Wisp</span></span>
   </header>
 
   <div class="app-shell" id="app-shell">
@@ -41,6 +42,24 @@
         history.replaceState = function () { rs.apply(this, arguments); send(); };
         var t = document.querySelector('title');
         if (t && window.MutationObserver) new MutationObserver(send).observe(t, { childList: true, characterData: true, subtree: true });
+      })();
+    </script>
+    <script>
+      // MERCY desktop shell: every evidence badge on screen is something the
+      // participant has now actually seen -- tell the console so it can be
+      // picked up in the "+ Evidence" search later.
+      (function () {
+        var seen = new Set();
+        var report = function () {
+          document.querySelectorAll(".evidence-badge").forEach(function (el) {
+            var id = (el.textContent || "").trim();
+            if (!id || seen.has(id)) return;
+            seen.add(id);
+            try { window.top.postMessage({ type: "mercy:evidence-seen", evidence_id: id }, "*"); } catch (e) {}
+          });
+        };
+        report();
+        if (window.MutationObserver) new MutationObserver(report).observe(document.body, { childList: true, subtree: true, characterData: true });
       })();
     </script>
   </body>
