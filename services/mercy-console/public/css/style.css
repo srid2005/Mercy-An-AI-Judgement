@@ -713,6 +713,11 @@ button.hud-chip:disabled:hover { transform: none; box-shadow: 0 0 0 1px rgba(255
 /* armed: the next press adds real points to the cost, and the card says
    so in the same amber the nav button lights up in */
 #hint-flash.armed { border-color: var(--amber); box-shadow: 0 0 0 1px rgba(255, 176, 67, 0.4), 0 0 30px rgba(255, 140, 20, 0.45), 0 18px 40px rgba(30, 18, 5, 0.45); }
+/* repeat: the press bought nothing new and the log has opened on the same
+   steer, lit and scrolled to at its top. This card only says so, so it sits
+   at the bottom of the drawer rather than over the very card it points at */
+#hint-flash.repeat { border-style: dashed; }
+body:has(#hint-drawer:not([hidden])) #hint-flash.repeat { top: auto; bottom: 30px; }
 .hf-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 #hf-kicker { font-family: var(--mono); font-size: 10px; letter-spacing: 0.3em; color: var(--amber); }
 #hf-close { width: 22px; height: 22px; flex: 0 0 22px; padding: 0; border-radius: 6px; cursor: pointer; line-height: 1;
@@ -763,9 +768,13 @@ body:has(#hint-drawer:not([hidden])) #hint-flash { top: calc(var(--topbar-h) + 8
 /* the one that just landed: solid, lit, and first in the list */
 .hl-item.fresh { border-style: solid; border-color: var(--amber); background: rgba(255, 140, 20, 0.16);
   box-shadow: 0 0 0 1px rgba(255, 176, 67, 0.35), 0 0 22px rgba(255, 140, 20, 0.35); animation: rise 0.28s ease-out; }
-.hl-item-h { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.22em; color: var(--amber); }
+.hl-item-h { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.22em; color: var(--amber); }
 .hl-item-h .hl-cost { margin-left: auto; color: rgba(246, 226, 191, 0.65); white-space: nowrap; }
 .hl-new { padding: 1px 6px 2px; border-radius: 5px; background: var(--amber); color: #2a1a06; font-size: 8.5px; letter-spacing: 0.2em; }
+/* the same steer handed back: lit like a fresh one so it is found, but a
+   dashed edge and a plainer flag say that nothing new was bought */
+.hl-item.fresh.same { border-style: dashed; background: rgba(255, 176, 67, 0.12); }
+.hl-new.hl-same { background: rgba(255, 176, 67, 0.22); color: var(--amber); border: 1px solid rgba(255, 176, 67, 0.5); white-space: nowrap; }
 .hl-where { margin-top: 5px; font-size: 11px; color: rgba(246, 226, 191, 0.6); }
 .hl-body { margin: 7px 0 0; font-size: 13.5px; line-height: 1.6; color: rgba(246, 226, 191, 0.94); white-space: pre-line; }
 .hl-ref { margin-top: 7px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; color: rgba(246, 226, 191, 0.38); }

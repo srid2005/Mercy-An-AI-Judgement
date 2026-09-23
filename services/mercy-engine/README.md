@@ -27,18 +27,27 @@ player, and issues the final verdict.
   ceiling and is never refused. The bill ranks the leaderboard under
   `solved`, lowest first. The target is where the participant is actually
   stuck, not their choice, and a tier already paid for comes back free.
-- The desk answers two questions, progress first. The beat is the answer
-  unless the `context` the console reports (a screen key from the laptop and
-  the map: `laptop-lock`, `laptop-app` + the app's name, `map-search`, ...)
-  is a gate the participant is provably still held at: `laptop-lock` always,
-  and `laptop-app` quill / loop / haven / files / notes while nothing from
-  behind that gate (an `EML-` / `SOC-` / `HAV-` / `CASE-` id) has been
-  discovered. Then, and only then, the screen answers instead, from
-  `context_hints`: the next step of that chain the participant does not
-  already own, so pressing the button again escalates. Steps are priced like
-  the tiers (5/10/20) and charged in their own half of the ledger
-  (`context_hints_taken`). A chain that has been spent falls through to the
-  beat, so the button never runs out of things to say.
+- The desk answers from where the participant is standing. The console
+  reports a screen key with every press (`console-mercy`, `laptop-lock`,
+  `laptop-app` + the app's name -- for Orbit, the site it shows --,
+  `map-idle`, ...), and the desk resolves a state from that and the beat, then
+  serves the stage that fits (`server.js:placesOf`, `hereOf`): the lock/boot
+  chain before they are in the laptop; an app's gate chain while they are
+  provably held at it (`laptop-app` quill / loop / haven / files / notes with
+  nothing from behind that gate -- an `EML-` / `SOC-` / `HAV-` / `CASE-` id --
+  discovered); a DISCOVER chain (`discover_hints`) when they are anywhere
+  that is not where the beat's next piece is read (the hearing, the desktop,
+  Orbit on no site, the wrong app) -- step 1 says the app exists and exactly
+  how to open it, step 2 what it holds for this beat; the map's own chain
+  before a first search has been flown; and, inside the right app, the beat
+  ladder, started at the first unbought tier written for that app
+  (`TIER_APPS`). Every chain escalates on each press and is priced like the
+  tiers (5/10/20), charged in its own half of the ledger
+  (`context_hints_taken`; DISCOVER steps under screen `discover`). A chain or
+  ladder that has been spent serves its most direct step again, free, with
+  `repeat: true`, so the button never runs out of things to say. Once every
+  piece the beat needs is discovered the ladder answers from anywhere, with
+  the argue-it line appended.
 - The beat ladder starts at the first tier whose advice has not already been
   followed: tier 2 once a piece the beat needs has been discovered, once five
   drone searches have been made (`the_cave`), or once the memo is accepted
@@ -111,8 +120,12 @@ Participant (cookie), CORS with credentials for the console:
   `steps_total` is where in that chain the words came from. The response
   carries words and a price and nothing the console is meant to act on.
   `target` is a console label -- `the_alibi/tier2` for a
-  beat, `laptop-app:wisp/step2` for a chain -- and `cost` is 0 when those words
-  have already been bought. `tier` is optional: sent, it means exactly what it
+  beat, `laptop-app:wisp/step2` for a screen chain,
+  `discover:haven/the_motive/step2` for a DISCOVER chain (the app, then the
+  beat it was served for) -- and `cost` is 0 when those words have already
+  been bought, in which case `repeat` is `true` and the console shows them
+  again rather than hiding them. `next_cost` is what the next press on this
+  chain costs, 0 once it is spent. `tier` is optional: sent, it means exactly what it
   meant before (that tier of that beat, context ignored); left out, the desk
   picks the next unbought step itself, which is what the nav button does.
   There is no 402: a hint is never refused for its price. 409 once the file

@@ -2375,10 +2375,24 @@
     if (h.kind === "context" || h.kind === "beat") return h.kind;
     return /\/step\d/.test(String(h.target || "")) ? "context" : "beat";
   }
+  // A DISCOVER step -- "there is an app for this, here is how to open it" --
+  // comes back as kind:'context' with a target of the shape
+  // "discover:<app>/step<n>". It reads like any other screen hint; only its
+  // kicker names the app it points at, in the name that is on screen.
+  const DISCOVER_NAME = {
+    wisp: "WISP", loop: "LOOP", quill: "QUILL", haven: "HAVEN", orbit: "ORBIT",
+    files: "THE CASE FILE", notes: "NOTES", pulsefit: "PULSEFIT", photos: "PHOTOS",
+    movies: "MOVIES", notepad: "NOTEPAD", map: "THE CITY MAP", laptop: "THE LAPTOP",
+  };
+  function discoverApp(h) {
+    const m = /^discover:([a-z0-9_-]+)\//i.exec(String(h.target || ""));
+    return m ? m[1].toLowerCase() : null;
+  }
   function hintKicker(h) {
     const step = Number(h.step);
     const total = Number(h.steps_total);
-    const chain = hintKind(h) === "context" ? "SCREEN" : "BEAT";
+    const app = discoverApp(h);
+    const chain = app ? `FIND ${DISCOVER_NAME[app] || app.toUpperCase()}` : hintKind(h) === "context" ? "SCREEN" : "BEAT";
     if (Number.isFinite(step) && Number.isFinite(total) && total > 0) return `${chain} \u00b7 HINT ${step} OF ${total}`;
     return `${chain} \u00b7 TIER ${Number(h.tier) || 1}`;
   }
@@ -2390,12 +2404,19 @@
   // it was asked for -- over the laptop and the map as much as here -- and
   // it stays up while they work.
   let freshHint = null; // the record the drawer flags as just arrived
+  // true when the press that opened the drawer bought nothing new: the
+  // engine handed the same steer back (repeat:true, or cost 0), and the
+  // record it lit is one they already had. It is still shown -- lit,
+  // scrolled to, and labelled so -- because a press that ends in silence
+  // reads as "no hint", which was the Haven complaint.
+  let freshRepeat = false;
   function hintLogNode(h, fresh) {
     const wrap = document.createElement("article");
-    wrap.className = `hl-item${fresh ? " fresh" : ""}`;
+    wrap.className = `hl-item${fresh ? " fresh" : ""}${fresh && freshRepeat ? " same" : ""}`;
     const head = document.createElement("div");
     head.className = "hl-item-h";
-    head.innerHTML = `<span>${escapeHtml(hintKicker(h))}</span>${fresh ? '<span class="hl-new">NEW</span>' : ""}<span class="hl-cost">${Number(h.cost) > 0 ? `${Number(h.cost)} PTS` : "NOTHING ADDED"}</span>`;
+    const flag = !fresh ? "" : freshRepeat ? '<span class="hl-new hl-same">STILL THE SAME STEER</span>' : '<span class="hl-new">NEW</span>';
+    head.innerHTML = `<span>${escapeHtml(hintKicker(h))}</span>${flag}<span class="hl-cost">${Number(h.cost) > 0 ? `${Number(h.cost)} PTS` : "NOTHING ADDED"}</span>`;
     wrap.appendChild(head);
     const where = CONTEXT_LABEL[h.context];
     if (where) {
@@ -2429,13 +2450,21 @@
     badge.hidden = !items.length;
   }
   // `fresh` is the record that just landed (or was asked for again): it is
-  // lit and the list is scrolled to it, which is the top
-  function openHintLog(fresh) {
+  // lit and the list is scrolled to it. A new one is the top; a repeat may
+  // be anywhere down the list, so it is scrolled to by node rather than
+  // assumed to be first. `repeat` says the press bought nothing new.
+  function openHintLog(fresh, repeat) {
     freshHint = fresh || null;
+    freshRepeat = !!(fresh && repeat);
     renderHintLog();
     el("hint-drawer").hidden = false;
     el("hint-log-btn").setAttribute("aria-expanded", "true");
-    el("hl-list").scrollTop = 0;
+    const list = el("hl-list");
+    const lit = freshHint ? list.querySelector(".hl-item.fresh") : null;
+    // scrolled by hand rather than scrollIntoView, which would also drag
+    // every scrollable ancestor -- the drawer floats over the frames and
+    // must not move the page under it
+    list.scrollTop = lit ? Math.max(0, lit.offsetTop - list.offsetTop - 12) : 0;
     closeHintDesk(); // one hint surface at a time
   }
   function closeHintLog() {
@@ -2443,6 +2472,7 @@
     if (!drawer || drawer.hidden) return;
     drawer.hidden = true;
     freshHint = null;
+    freshRepeat = false;
     el("hint-log-btn").setAttribute("aria-expanded", "false");
   }
   function toggleHintLog() {
@@ -2485,6 +2515,7 @@
       target: res.target || "",
       kind: res.kind === "context" || res.kind === "beat" ? res.kind : null,
       context: body.context || null,
+      ctx_detail: body.detail || null,   // the app inside the screen: a quote for Haven must not read Wisp's record
       detail: body.detail || null,
       at: Date.now(),
     };
@@ -2495,18 +2526,33 @@
     // depending on whether the ladder started at 1 or 2, and it is one purchase
     const same = (a, b) => a.target === b.target && (a.tier || null) === (b.tier || null);
     let kept = boughtHints.find((h) => same(h, rec));
+    // nothing new was bought: the engine says so outright (repeat:true), or
+    // by charging nothing for words that have a price. Either way the text
+    // still has to be SEEN -- the press must not end in silence.
+    const repeat = res.repeat === true || (rec.cost === 0 && !!rec.hint);
     if (!kept) {
       boughtHints.push(rec);
       writeHints();
       kept = rec;
+    } else if (repeat) {
+      // the engine's words are the current ones: a beat re-served once every
+      // piece is in hand carries its "now argue it" line, which the record
+      // bought earlier does not. The price stays what was actually paid.
+      kept.hint = rec.hint || kept.hint;
+      if (rec.step != null) kept.step = rec.step;
+      if (rec.steps_total != null) kept.steps_total = rec.steps_total;
+      kept.next_cost = rec.next_cost;
+      writeHints();
     }
     // the engine's own number wherever it sends one: hint_cost is the
     // running total, and points_left is the same number under the name
     // one release of the engine still answers with
     setHintCost(Number.isFinite(Number(res.hint_cost)) ? res.hint_cost : res.points_left);
-    openHintLog(kept); // the answer is read in the log, whichever tab they are on
+    openHintLog(kept, repeat); // the answer is read in the log, whichever tab they are on
     loadState(); // hints_used, and a standing that may have moved while this was open
-    return rec;
+    // `repeat` rides on the returned record only: the store keeps what was
+    // bought, not how many times it was asked for
+    return Object.assign({}, rec, { repeat });
   }
   async function buyHint(tier) {
     const t = HINT_TIERS.find((x) => x.tier === tier);
@@ -2526,6 +2572,7 @@
   // is kept. It adds to the cost, so it arms first and buys second.
   let navArmed = false;
   let navTimer = null;
+  let repeatTimer = null; // the repeat card's own way out
   // What the next press will cost, from this participant's own ledger: the
   // engine prices by step and hands its step number back with every hint,
   // so the highest step already bought against this screen plus one is the
@@ -2560,16 +2607,16 @@
     if (!badge.hidden) badge.textContent = `${step} OF ${total}`;
   }
   function armNav() {
-    const step = nextStep();
-    const spent = chainSpent();
-    // The price is the engine's to state. After a purchase on this screen the
-    // response said what the next press costs; before one, or once a chain has
-    // fallen through to the beat, the ladder's starting tier is unknown here
-    // -- so say the range rather than a number that could be wrong.
-    const key = context.screen || null;
+    // The price is the engine's to state. The last record bought for THIS
+    // screen and app says what the next press costs and whether its chain is
+    // spent; before any record here the ladder's starting tier is unknown, so
+    // the range is said rather than a number that could be wrong.
+    const key = context.screen || null, det = context.detail || null;
     let last = null;
-    boughtHints.forEach((h) => { if ((h.context || null) === key) last = h; });
-    const cost = !spent && last && Number.isFinite(Number(last.next_cost)) ? Number(last.next_cost) : null;
+    boughtHints.forEach((h) => { if ((h.context || null) === key && (h.ctx_detail === undefined || (h.ctx_detail || null) === det)) last = h; });
+    const spent = !!(last && Number.isFinite(Number(last.step)) && Number.isFinite(Number(last.steps_total)) && Number(last.step) >= Number(last.steps_total));
+    const step = last && Number.isFinite(Number(last.step)) ? Number(last.step) + 1 : 1;
+    const cost = last && Number.isFinite(Number(last.next_cost)) ? Number(last.next_cost) : null;
     navArmed = true;
     el("hud-hint").classList.add("armed");
     const where = CONTEXT_LABEL[context.screen] || "the file";
@@ -2577,7 +2624,10 @@
     flash({
       kicker: spent ? "HINT" : step > 1 ? `HINT \u00b7 STEP ${step}` : "HINT",
       body: `The next steer for ${where}${context.detail ? ` \u2014 ${context.detail}` : ""}.`,
-      note: cost == null ? `THIS ADDS 5, 10 OR 20 POINTS BY DEPTH${soFar}` : cost === 0 ? `ALREADY YOURS · NOTHING ADDED${soFar}` : `THIS ADDS ${cost} POINTS TO YOUR HINT COST${soFar}`,
+      // a quote of 0 is the engine saying the next press hands back the
+      // steer they already have: said as that, not as "nothing", because the
+      // press still shows the words again in the log
+      note: cost == null ? `THIS ADDS 5, 10 OR 20 POINTS BY DEPTH${soFar}` : cost === 0 ? `STILL THE SAME STEER · SHOWN AGAIN, NOTHING ADDED${soFar}` : `THIS ADDS ${cost} POINTS TO YOUR HINT COST${soFar}`,
       noteKind: "warn",
       confirm: true,
       armed: true,
@@ -2605,7 +2655,22 @@
     const rec = await postHint({ context: context.screen || undefined, detail: context.detail || undefined }, flashNote);
     if (!rec) return;
     setStepBadge(rec);
-    closeFlash(); // the answer is in the log, which postHint has opened
+    if (!rec.repeat) return closeFlash(); // the answer is in the log, which postHint has opened
+    // nothing new was bought: the log has opened on the same steer, lit and
+    // labelled, and this card says so for a moment rather than vanishing --
+    // a press that ends with the card gone and nothing new in the drawer
+    // reads as "no hint". Below the drawer's top, so the lit card stays
+    // readable; gone on its own, or on the next ask.
+    const soFar = hintCost == null ? "" : ` · ${hintCost} SO FAR`;
+    flash({
+      kicker: "STILL THE SAME STEER",
+      body: "Nothing new to add yet. The steer for where you are is the lit one in the hint log -- do what it says, then press HINT again.",
+      note: `SHOWN AGAIN · NOTHING ADDED${soFar}`,
+      noteKind: "ok",
+      repeat: true,
+    });
+    clearTimeout(repeatTimer);
+    repeatTimer = setTimeout(closeFlash, 8000);
   }
 
   // ------------------------------------------------------- the ask card
@@ -2621,6 +2686,8 @@
     flashNote(o.note || "", o.noteKind);
     el("hf-go").hidden = !o.confirm;
     card.classList.toggle("armed", !!o.armed);
+    card.classList.toggle("repeat", !!o.repeat);
+    if (!o.repeat) clearTimeout(repeatTimer); // a real ask outlives the repeat card's timer
     card.hidden = false;
   }
   function flashNote(text, kind) {
@@ -2634,6 +2701,8 @@
     if (!card) return;
     card.hidden = true;
     card.classList.remove("armed");
+    card.classList.remove("repeat");
+    clearTimeout(repeatTimer);
   }
 
   function initHints() {

@@ -682,25 +682,36 @@ app.post("/api/argue", async (req, res) => {
 // different kinds of stuck and only one of them is answered by being told
 // where to look; the other is told so in the body.
 //
-// That is one of two questions the desk answers. The other is where the
-// participant is standing right now: the console reports the screen they are
-// on (mercy:context) and sends it with every press of its Hint button, and a
-// screen with a chain written for it (context_hints) can answer that screen
-// instead -- the next unbought step of it, so pressing again escalates rather
-// than repeats. The two are priced the same and charged apart, and the beat
-// comes first. A screen is only ever the answer while it is a gate the
-// participant is provably still held at -- the lock screen, an app with a
-// login and nothing yet discovered from behind it -- because that is the one
-// case where the beat is not what they are stuck on. Anywhere else the screen
-// is where they chose to stand, not where they are stuck: a participant who
-// opened Quill and asked for help was told how to open Quill, and one who had
-// swept all five fixes on the map was told how the map works, which is what
-// screen-first bought. A gate chain that has been spent falls through to the
-// beat too, because a hint button that can say nothing is a dead end.
+// The desk answers from where the participant is standing. The console
+// reports the screen they are on (mercy:context) and sends it with every
+// press of its Hint button, and the desk resolves a STATE from that screen
+// and the beat, then serves the one stage of help that fits it:
 //
-// The beat ladder starts at the first tier whose advice they have not already
-// followed, not at tier 1: what a tier says is bounded by its price, so a
-// participant who has done tier 1 is not sold it again on the way to tier 2.
+//   A. the laptop, before they are in it (boot, lock)  -> that screen's chain
+//   C. an app whose gate is provably still shut (Quill, Loop, Haven, the Dad
+//      folder via File Explorer / Notes, with nothing yet discovered from
+//      behind it)                                       -> that app's gate chain
+//   B. anywhere else that is not where the beat's piece is read (the hearing,
+//      the desktop, Orbit on no site, the wrong app)   -> a DISCOVER chain for
+//      the app that holds the piece: step 1 says the app exists and exactly how
+//      to open it, step 2 says what it holds for this beat
+//   C'. the City Map before a single search has been flown -> the map's own
+//      chain (how the map works), then the beat
+//   D. inside the app the piece is read in              -> the beat ladder,
+//      started past the advice they have already followed (ladderStart) and
+//      at the first tier written for the app they are in (TIER_APPS)
+//   E. nothing left on the chain in use                 -> its most direct
+//      step again, free, with repeat:true so the console shows the words
+//      instead of hiding them behind "nothing added"
+//
+// Once every piece the beat needs is discovered the place to be is the
+// hearing, and the ladder answers from anywhere with the argue-it line on it.
+// A tier named explicitly is the whole ladder as it always was: the three
+// priced buttons in the hint desk still ask for it by name.
+//
+// The chains and the ladder are priced the same (5 / 10 / 20 by step) and
+// charged apart, each against its own ledger, and a step already paid for is
+// free the second time: the participant paid for the knowledge, not the click.
 //
 // A hint informs and does nothing else. It opens no tab, reveals no panel and
 // touches nothing on any screen: the answer is the participant's to walk to,
@@ -713,18 +724,85 @@ const HINT_COST = { 1: 5, 2: 10, 3: 20 };
 const ARGUE_IT =
   "Every piece this beat needs is already in your evidence index. What is missing is not the finding. It is the argument: attach it in the hearing and tell me what it proves.";
 
+// Where each piece of evidence is read, by the prefix of its id. These are
+// the words the laptop's context emitter uses for the same places (the site
+// inside Orbit, or the desktop app), so `here` and the target compare
+// directly. The band's memo (SW-06) is the one piece with two places: its
+// trail starts in PulseFit and ends on the map, see placesOf().
+const APP_OF_PREFIX = { WA: "wisp", SOC: "loop", EML: "quill", HAV: "haven", CASE: "files", LAP: "files", SW: "pulsefit", MAP: "map" };
+
+// What proves the participant has been inside an app: a record from it in
+// discovered_evidence. Every app posts its records the moment they are on
+// screen (Haven's entry list carries every badge, so logging in is enough).
+// HAV-019 is the one Haven record with a copy on the laptop itself
+// (Documents\Dad, "2024-08-02 The box.mp4"): it is discovered by opening a
+// file, not by logging in, so it cannot stand as proof of Haven's gate.
+const INSIDE_PROOF = { wisp: "WA-", loop: "SOC-", quill: "EML-", haven: "HAV-", files: "CASE-", notes: "CASE-", pulsefit: "SW-", map: "MAP-" };
+async function beenInside(app) {
+  const prefix = INSIDE_PROOF[app];
+  if (!prefix) return false;
+  const seen = await pool.query("SELECT 1 FROM discovered_evidence WHERE evidence_id LIKE $1 AND evidence_id <> 'HAV-019' LIMIT 1", [prefix + "%"]);
+  return seen.rows.length > 0;
+}
+
+// The apps each beat tier gives in-app instructions for. Inside an app the
+// ladder starts at the first unbought tier written for that app, so a
+// participant standing in PulseFit is not sold the map's tier first. Where no
+// unbought tier names the app they are in, the first unbought tier answers.
+const TIER_APPS = {
+  the_alibi: { 1: ["wisp", "loop"], 2: ["wisp", "loop"], 3: ["wisp", "loop"] },
+  gate_timeline: { 1: ["files", "haven"], 2: ["files", "haven"], 3: ["files", "haven"] },
+  the_object: { 1: ["files", "loop"], 2: ["files", "loop"], 3: ["files", "loop"] },
+  the_motive: { 1: ["haven"], 2: ["haven"], 3: ["haven"] },
+  the_confession: { 1: ["haven"], 2: ["haven"], 3: ["haven"] },
+  the_cave: { 1: ["pulsefit", "map"], 2: ["map"], 3: ["map"] },
+  located: { 1: ["map"], 2: ["map"], 3: ["map"] },
+};
+
 async function stuckOn() {
   const next = (await pool.query("SELECT code, required_ids FROM checkpoints WHERE hit = false ORDER BY sort_order LIMIT 1")).rows[0];
   if (!next) return null;
   const accepted = (await pool.query("SELECT evidence_id FROM accepted_evidence")).rows.map((r) => r.evidence_id);
   const set = await acceptedSetFor(accepted);
   const missing = next.required_ids.filter((id) => !set.has(id));
-  if (!missing.length) return { code: next.code, missing, allDiscovered: false, anyDiscovered: false };
+  if (!missing.length) return { code: next.code, missing, seen: [], allDiscovered: false, anyDiscovered: false };
   // MAP-FOUND is not a record anyone can open, so it is never discovered --
   // which is right: a participant who has not found her is stuck on finding
   // her, not on arguing her.
   const seen = (await pool.query("SELECT evidence_id FROM discovered_evidence WHERE evidence_id = ANY($1)", [missing])).rows.map((r) => r.evidence_id);
-  return { code: next.code, missing, allDiscovered: seen.length === missing.length, anyDiscovered: seen.length > 0 };
+  return { code: next.code, missing, seen, allDiscovered: seen.length === missing.length, anyDiscovered: seen.length > 0 };
+}
+
+// The places a beat is worked in. `target` is the piece the desk points at:
+// the first missing piece not yet discovered, or, once every piece is
+// discovered, the first missing piece (the body then says to argue it).
+// `targetApp` is where that piece is read and is what a DISCOVER chain is
+// served for; `inside` is every app the beat's pieces are read in, and a
+// participant standing in any of them is inside, not lost.
+async function placesOf(stuck) {
+  const appsOf = async (id) => {
+    // the memo's trail: the five alerts in PulseFit first, the sweep on the
+    // map once the alerts have been seen
+    if (id === "SW-06") return (await beenInside("pulsefit")) ? ["map", "pulsefit"] : ["pulsefit", "map"];
+    return [APP_OF_PREFIX[prefixOf(id)] || "console"];
+  };
+  const undiscovered = stuck.missing.filter((id) => !stuck.seen.includes(id));
+  const target = (undiscovered.length ? undiscovered : stuck.missing)[0] || null;
+  const inside = new Set();
+  for (const id of stuck.missing) (await appsOf(id)).forEach((a) => inside.add(a));
+  return { target, targetApp: target ? (await appsOf(target))[0] : null, inside };
+}
+
+// Where the participant is standing, in the vocabulary the targets use. The
+// laptop's emitter names the focused app, and for Orbit the site it shows,
+// so `detail` is the app even inside the browser; Orbit on no site is
+// 'orbit', which is no app's home and gets a DISCOVER chain like the
+// desktop does. The hearing and anything unnamed are 'console'.
+function hereOf(screen, detail) {
+  if (screen === "laptop-app") return detail || "laptop";
+  if (screen === "laptop-boot" || screen === "laptop-lock" || screen === "laptop-desktop") return "laptop";
+  if (screen.startsWith("map-")) return "map";
+  return "console";
 }
 
 // The first tier of the beat whose advice the participant has not already
@@ -758,17 +836,13 @@ async function ladderStart(stuck) {
 // a login is shut until a record from behind it has been discovered
 // (discovered_evidence is the proxy -- nothing from Quill can be opened
 // without Quill's password, and the case file's pages are behind the folder
-// password that Notes and File Explorer are the road to). Any other screen
-// is where they chose to stand, and the beat answers there.
-const GATE_PREFIX = { quill: "EML-", loop: "SOC-", haven: "HAV-", files: "CASE-", notes: "CASE-" };
+// password that Notes and File Explorer are the road to). The boot screen is
+// not a gate but has its own one-step chain, and is answered the same way.
+const GATE_APPS = ["quill", "loop", "haven", "files", "notes"];
 async function heldAtGate(screen, detail) {
-  if (screen === "laptop-lock") return true;
-  if (screen !== "laptop-app" || !GATE_PREFIX[detail]) return false;
-  // HAV-019 is the one Haven record with a copy on the laptop itself (Documents\Dad,
-  // "2024-08-02 The box.mp4"): it is discovered by opening a file, not by logging
-  // in, so it cannot stand as proof that Haven's gate is open.
-  const behind = await pool.query("SELECT 1 FROM discovered_evidence WHERE evidence_id LIKE $1 AND evidence_id <> 'HAV-019' LIMIT 1", [GATE_PREFIX[detail] + "%"]);
-  return !behind.rows.length;
+  if (screen === "laptop-lock" || screen === "laptop-boot") return true;
+  if (screen !== "laptop-app" || !GATE_APPS.includes(detail)) return false;
+  return !(await beenInside(detail));
 }
 
 // Where the participant is standing, as the console reports it: a fixed
@@ -799,17 +873,51 @@ async function chainFor(screen, detail) {
   // what has already been bought against this exact chain: a press escalates
   // to the next step they do not own, never re-sells the one they do
   const taken = (await pool.query("SELECT step FROM context_hints_taken WHERE screen = $1 AND detail = $2", [screen, steps[0].detail])).rows.map((r) => r.step);
-  return { screen, detail: steps[0].detail, steps, next: steps.find((s) => !taken.includes(s.step)) || null };
+  const key = (s) => [screen, steps[0].detail, s.step];
+  const next = steps.find((s) => !taken.includes(s.step)) || null;
+  return { kind: "context", label: `${screen}${steps[0].detail ? ":" + steps[0].detail : ""}`, steps, start: 1, next, key };
+}
+
+// The DISCOVER chain for the app that holds the piece the participant is
+// after: step 1 says the app exists and exactly how to open it (the same
+// words for every beat), step 2 says what it holds for this beat, in the
+// beat's own row where one is written. A participant who has already been
+// inside the app has followed step 1, and their chain starts at step 2 --
+// the same rule the beat ladder applies. Charged against context_hints_taken
+// under screen 'discover': step 1 keyed by the app alone, so it is never
+// sold twice across beats, step 2 by app and beat, because its words differ.
+async function discoverChain(app, code) {
+  if (!app) return null;
+  const rows = (
+    await pool.query(
+      "SELECT step, checkpoint_code, body FROM discover_hints WHERE app = $1 AND checkpoint_code IN ($2, '') ORDER BY step, checkpoint_code DESC",
+      [app, code],
+    )
+  ).rows;
+  const steps = [];
+  for (const r of rows) if (!steps.some((s) => s.step === r.step)) steps.push(r); // the beat's row over the generic
+  if (!steps.length) return null;
+  const detailOf = (s) => (s.checkpoint_code ? `${app}/${s.checkpoint_code}` : app);
+  const start = steps.length > 1 && (await beenInside(app)) ? steps[1].step : steps[0].step;
+  const taken = (
+    await pool.query("SELECT detail, step FROM context_hints_taken WHERE screen = 'discover' AND detail = ANY($1)", [steps.map(detailOf)])
+  ).rows;
+  const owned = (s) => taken.some((t) => t.detail === detailOf(s) && t.step === s.step);
+  const next = steps.filter((s) => s.step >= start).find((s) => !owned(s)) || null;
+  return { kind: "context", label: `discover:${app}/${code}`, steps, start, next, key: (s) => ["discover", detailOf(s), s.step] };
 }
 
 // The cheapest tier of this beat, from where the ladder starts, that the
-// participant does not already own. The nav button sends no tier and still
-// has to be answered; once every tier left on the ladder is bought the last
-// one comes back again for nothing, because the button is never allowed to
-// be a dead end.
-async function nextBeatTier(code, from) {
+// participant does not already own -- preferring the first one written for
+// the app they are standing in (TIER_APPS). The nav button sends no tier and
+// still has to be answered; once every tier left on the ladder is bought the
+// last one comes back again for nothing, because the button is never allowed
+// to be a dead end.
+async function nextBeatTier(code, from, here) {
   const taken = (await pool.query("SELECT tier FROM hints_taken WHERE checkpoint_code = $1", [code])).rows.map((r) => r.tier);
-  return [1, 2, 3].filter((t) => t >= from).find((t) => !taken.includes(t)) || 3;
+  const open = [1, 2, 3].filter((t) => t >= from && !taken.includes(t));
+  const apps = TIER_APPS[code] || {};
+  return open.find((t) => (apps[t] || []).includes(here)) || open[0] || 3;
 }
 
 // The charge, once, against whichever ledger keys these words. The same words
@@ -838,6 +946,45 @@ async function chargeOnce(ledger, cost) {
   }
 }
 
+// One step of a chain (a screen's, a gate's or a DISCOVER chain), charged
+// against context_hints_taken and answered in the shape the console reads.
+// The next unbought step when there is one; otherwise the chain's last step
+// again, free and flagged as a repeat, because the button is never a dead end.
+async function serveChain(res, chain) {
+  const step = chain.next || chain.steps[chain.steps.length - 1];
+  const paid = await chargeOnce(
+    {
+      select: "SELECT 1 FROM context_hints_taken WHERE screen = $1 AND detail = $2 AND step = $3",
+      insert: "INSERT INTO context_hints_taken (screen, detail, step, cost) VALUES ($1, $2, $3, $4)",
+      key: chain.key(step),
+    },
+    HINT_COST[step.step],
+  );
+  const inUse = chain.steps.filter((s) => s.step >= chain.start);
+  const at = inUse.findIndex((s) => s.step === step.step);
+  return res.json({
+    hint: step.body,
+    // the console keys its own record of what this participant owns on
+    // `tier`, and a step is what a tier is here
+    tier: step.step,
+    cost: paid.charged,
+    hint_cost: paid.hintCost,
+    // the bill under the name the budget's remainder had, for one release:
+    // a console built against v4 still finds a number in the field it reads
+    points_left: paid.hintCost,
+    target: `${chain.label}/step${step.step}`,
+    step: at + 1,
+    steps_total: inUse.length,
+    kind: chain.kind,
+    // what the next press costs, for the console's ask card: the step after
+    // this one, or 0 once the chain is spent and its last step comes back free
+    next_cost: at + 1 < inUse.length ? HINT_COST[inUse[at + 1].step] : 0,
+    // the words were already theirs: the console shows them again as the
+    // same steer rather than hiding them
+    repeat: paid.charged === 0,
+  });
+}
+
 app.post("/api/hint", async (req, res) => {
   const body = req.body || {};
   // tier is optional now: the nav button sends none and lets the desk pick the
@@ -853,48 +1000,46 @@ app.post("/api/hint", async (req, res) => {
   if (state.outcome === "timeout") return res.status(409).json({ error: "time is up" });
   if (state.concluded) return res.status(409).json({ error: "the case is closed" });
 
-  // The gate first, and only a gate. A chain with a step left answers the
-  // screen they are held at; a chain they have spent, or a screen that is
-  // not a shut gate, falls past this and the beat answers.
-  const chain = asked === null && (await heldAtGate(screen, detail)) ? await chainFor(screen, detail) : null;
-  if (chain && chain.next) {
-    const step = chain.next;
-    const paid = await chargeOnce(
-      {
-        select: "SELECT 1 FROM context_hints_taken WHERE screen = $1 AND detail = $2 AND step = $3",
-        insert: "INSERT INTO context_hints_taken (screen, detail, step, cost) VALUES ($1, $2, $3, $4)",
-        key: [chain.screen, chain.detail, step.step],
-      },
-      HINT_COST[step.step],
-    );
-    return res.json({
-      hint: step.body,
-      // the console keys its own record of what this participant owns on
-      // `tier`, and a step is what a tier is here
-      tier: step.step,
-      cost: paid.charged,
-      hint_cost: paid.hintCost,
-      // the bill under the name the budget's remainder had, for one release:
-      // a console built against v4 still finds a number in the field it reads
-      points_left: paid.hintCost,
-      target: `${chain.screen}${chain.detail ? ":" + chain.detail : ""}/step${step.step}`,
-      step: step.step,
-      steps_total: chain.steps.length,
-      kind: "context",
-      // what the next press costs, for the console's ask card. null once this
-      // chain is spent: the next press falls to the beat, whose starting tier
-      // is not known until it is asked
-      next_cost: step.step < chain.steps.length ? HINT_COST[step.step + 1] : null,
-    });
+  // A and C: the laptop before they are in it, or an app whose gate is
+  // provably still shut, answers with that screen's own chain. Spent, the
+  // laptop's own lock/boot chain is served again -- nobody outside the laptop
+  // is helped by the beat -- but a spent APP gate falls through: the "gate is
+  // shut" proxy is only "nothing from that app discovered yet", and an app
+  // whose list draws no badges (Quill's inbox) would otherwise hold a signed-in
+  // participant at its sign-in steps for the rest of the hour.
+  if (asked === null && (await heldAtGate(screen, detail))) {
+    const chain = await chainFor(screen, detail);
+    if (chain && (chain.next || screen !== "laptop-app")) return serveChain(res, chain);
   }
 
   const stuck = await stuckOn();
   if (!stuck) return res.status(409).json({ error: "there is nothing left to point you at" });
-  // a tier named explicitly is the whole ladder, as it always was; the nav
-  // button's ladder begins past the advice they have already followed, and
+  const here = hereOf(screen, detail);
+
+  if (asked === null && !stuck.allDiscovered) {
+    const places = await placesOf(stuck);
+    // B: not where the piece is read -- say the app exists, how to open it,
+    // and what it holds. Once every piece is discovered the place to be is
+    // the hearing, and the ladder below answers from anywhere.
+    if (!places.inside.has(here)) {
+      const chain = await discoverChain(places.targetApp, stuck.code);
+      if (chain) return serveChain(res, chain);
+    }
+    // C': the map before a single search has been flown is answered with
+    // its own chain; spent, it falls to the beat, which says where to send
+    // the drones -- the map has no gate to be held at
+    if (here === "map" && screen.startsWith("map-") && !(await beenInside("map"))) {
+      const chain = await chainFor(screen, detail);
+      if (chain && chain.next) return serveChain(res, chain);
+    }
+  }
+
+  // D: the beat ladder. A tier named explicitly is the whole ladder, as it
+  // always was; the nav button's ladder begins past the advice they have
+  // already followed and at the tier written for the app they are in, and
   // step/steps_total count that shorter ladder so the badge reads true
   const from = asked === null ? await ladderStart(stuck) : 1;
-  const tier = asked === null ? await nextBeatTier(stuck.code, from) : asked;
+  const tier = asked === null ? await nextBeatTier(stuck.code, from, here) : asked;
   // read the words before taking the money: a tier with no row is a seeding
   // fault, and nobody pays for it
   const row = (await pool.query("SELECT body FROM hints WHERE checkpoint_code = $1 AND tier = $2", [stuck.code, tier])).rows[0];
@@ -920,6 +1065,9 @@ app.post("/api/hint", async (req, res) => {
     steps_total: 4 - from,
     kind: "beat",
     next_cost: tier < 3 ? HINT_COST[tier + 1] : 0,   // 0: the last tier is re-served free
+    // E: a tier already theirs comes back free, and says so, so the console
+    // shows the words again instead of "nothing added"
+    repeat: paid.charged === 0,
   });
 });
 

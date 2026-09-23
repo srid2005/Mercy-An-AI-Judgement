@@ -130,6 +130,8 @@ function inboxRowHtml(item, key) {
   const spamBadge = item.filler_kind === 'spam' ? '<span class="spam-badge">SPAM</span>' : '';
   const countBadge = item.message_count > 1 ? `<span class="count-badge">${item.message_count}</span>` : '';
   const attachBadge = item.has_attachment ? paperclipSvg : '';
+  // the badge is what the shell's observer reports as seen (inbox.html)
+  const evidenceBadge = item.evidence_id ? `<span class="evidence-badge">${escapeHtml(item.evidence_id)}</span>` : '';
   const fromName = item.other ? item.other.display_name : 'Unknown';
   return `
     <div class="inbox-row" data-key="${key}">
@@ -137,7 +139,7 @@ function inboxRowHtml(item, key) {
       <img src="${item.last_sender_is_me && me ? me.avatar_url : (item.other?.avatar_url || '')}" alt="" />
       <div class="from">${item.last_sender_is_me ? 'You' : escapeHtml(fromName)}</div>
       <div class="subject-preview">
-        <span class="subj">${escapeHtml(item.subject)}${countBadge}${spamBadge}${attachBadge}</span>
+        <span class="subj">${escapeHtml(item.subject)}${countBadge}${spamBadge}${attachBadge}${evidenceBadge}</span>
         <span class="prev">${escapeHtml((item.preview || '').replace(/\s+/g, ' '))}</span>
       </div>
       <div class="time">${timeAgo(item.last_sent_at)}</div>

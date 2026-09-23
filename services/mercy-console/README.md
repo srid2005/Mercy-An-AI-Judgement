@@ -136,6 +136,16 @@ stands in); `/api/state` and `/api/case` carry it too.
 - **200, `cost: 0`** -- a step already bought. The console usually answers
   this one itself, from its own store, by opening the log on that hint
   without a request at all.
+- **200, `repeat: true`** (or `cost: 0` with text) from the nav button --
+  the engine handed back the same steer for this state, because nothing new
+  fits. The text is still SHOWN: the log opens scrolled to that card, lit,
+  flagged **STILL THE SAME STEER** (its price stays what was paid), its
+  words refreshed from the reply, and the ask card says so for a moment
+  instead of vanishing. Before the press, a quote of 0 reads "STILL THE
+  SAME STEER" rather than "NOTHING ADDED".
+- **DISCOVER steps** -- `kind: "context"` with a target of the shape
+  `discover:<app>/step<n>`: rendered like any screen hint, kicker
+  "FIND HAVEN · HINT 1 OF 2" (the app's on-screen name).
 - **409** -- the file is closed; there is nothing left to point at. The
   buttons are disabled and the desk shut whenever the case concludes anyway.
 

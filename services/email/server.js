@@ -138,7 +138,7 @@ async function buildThreadItems(owner, { trashedOnly = false } = {}) {
 
   for (const t of threadsRes.rows) {
     const emails = await pool.query(
-      `SELECT e.sender_id, e.body, e.starred, e.sent_at, u.username AS sender_username
+      `SELECT e.sender_id, e.body, e.starred, e.sent_at, e.evidence_id, u.username AS sender_username
        FROM emails e JOIN users u ON u.id = e.sender_id
        WHERE e.thread_id = $1 ORDER BY e.sent_at DESC`,
       [t.id]
@@ -171,6 +171,10 @@ async function buildThreadItems(owner, { trashedOnly = false } = {}) {
       last_sender_is_me: latest.sender_id === owner.id,
       starred: emails.rows.some((e) => e.starred),
       has_attachment: hasAttachment,
+      // the latest message's id rides on the row so the inbox itself carries a
+      // badge: listing a thread is seeing it, the way Haven's diary grid works,
+      // and it is how the judge knows this mailbox has been opened at all
+      evidence_id: latest.evidence_id || null,
     });
   }
 

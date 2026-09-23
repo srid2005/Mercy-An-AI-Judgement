@@ -385,6 +385,101 @@ INSERT INTO context_hints (screen, detail, step, body) VALUES
     ('map-search', '', 2,
      'Every search is logged on the right whether it finds anything or not, and every report is evidence you can attach in the MERCY AI Judge tab. If you are following a car, it waits at its stop until your drones have searched it, and the next stop is not shown until this one is done. Search the stops one at a time.');
 
+-- ---------------------------------------------------------------------------
+-- The DISCOVER chains. The hint desk's third question, between "what is on
+-- their screen" and "which beat are they stuck on": a participant who is not
+-- standing where the beat's piece is read -- at the hearing, on the desktop,
+-- in Orbit on no site, in the wrong app -- is first told that the app exists.
+-- POST /api/hint serves these when `here` (the app the console reports) is
+-- none of the apps the beat's missing pieces are read in (server.js:placesOf).
+-- Step 1 (5) says the app exists, what it is and exactly how to open it: the
+-- desktop icon, or Orbit and which bookmark, or the City Map tab, and, for a
+-- gated app, that pressing Hint again from its login screen buys the way in.
+-- Step 2 (10) says what the app holds for THIS beat, the item in plain words
+-- and never its id -- keyed on the beat where the beats differ, '' where one
+-- row serves every beat. A participant who has already been inside the app
+-- (a record from it discovered) starts at step 2.
+--
+-- Charged against context_hints_taken under screen 'discover': step 1 by the
+-- app alone (the same words for every beat, so never sold twice), step 2 by
+-- app and beat ('haven/the_motive'), because its words differ.
+--
+-- Same rules as every chain: plain sentences, the names on screen, and no
+-- gate secret. Where the gate is the way in, the step says to ask again from
+-- the gate, which is where the gate chain answers.
+CREATE TABLE discover_hints (
+    app              TEXT NOT NULL,
+    checkpoint_code  TEXT NOT NULL DEFAULT '',
+    step             INTEGER NOT NULL CHECK (step IN (1, 2)),
+    body             TEXT NOT NULL,
+    PRIMARY KEY (app, checkpoint_code, step)
+);
+
+INSERT INTO discover_hints (app, checkpoint_code, step, body) VALUES
+    -- Wisp: no gate. The alibi's first half.
+    ('wisp', '', 1,
+     'There is a chat app called Wisp with all of Meera''s messages. It is a website, not a desktop icon. On Meera''s Laptop open Orbit, the browser, and press Wisp Web on the bookmarks bar under the address box. It opens with no password. Every message you open is added to your evidence index.'),
+    ('wisp', 'the_alibi', 2,
+     'Wisp holds half of your alibi. In the list of chats on the left open the one with Vikram Kapoor, your brother, and scroll to the bottom, to the night she was taken. His last message to Meera says where you were that night and who was with you. Open it so it lands in your evidence index.'),
+
+    -- Loop: a password gate. The alibi's other half, and the carabiner photo.
+    ('loop', '', 1,
+     'There is a social app called Loop where Meera and the people around her post. It is a website. On Meera''s Laptop open Orbit, the browser, and press Loop on the bookmarks bar under the address box. Loop asks for a password. Open it, then press Hint again from Loop''s login screen and I will tell you where the password is written.'),
+    ('loop', 'the_alibi', 2,
+     'Loop holds the other half of your alibi. Once you are in, find Vikram Kapoor''s post from the night she was taken, stamped 23:40. It is about late-night chai and it tags you. Open the post so it lands in your evidence index. Together with his message to Meera in Wisp it proves where you were.'),
+    ('loop', 'the_object', 2,
+     'Loop holds the photo that matches the object in the case file. Once you are in, find Rahul Nair''s posts and open the one from 12 May at Turahalli, a climbing photo. Read the caption about his carabiner and its batch tag. Open it so it lands in your evidence index.'),
+
+    -- Quill: a password gate. No beat needs its mail; Haven's code lands here.
+    ('quill', '', 1,
+     'There is a mail app called Quill with Meera''s inbox. It has its own icon on Meera''s Laptop desktop. Double-click Quill. It asks for a password. Press Hint again from Quill''s login screen and I will tell you where the password is written.'),
+    ('quill', '', 2,
+     'Nothing this beat needs is in Quill itself. Quill matters for one thing: Haven, her video diary, signs you in by emailing a six-digit code to this inbox. Get into Quill first, then open Haven in Orbit and press Email me a sign-in code. The mail arrives here.'),
+
+    -- Haven: the emailed code and four questions. Three beats read here.
+    ('haven', '', 1,
+     'There is a video diary called Haven with thirty-one recordings Meera made, each with a transcript. It is a website. On Meera''s Laptop open Orbit, the browser, and press Haven on the bookmarks bar under the address box. Haven signs you in with a code it emails to Quill and four security questions. Press Hint again from Haven''s sign-in screen and I will walk you through it.'),
+    ('haven', 'gate_timeline', 2,
+     'Haven holds her own account of the morning her father died. Once you are in, scroll to August 2024 and open the entry recorded on 10 August, the one whose title is about timelines. In it she repeats what a jogger heard on the rock that morning. Open it so it lands in your evidence index.'),
+    ('haven', 'the_motive', 2,
+     'Haven holds her reason. Once you are in, open the newest entries, the ones from the last two weeks before she disappeared. The entry recorded on 30 August, the one where she says she is close, names what the jogger heard her father say and what her father wrote in his diary. Open it so it lands in your evidence index.'),
+    ('haven', 'the_confession', 2,
+     'Haven holds her last recording, made at 21:52 on the night she was taken, after every other entry on the account. Once you are in, scroll to the newest entry. In it she says the man''s name out loud. Open it so it lands in your evidence index, then attach it and say the name she says.'),
+
+    -- File Explorer: the case file behind the Dad folder's padlock.
+    ('files', '', 1,
+     'There is a police case file on her father''s death saved on Meera''s Laptop. Double-click File Explorer on the desktop, open Documents, and double-click the folder called Dad. It has a padlock on its tile and asks for a password. Press Hint again from File Explorer and I will tell you where the password is written.'),
+    ('files', 'gate_timeline', 2,
+     'The Dad folder holds FATHER_DEATH_CASE.pdf. Open it and go to page 3. It is the forest gate register for the morning he died: a scooter that went in early and came out fast. Read the page so it lands in your evidence index. It is half of this beat; the other half is her Haven entry about that morning.'),
+    ('files', 'the_object', 2,
+     'The Dad folder holds FATHER_DEATH_CASE.pdf. Open it and go to page 2, exhibit 4, the photograph of the things found with him. One of them is a climbing clip with a tag that was not his. Read the page so it lands in your evidence index. The same clip is in a photo on Loop.'),
+
+    -- Notes: never a target of its own; the road to the Dad folder.
+    ('notes', '', 1,
+     'There is a Notes app on Meera''s Laptop where she kept her passwords. Double-click Notes on the desktop. Seven notes open. The yellow one whose title starts with logins is a list of her passwords. Nothing in Notes is evidence by itself. It is the key to the locked Dad folder in File Explorer.'),
+    ('notes', '', 2,
+     'In Notes open the yellow note whose title starts with logins. Its second line starts with Dad''s folder and the password is written on that line, before the brackets. Type it exactly as written, capitals included, into the padlock on the Dad folder in File Explorer, under Documents. The case file is inside.'),
+
+    -- PulseFit: the band's alerts, sealed until the confession beat.
+    ('pulsefit', '', 1,
+     'There is an app called PulseFit on Meera''s Laptop that shows the SOS alerts her fitness band sent after she left the flat. Double-click PulseFit on the desktop. If it says No alerts on this device, the alerts are still under evidence seal. They are released when you name the man she feared in the MERCY AI Judge tab, using her last Haven recording.'),
+    ('pulsefit', 'the_cave', 2,
+     'PulseFit holds five alerts, sent between 22:41 and 02:14, each with a Send to map button. They are the trail to where she was taken. Send them to the City Map one at a time, in the order they were sent, and press Launch drones on the map for each one. Wait for each report before sending the next.'),
+
+    -- Photos: never a target; a short honest step that clears the ground.
+    ('photos', '', 1,
+     'There is a Photos app on Meera''s Laptop with her Camera Roll, wedding pictures and screenshots. Double-click Photos on the desktop if you want to see them. Nothing in Photos is needed by any beat of this hearing. The photographs that decide the case are in the case file under Documents, then Dad, and on Loop.'),
+    ('photos', '', 2,
+     'Photos holds nothing this beat needs. Close it. Press Hint again from the MERCY AI Judge tab and I will point you at the app that does.'),
+
+    -- The map: its own tab. The sweeps, then the car.
+    ('map', '', 1,
+     'There is a City Map, my model of the city, on its own tab at the top of the screen, next to Meera''s Laptop. Press City Map. On the right is a Drone search panel with two boxes for a latitude and a longitude and a Launch drones button. The drones search 60 metres around the point and report back, and every report is evidence you can attach.'),
+    ('map', 'the_cave', 2,
+     'The map is where the band''s five alerts are searched. Each alert in PulseFit on the laptop has a Send to map button that fills the Drone search boxes here. Press Launch drones for each, in the order they were sent. The fifth fix is 300 metres off, so its pin is not the place. Once the first four are swept, type Kettle into the search box at the top of the map and send the drones to the cave on Kettle Hill.'),
+    ('map', 'located', 2,
+     'The map is where his car is followed. At the top of the City Map press Vehicle tracking. It unlocked when the drones brought back her band''s memo. Type the name she says in the memo and the model follows his car. Every place it stops is listed. Press Send drones on each stop in turn and wait for the report. She is alive at one of them.');
+
 -- Evidence with no live service to fetch it from: the case file's own
 -- photographs. Served by this container from public/case-photos/.
 INSERT INTO evidence_cache (evidence_id, service, type, timestamp, summary, involves, content) VALUES
