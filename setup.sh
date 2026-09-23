@@ -792,6 +792,15 @@ stage_install() {
     apt_get remove -y "${installed[@]}" >/dev/null
   fi
 
+  # Clear any docker.list we (or anyone) wrote earlier. A previous failed run
+  # can leave one naming a repository that does not exist, and apt-get update
+  # fails on it -- BEFORE the code below gets a chance to write the right one.
+  # The correct file is rewritten a few lines down, so removing it costs
+  # nothing and makes a retry actually retry.
+  if [[ -e /etc/apt/sources.list.d/docker.list ]]; then
+    as_root rm -f /etc/apt/sources.list.d/docker.list
+  fi
+
   info "apt-get update (waits up to 5 minutes for unattended-upgrades to finish)"
   apt_get update -qq
   apt_get install -y -qq ca-certificates curl gnupg git jq >/dev/null
