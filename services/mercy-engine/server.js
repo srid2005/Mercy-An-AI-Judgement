@@ -683,6 +683,13 @@ app.post("/api/argue", async (req, res) => {
 // than repeats. The two are priced the same, charged apart, and ordered:
 // screen first, beat second, and a chain that has been spent falls through to
 // the beat, because a hint button that can say nothing is a dead end.
+//
+// A hint informs and does nothing else. It opens no tab, reveals no panel and
+// touches nothing on any screen: the answer is the participant's to walk to,
+// and a step that walked them there would be selling the door rather than the
+// key to it. That is why the response carries words and a price and no
+// instruction, and why the deepest step of a gate chain says where the code is
+// written down rather than what it is.
 // ---------------------------------------------------------------------------
 const HINT_COST = { 1: 5, 2: 10, 3: 20 };
 const ARGUE_IT =
@@ -720,7 +727,7 @@ async function chainFor(screen, detail) {
   if (!screen) return null;
   const rows = (
     await pool.query(
-      "SELECT detail, step, body, goto_tab, goto_focus FROM context_hints WHERE screen = $1 AND detail IN ($2, '') ORDER BY step",
+      "SELECT detail, step, body FROM context_hints WHERE screen = $1 AND detail IN ($2, '') ORDER BY step",
       [screen, detail],
     )
   ).rows;
@@ -811,7 +818,6 @@ app.post("/api/hint", async (req, res) => {
       step: step.step,
       steps_total: chain.steps.length,
       kind: "context",
-      goto: step.goto_tab ? { tab: step.goto_tab, ...(step.goto_focus ? { focus: step.goto_focus } : {}) } : null,
     });
   }
 
@@ -842,9 +848,6 @@ app.post("/api/hint", async (req, res) => {
     step: tier,
     steps_total: 3,
     kind: "beat",
-    // a beat hint points at evidence, not at a place on a screen: going and
-    // finding it is the part they are paying for
-    goto: null,
   });
 });
 

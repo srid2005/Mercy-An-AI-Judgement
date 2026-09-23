@@ -31,9 +31,13 @@ player, and issues the final verdict.
   answers that screen instead, from `context_hints`: the next step of that
   chain the participant does not already own, so pressing the button again
   escalates. Steps are priced like the tiers (5/10/20) and charged in their
-  own half of the ledger (`context_hints_taken`), and a step may carry a
-  `goto` telling the console where to take them. A chain that has been spent
+  own half of the ledger (`context_hints_taken`). A chain that has been spent
   falls through to the beat, so the button never runs out of things to say.
+- A hint informs and does nothing else: no tab is switched, nothing is opened
+  or revealed for them, and no step states a PIN, a password, a date or a
+  security answer. The deepest step of a gate chain names the place the answer
+  is written down -- the screen, the panel, the line -- and the participant
+  goes and reads it.
 - The end of the game is not an argument but a rescue. `POST /api/rescue
   {evidence_id: 'MAP-<id>'}` -- called by the console when the map posts
   `mercy:case-solved` after the rescue footage -- concludes the case:
@@ -87,10 +91,11 @@ Participant (cookie), CORS with credentials for the console:
   accepted set. 409 `time is up` past the deadline, 409 `the case is closed`
   once concluded. The `located` beat sets `outcome = 'solved'` at 0.0.
 - `POST /api/hint {context?, detail?, tier?}` -> `{hint, tier, cost,
-  points_left, target, step, steps_total, kind, goto}`. `kind` is `context`
+  points_left, target, step, steps_total, kind}`. `kind` is `context`
   when a chain for `context`/`detail` answered and `beat` otherwise; `step` of
-  `steps_total` is where in that chain the words came from; `goto` is `null`
-  or `{tab, focus?}`. `target` is a console label -- `the_alibi/tier2` for a
+  `steps_total` is where in that chain the words came from. The response
+  carries words and a price and nothing the console is meant to act on.
+  `target` is a console label -- `the_alibi/tier2` for a
   beat, `laptop-app:wisp/step2` for a chain -- and `cost` is 0 when those words
   have already been bought. `tier` is optional: sent, it means exactly what it
   meant before (that tier of that beat, context ignored); left out, the desk

@@ -2431,7 +2431,7 @@
     appendHint(rec); // the hearing keeps the record whichever tab they are on
     renderTiers();
     loadState(); // hints_used, and a standing that may have moved while this was open
-    return { rec, res };
+    return rec;
   }
   async function buyHint(tier) {
     const t = HINT_TIERS.find((x) => x.tier === tier);
@@ -2439,19 +2439,17 @@
     armedTier = null;
     // the context rides along on every ask, as the contract says; a tier
     // named explicitly is still v2 and still buys exactly that depth
-    const out = await postHint({ tier, context: context.screen || undefined, detail: context.detail || undefined }, hintMsg);
-    if (!out) return;
-    const rec = out.rec;
+    const rec = await postHint({ tier, context: context.screen || undefined, detail: context.detail || undefined }, hintMsg);
+    if (!rec) return;
     hintMsg(rec.cost > 0 ? `TIER ${tier} BOUGHT \u00b7 ${rec.cost} POINTS SPENT` : `TIER ${tier} WAS ALREADY YOURS \u00b7 NOTHING SPENT`, "ok");
     setStepBadge(rec);
-    if (out.res.goto) revealGoto(out.res.goto);
   }
 
   // ------------------------------------------------- the progressive ask
   // The nav button is the whole hint desk for someone who is simply stuck:
   // one press asks for the next step of help FOR THE SCREEN THEY ARE ON,
-  // pressing again escalates, and a later step may take them to the thing
-  // that answers it. It spends points, so it arms first and buys second.
+  // and pressing again escalates until the last step says where the answer
+  // is kept. It spends points, so it arms first and buys second.
   let navArmed = false;
   let navTimer = null;
   // What the next press will cost, from this participant's own ledger: the
@@ -2467,6 +2465,18 @@
     return n + 1;
   }
   const stepCost = (step) => STEP_COST[Math.max(0, Math.min(STEP_COST.length, step) - 1)];
+  // Past the end of a screen's chain the next press falls through to the beat
+  // chain, which is priced from ITS first step -- not from where this screen
+  // left off. Once the engine has told us how long the chain was, stop quoting
+  // a number we would get wrong.
+  function chainSpent() {
+    const key = context.screen || null;
+    let total = null;
+    boughtHints.forEach((h) => {
+      if ((h.context || null) === key && Number.isFinite(Number(h.steps_total))) total = Number(h.steps_total);
+    });
+    return total != null && nextStep() > total;
+  }
   function setStepBadge(rec) {
     const badge = el("hint-step");
     if (!badge) return;
@@ -2477,15 +2487,18 @@
   }
   function armNav() {
     const step = nextStep();
+    const spent = chainSpent();
     const cost = stepCost(step);
-    const short = points != null && points < cost;
+    const short = !spent && points != null && points < cost;
     navArmed = true;
     el("hud-hint").classList.add("armed");
     const where = CONTEXT_LABEL[context.screen] || "the file";
     flash({
-      kicker: step > 1 ? `HINT \u00b7 STEP ${step}` : "HINT",
+      kicker: spent ? "HINT" : step > 1 ? `HINT \u00b7 STEP ${step}` : "HINT",
       body: `The next steer for ${where}${context.detail ? ` \u2014 ${context.detail}` : ""}.`,
-      note: short ? `THIS SPENDS ${cost} POINTS \u00b7 YOU HAVE ${points}` : `THIS SPENDS ${cost} POINTS${points == null ? "" : ` \u00b7 ${points} LEFT`}`,
+      note: spent
+        ? `THIS SPENDS POINTS${points == null ? "" : ` · ${points} LEFT`}`
+        : short ? `THIS SPENDS ${cost} POINTS \u00b7 YOU HAVE ${points}` : `THIS SPENDS ${cost} POINTS${points == null ? "" : ` \u00b7 ${points} LEFT`}`,
       noteKind: short ? "bad" : "warn",
       confirm: true,
       armed: true,
@@ -2510,18 +2523,13 @@
     if (buying || concluded) return;
     if (!navArmed) return armNav(); // one press asks, the next one pays
     disarmNav(true);
-    const out = await postHint({ context: context.screen || undefined, detail: context.detail || undefined }, flashNote);
-    if (!out) return;
-    const rec = out.rec;
+    const rec = await postHint({ context: context.screen || undefined, detail: context.detail || undefined }, flashNote);
+    if (!rec) return;
     setStepBadge(rec);
-    const sent = out.res.goto ? revealGoto(out.res.goto) : null;
     flash({
       kicker: hintKicker(rec),
       body: rec.hint,
-      note:
-        (rec.cost > 0 ? `-${rec.cost} PTS` : "NOTHING SPENT") +
-        (points == null ? "" : ` \u00b7 ${points} LEFT`) +
-        (sent ? ` \u00b7 TAKING YOU TO ${sent}` : ""),
+      note: (rec.cost > 0 ? `-${rec.cost} PTS` : "NOTHING SPENT") + (points == null ? "" : ` \u00b7 ${points} LEFT`),
       noteKind: "ok",
     });
   }
@@ -2551,51 +2559,6 @@
     if (!card) return;
     card.hidden = true;
     card.classList.remove("armed");
-  }
-
-  // Where a steer sends them. The engine names a tab and, sometimes, the
-  // thing on it that answers the question -- a hint that says "her
-  // particulars are in the console" and leaves them on the laptop has not
-  // actually helped. Aliases, because the engine writes about the game and
-  // this side knows what the game's elements are called. Returns the name
-  // of the tab they were sent to, for the card, or null if it went nowhere.
-  const TAB_LABEL = { mercy: "MERCY", laptop: "MEERA'S LAPTOP", map: "THE CITY MAP" };
-  const GOTO_ALIAS = {
-    victim: "victim-toggle", "victim-info": "victim-toggle", "victim-card": "victim-toggle", "victim-popover": "victim-toggle",
-    guilt: "meter-toggle", meter: "meter-toggle", standing: "meter-toggle",
-    evidence: "picker", index: "picker", "evidence-index": "picker", "evidence-panel": "picker",
-    argue: "composer-text", composer: "composer-text", hearing: "composer-text", chat: "composer-text",
-    clock: "hud-clock", hint: "hud-hint", hints: "hud-hint",
-  };
-  function revealGoto(go) {
-    if (!go || !go.tab) return null;
-    const tab = String(go.tab);
-    const tabBtn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
-    if (!tabBtn) return null; // a tab this build does not have
-    switchTab(tab);
-    // one HUD panel at a time, the same rule the chips themselves keep
-    ["hint-popover", "victim-popover", "meter-popover"].forEach((p) => (el(p).hidden = true));
-    const raw = go.focus == null ? "" : String(go.focus).trim().toLowerCase();
-    const id = GOTO_ALIAS[raw] || (go.focus ? String(go.focus) : "");
-    let node = id ? el(id) : null;
-    // the named panels only exist once they are open, and a ring around a
-    // closed one teaches nothing
-    if (node && node.id === "victim-toggle") el("victim-popover").hidden = false;
-    else if (node && node.id === "meter-toggle") el("meter-popover").hidden = false;
-    else if (node && node.id === "composer-text") node.focus({ preventScroll: true });
-    else if (node && node.id === "picker") {
-      openPicker(); // the index draws the eye to itself on open; a second ring over its own is noise
-      return TAB_LABEL[tab] || tab.toUpperCase();
-    }
-    // inside the laptop and the map it is their frame and their origin: the
-    // most this side can do is put them on the right tab and ring the tab
-    if (!node) node = tabBtn;
-    node.classList.remove("goto-flash");
-    void node.offsetWidth; // restart the ring even when the last steer lit the same thing
-    node.classList.add("goto-flash");
-    clearTimeout(node._gotoTimer);
-    node._gotoTimer = setTimeout(() => node.classList.remove("goto-flash"), 3600);
-    return TAB_LABEL[tab] || tab.toUpperCase();
   }
 
   function initHints() {

@@ -734,9 +734,6 @@ button.hud-chip:disabled:hover { transform: none; box-shadow: 0 0 0 1px rgba(255
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 18px rgba(255, 140, 20, 0.3); transition: transform 0.2s, box-shadow 0.2s; }
 #hf-go:hover, #hf-go:focus-visible { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 26px rgba(255, 140, 20, 0.5); outline: 0; }
 #hf-go[hidden] { display: none; }
-/* "you were sent HERE": the element a hint's goto named, ringed for a
-   moment. box-shadow only, so nothing in the layout moves for it. */
-.goto-flash { animation: goto-flash 1.6s ease-out 2; }
 
 /* ------------------------------------------------ the standing, centred */
 /* MERCY moves the file every turn and that move IS the game, so the meter
@@ -927,7 +924,6 @@ button.hud-chip:disabled:hover { transform: none; box-shadow: 0 0 0 1px rgba(255
 @keyframes tile-lit { 0% { box-shadow: 0 0 0 rgba(255, 140, 20, 0); } 40% { box-shadow: 0 0 18px rgba(255, 140, 20, 0.65), inset 0 0 12px rgba(255, 140, 20, 0.3); } 100% { box-shadow: 0 0 10px rgba(255, 140, 20, 0.35), inset 0 0 8px rgba(255, 140, 20, 0.14); } }
 @keyframes delta-float { 0% { opacity: 0; transform: translateY(7px) scale(0.92); } 14% { opacity: 1; transform: none; } 68% { opacity: 1; transform: translateY(-6px); } 100% { opacity: 0; transform: translateY(-15px); } }
 @keyframes count-flicker { 0%, 100% { opacity: 1; } 30% { opacity: 0.25; } 60% { opacity: 0.9; } 80% { opacity: 0.4; } }
-@keyframes goto-flash { 0% { box-shadow: 0 0 0 2px var(--amber), 0 0 34px rgba(255, 140, 20, 0.75); } 100% { box-shadow: 0 0 0 2px transparent, 0 0 0 transparent; } }
 @keyframes ms-bloom { 0% { filter: brightness(1); } 16% { filter: brightness(1.55) saturate(1.2); } 100% { filter: brightness(1); } }
 @keyframes ms-jolt { 0%, 100% { transform: none; } 10% { transform: translateX(-8px) rotate(-2.5deg); } 26% { transform: translateX(7px) rotate(2deg); } 44% { transform: translateX(-5px) rotate(-1deg); } 62% { transform: translateX(3px); } 80% { transform: translateX(-1px); } }
 @keyframes ms-settle { 0% { transform: scale(1); } 34% { transform: scale(1.12) translateY(3px); } 100% { transform: scale(1); } }
@@ -1019,7 +1015,7 @@ button.hud-chip:disabled:hover { transform: none; box-shadow: 0 0 0 1px rgba(255
 @media (prefers-reduced-motion: reduce) {
   #picker, #picker-index, .pk-sec, .scan-tile, .st-count, #picker-sweep, .picker-row.pr-new, .idx-bar > i, .idx-line.active .idx-x::after, .pk-chip.pulse, #picker-scan, .ds-tile, .ds-tile img, .peek,
   #case-closed, .closed-card, .closed-title, .closed-line, .closed-hud, .closed-file, .closed-actions, #hud-clock, #leave-confirm, .confirm-card,
-  #hint-popover, .hint-note, #tour-hole, #tour-card, #hint-flash, .goto-flash {
+  #hint-popover, .hint-note, #tour-hole, #tour-card, #hint-flash {
     animation: none !important; transition: none !important; }
   /* the delta still has to be readable: it holds still and simply fades */
   #guilt-delta.on { animation: scan-in 0.2s ease-out both !important; }
@@ -1029,9 +1025,6 @@ button.hud-chip:disabled:hover { transform: none; box-shadow: 0 0 0 1px rgba(255
   #meter-stage #ms-card, #meter-stage.hold #ms-card, #meter-stage.hold .ms-gauge, #meter-stage.hold .ms-value, #meter-stage.hold #ms-card::after {
     animation: none !important; transition: opacity 0.2s ease-out !important; }
   .ms-gauge #ms-needle, .ms-gauge #ms-fill { transition: none !important; }
-  /* the ring a goto lands on still has to be findable: it just stays lit
-     for as long as app.js leaves the class on, rather than pulsing */
-  .goto-flash { box-shadow: 0 0 0 2px var(--amber), 0 0 34px rgba(255, 140, 20, 0.7); }
   .ds-tile:hover img { transform: none; }
   .peek { transform: none; }
 }
