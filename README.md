@@ -55,6 +55,19 @@ under `services/` is a stub `README.md` describing what it will own -- see
 ARCHITECTURE.md for the build order and shared conventions before adding the
 next one.
 
+The console's HINT button is paid, escalating help seeded in
+`services/mercy-engine/db/init.sql` (`hints`: 7 story beats, 3 tiers each;
+`context_hints`: 16 screens, up to 3 steps each). Every body is written
+plainly -- which app, tab, folder or button to open, which item to read, and
+what to tell MERCY -- and the only thing a hint never states is a gate secret
+(the laptop PIN, the Documents/Dad password, Loop's date, Haven's answers);
+it says exactly where that answer is written instead. A running event takes
+the current bodies without a rebuild:
+
+```bash
+docker compose exec -T mercy-engine-db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < services/mercy-engine/scripts/migrate_live_v8_hints_plain.sql
+```
+
 ## Replacing placeholder images
 
 Each implemented service's `public/images/**` are auto-generated SVG

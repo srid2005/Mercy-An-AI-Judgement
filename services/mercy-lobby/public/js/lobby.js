@@ -170,15 +170,15 @@
   // MERCY's own words, when there is no story film to say them.
   const CARDS = () => [
     'You are Arjun Kapoor.',
-    'Your wife Meera disappeared last night at 21:40. The file says it was you: 96.8%.',
-    'I am MERCY. I decide.',
-    'You say you were at your brother’s house that night, with your mother there. I do not take your word for it. Show me.',
-    'Her laptop is yours. In it: her messages on Wisp, the feed on Loop, her mail on Quill, her diary on Haven, her father’s case file, and the alerts from her band.',
-    'Outside it: the city model. Four drones that will search any place you give them — and, when I allow it, a car to follow.',
-    'Everything you open is filed as evidence. Attach it to what you say to me. Words with nothing attached are worth nothing.',
-    'Two roads lower the file against you. Where you were that night. And whose night it really was: a fact that fits another man is a fact that no longer fits you.',
-    `You have ${minutes} minutes. Find her, and the file closes. Fail, and it stands.`,
-    'You may leave the file at any time. It will stand where you left it.',
+    'Your wife Meera went missing last night at 21:40. The police file says you did it. It stands at 96.8% against you.',
+    'I am MERCY, the AI judge. I decide how that number moves.',
+    'You told the police you were at your brother Vikram’s house last night, and that your mother was there too. I do not take your word for it. Find the proof and show it to me.',
+    'The proof is on Meera’s laptop: her messages (Wisp), her social feed (Loop), her email (Quill), her video diary (Haven), her father’s police case file, and the alerts from her fitness band (PulseFit).',
+    'There is also the City Map. It has four drones: give them a place and they search it. Later, when I allow it, the map can follow a car too.',
+    'Everything you open is saved as evidence. To argue, attach the evidence to your message and tell me what it proves. Talking without evidence does nothing.',
+    'Two things lower the file against you: proof of where you were, and proof of who really did it. Every fact that points to another man is a fact that no longer points to you.',
+    `You have ${minutes} minutes. Find her and the file closes. Run out of time and it stays as it is.`,
+    'You can leave at any time. The file stays where you left it.',
   ];
   async function showBriefing() {
     show('briefing');

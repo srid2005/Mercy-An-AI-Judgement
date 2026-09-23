@@ -202,38 +202,38 @@ CREATE TABLE hints_taken (
 );
 
 INSERT INTO hints (checkpoint_code, tier, body) VALUES
-    ('the_alibi', 1, 'You have put nothing between yourself and that night. Her laptop is not only hers -- the evening is on it. Two places carried traffic after eleven: the chat app, and the feed. Look at what the people who were with you did, not at what she did.'),
-    ('the_alibi', 2, 'Your brother did two things while you slept at your brother''s house. He wrote to your wife, and he put the evening on the feed with your name attached to it. Both are stamped after 23:00, an hour and a half after she was taken. One without the other is a claim; together they are a place.'),
-    ('the_alibi', 3, 'Wisp, her chat with Vikram: his message to her at 23:12, never opened. Loop: his post at 23:40, chai at your brother''s, tagging you. WA-199 and SOC-050. Attach both in one turn and tell me where you were at the time on them.'),
+    ('the_alibi', 1, 'Start by proving where you were that night. On Meera''s Laptop open Orbit and use the Wisp Web bookmark. Open the chat with your brother, Vikram Kapoor. Then use the Loop bookmark and look at what Vikram posted that night. In both places look for anything stamped after 23:00.'),
+    ('the_alibi', 2, 'Two records prove you were at your brother Vikram''s house, with your mother there. First, in Wisp, the chat with Vikram Kapoor: his message to Meera at 23:12 says you were staying over. Second, in Loop, Vikram''s post at 23:40 about late-night chai, tagging you. Open both so they land in your evidence index, then attach both together.'),
+    ('the_alibi', 3, 'In the MERCY AI Judge tab attach WA-199 and SOC-050 in one turn. WA-199 is Vikram''s 23:12 message to Meera in Wisp. SOC-050 is his 23:40 chai post on Loop that tags you. Then tell me plainly: you were at your brother Vikram''s house with your mother from 22:20 that night, and these two records prove it.'),
 
-    ('gate_timeline', 1, 'You have cleared your own night. That is not the case. The case is her father''s, and she kept two records of it: a document on the laptop behind a password, and the video diary she recorded it into. Start where she started.'),
-    ('gate_timeline', 2, 'The police file has a gate register in it -- who came in, who went out, and one word about how fast. Months before she disappeared she built the same morning herself, minute by minute, and read it out loud. The two accounts agree, and the file they came from does not. Put them in front of me together.'),
-    ('gate_timeline', 3, 'CASE-GATE: page three of FATHER_DEATH_CASE.pdf, in Documents/Dad -- the password is in Notes. HAV-021, ''Timelines'', in Haven: a scooter in at 06:05, out at 07:35, and the jogger who heard two men at 07:10. Attach both and tell me what the register makes of a fall at 07:15.'),
+    ('gate_timeline', 1, 'Your own night is cleared. The case is now her father''s death. Meera kept two records of it. One is the police case file, a PDF in File Explorer under Documents, in the locked folder called Dad. The other is her video diary in Haven, opened through Orbit. Open both and look for the morning he died.'),
+    ('gate_timeline', 2, 'In File Explorer open Documents, then Dad, then FATHER_DEATH_CASE.pdf, and go to page 3. It shows the forest gate register: a scooter in at 06:05, out at 07:35, marked fast. Then open Haven and find the entry called Timelines, recorded 10 August. In it she says a jogger heard two men on the rock at 07:10. Open both, then attach both.'),
+    ('gate_timeline', 3, 'Attach CASE-GATE, page 3 of FATHER_DEATH_CASE.pdf in Documents, then Dad, together with HAV-021, the Haven entry called Timelines. Then tell me: the report says her father fell alone at 07:15, but the gate register shows a scooter in at 06:05 and out at 07:35, and a jogger heard two men arguing on the rock at 07:10. He was not alone.'),
 
-    ('the_object', 1, 'A timeline puts someone on a rock. It does not say who. The case file''s exhibits are photographs of things, not statements -- and the man you have not named yet posts every weekend of his life in public. The same object is in both places.'),
-    ('the_object', 2, 'Among her father''s effects, laid out on a cloth, there is a clip that was not his: a trekking club''s, tagged with a year. Somebody on the feed still wears that same tag and writes about it in a caption, at that same rock. Match the object. The person follows from it.'),
-    ('the_object', 3, 'CASE-EFFECTS: exhibit four, page two -- the blue carabiner, tag ''TD 2018''. SOC-025 on Loop: ''same rock, same carabiner, still on my 2018 batch tag''. Attach both and tell me what that clip was doing at the base of the rock in 2018.'),
+    ('the_object', 1, 'The timeline puts a second man on the rock but does not name him. The same object is in two places. One is the photograph of her father''s effects in FATHER_DEATH_CASE.pdf, in Documents, then Dad. The other is Loop, in the trekking posts of the people around her. Look for a climbing clip with a tag on it.'),
+    ('the_object', 2, 'Open FATHER_DEATH_CASE.pdf at page 2, exhibit 4. The effects found with him include a blue carabiner with a tag reading TD 2018, and it was not his. Then open Loop and find Rahul Nair''s post from 12 May at Turahalli. His caption says same rock, same carabiner, still on my 2018 batch tag. Open both, then attach both.'),
+    ('the_object', 3, 'Attach CASE-EFFECTS, page 2 exhibit 4 of the case file, together with SOC-025, Rahul Nair''s 12 May post on Loop. Then tell me: the blue carabiner tagged TD 2018 found with her father was not his. It is a Trail Diaries 2018 batch tag, and Rahul Nair posted himself wearing that same tag at that same rock.'),
 
-    ('the_motive', 1, 'An object is not a reason. She spent the last fortnight of her diary on the reason. Go back into Haven, to the entries near the end, not the old ones.'),
-    ('the_motive', 2, 'She found the jogger again and the jogger remembered a sentence the statement left out. One word of it is the whole motive. Her father''s own diary says the same warning three separate times, in his handwriting, in the same year. It is one recording, and she stops just short of the name.'),
-    ('the_motive', 3, 'HAV-029, ''Close'', 30 August, in Haven: ''I told you to stay away from her'' -- her -- the young man running down the trail, and ''Talked to R. again. Warned him off.'' Attach it and tell me whose motive that is, since it cannot be yours.'),
+    ('the_motive', 1, 'Her reason is in Haven, her video diary, opened through Orbit. Open Haven and read the newest entries, the ones from the last two weeks before she disappeared, not the old ones. Look for the entry where she says she is close.'),
+    ('the_motive', 2, 'In Haven open the entry called Close, recorded 30 August. She says the jogger, S. Iyer, heard the older man say I told you to stay away from her, and then saw a young man run down the trail with blood on his knuckles. She also says her father''s diary says Warned him off about a man called R, three times. Open it, then attach it.'),
+    ('the_motive', 3, 'Attach HAV-029, the Haven entry called Close from 30 August. Then tell me: the motive is not yours. Her father warned a man called R to stay away from Meera, three times in his own diary, and the jogger heard him say it on the rock the morning he died. The man he warned off is the one with a reason.'),
 
-    ('the_confession', 1, 'You have a reason and an initial. You do not have a name. She recorded one more time, on the last evening, after everything else on that account. Haven, the final entry.'),
-    ('the_confession', 2, 'The last thing she made, she made so that it would exist somewhere he could not reach: twelve minutes before she was taken, with his car already at the kerb and her husband away. She says the name out loud in it, and she says what she thinks he did in 2018.'),
-    ('the_confession', 3, 'HAV-031, ''If something happens'', 21:52 -- her last recording. The carabiner in every trek photo since 2017, the 5:48 call in her father''s phone, ''R''. Attach it and put the name to me: Rahul Nair.'),
+    ('the_confession', 1, 'You have a reason and an initial. You need the name. Meera recorded one last Haven entry on the evening she was taken, after every other entry on the account. Open Haven through Orbit and open the newest entry, the one dated the night she disappeared.'),
+    ('the_confession', 2, 'In Haven open the entry called If something happens, recorded at 21:52 on the night she was taken. She says the man''s name out loud. She says his carabiner is in every trek photo since 2017, that his number is the 5:48 call in her father''s phone, and that he is R. Open it, attach it, and say the name she says.'),
+    ('the_confession', 3, 'Attach HAV-031, the Haven entry called If something happens, recorded at 21:52 that night. Then tell me the name she gives: Rahul Nair. Say that his number is the 5:48 call in her father''s phone, that he is the R her father warned off, and that the TD 2018 carabiner is his. Naming him releases her band''s SOS alerts to the laptop.'),
 
     -- The ladder starts at tier 2 for a participant with five drone searches
     -- behind them (server.js:ladderStart), so tier 2 has to stand on its own:
     -- it tells someone who has swept every fix, and the pin of the fifth,
     -- where the place actually is, and tier 1 carries the sweep-in-order
     -- instruction instead.
-    ('the_cave', 1, 'A name is not a place, and her band did not stop when she went out of the door. Five alerts are on the laptop now, released to PulseFit, and the map takes coordinates. Sweep them in the order she sent them, one flight each: the drones will not enter the last one blind.'),
-    ('the_cave', 2, 'The fifth fix is the only one that is not a building, and the band was under rock when it sent it: three hundred metres of error, so the pin is scree and thorn, and the pin is not the place. She told you the place herself, when she was a child. ''Our secret kingdom'' -- the cave in the two childhood photographs on her feed, tagged to Rahul, the one he asked her about the night before she was taken. Those photographs carry a geotag. Take it to the map, once the four fixes before it are swept. What the drones bring back from there is not her. It is what she left behind so that you would know it was her.'),
-    ('the_cave', 3, 'SW-06: the two-minute voice memo on her band, recovered with her folded jacket from the cave on the north face of Kettle Hill -- the geotag on SOC-006, 12.951181, 77.501304, the one cave on that face of the model. Sweep it, play the memo, attach it. She names the man who took her in it, and the name is not the one you just gave me.'),
+    ('the_cave', 1, 'Her PulseFit band sent five SOS alerts after she left the flat, and they are now on Meera''s Laptop in the PulseFit app. Open PulseFit. Each alert has a Send to map button. Send them to the City Map one at a time, in the order they were sent, and press Launch drones for each one.'),
+    ('the_cave', 2, 'The fifth alert''s pin is not the place. That fix is 300 metres off because the band was under rock. The place is a cave. On the City Map type Kettle into the search box at the top and pick Cave, Kettle Hill (north face). Press Send drones on it, or right-click it on the model. It is the cave from her childhood Loop photo captioned Our secret kingdom.'),
+    ('the_cave', 3, 'On the City Map type 12.951181 and 77.501304 into the Drone search boxes and press Launch drones. This only works once the first four alerts have each been swept. The drones bring back her jacket and her band, and the band holds a voice memo. Play it. Then attach SW-06 and tell me the name she says in it took her. It is not Rahul.'),
 
-    ('located', 1, 'The memo gave you a plate. A plate is enough for the map to follow a car, and tracking is open to you now. She is not at the cave and she is not where the band stopped.'),
-    ('located', 2, 'His car was read by six cameras between 02:58 and 05:33 and it has not stopped moving since. Follow it. It waits at each of its stops until your drones have been there, so nothing is lost by sweeping them one at a time -- and she is at one of them, alive, behind a door that locks from outside.'),
-    ('located', 3, 'Nikhil Rao, KA 05 MN 4471, a grey hatchback. Follow it on the map and search every stop it makes: the campus basement under his own office, the stadium first-aid room, the market cold store, the rented house at the foot of Kettle Hill, Harrow Mills Unit 4, the chapel store behind the vestry. One of the six is thermal-positive. Search it and she is found.');
+    ('located', 1, 'The memo gave you the driver''s name, and that opens Vehicle tracking on the City Map. She is not at the cave and not where the band stopped. Open the City Map and press the Vehicle tracking button at the top. Type the name from the memo and follow his car.'),
+    ('located', 2, 'His car was read by six cameras between 02:58 and 05:33, and the model is following it. In Vehicle tracking every place it stops is listed. When it stops, press Send drones on that stop and wait for the report. The car waits there until the drones have searched. Search each stop in turn. She is alive at one of them.'),
+    ('located', 3, 'Nikhil Rao, plate KA 05 MN 4471, a grey Hyundai i20. In Vehicle tracking on the City Map type Nikhil and follow him. Send the drones to every stop in turn: Northwind Campus, Meridian Stadium, Old Town Market Hall, the rented house at the foot of Kettle Hill, Harrow Mills Unit 4 and Westhollow Chapel. One report will say Meera located. That ends the file.');
 
 -- ---------------------------------------------------------------------------
 -- The context chains. The hint desk's other question: not "which beat is this
@@ -302,88 +302,88 @@ CREATE TABLE context_hints_taken (
 INSERT INTO context_hints (screen, detail, step, body) VALUES
     -- The laptop, before they are in it.
     ('laptop-boot', '', 1,
-     'That machine is Meera''s own, imaged the morning after she was taken, and it is still starting. Nothing on this screen is evidence and nothing on it needs you. What comes next is her login, and her login is the first thing in this file you have to solve. Press this again when you are looking at it: I answer the screen you are standing on, not the case in general.'),
+     'This is Meera''s laptop starting up. Nothing on this screen is evidence. Wait for it to finish. The next screen is the lock screen, which asks for a PIN. Press this button again when you are on the lock screen and I will tell you where the PIN is written.'),
 
     -- The lock. Step 1 sends them to the screen's own password hint; step 2
     -- sends them to the one record in this hearing that carries what the hint
     -- asks for. Neither of them types four digits at a participant: a gate
     -- they were told the answer to is a gate they did not open.
     ('laptop-lock', '', 1,
-     'Four digits, and she did not pick them out of the air. That screen carries a password hint of her own -- a line of small grey text under the box, below the refusal if it has already refused you once. It is the truth, not decoration. Read it before you guess at it.'),
+     'The lock screen wants a four-digit PIN. Look under the PIN box. There is a small grey line that starts with Password hint. It tells you what the PIN is made from. Read it, then find that fact about Meera.'),
     ('laptop-lock', '', 2,
-     'What the hint asks for is hers, not yours, and you are not expected to carry it in your head. I am: her particulars are on this file. In the bar across the top of this hearing there is a chip marked VICTIM with her name under it. Open it, and read the second line under IDENTITY -- Date of birth. What that lock screen asked you for is in that line. Go and read it there; I do not say her answers out loud.'),
+     'Her date of birth is on the VICTIM card at the top of the MERCY AI Judge tab. Click the VICTIM chip, and under IDENTITY read the Date of birth line. The laptop PIN is the year in that date. Type those four digits into the PIN box on the lock screen.'),
 
     ('laptop-desktop', '', 1,
-     'You are in. Four things on that desktop carry this case and the rest is her ordinary life. Orbit, which is the only road to her accounts -- Loop, Wisp, Haven. Quill, her mail, which has a lock of its own. Notes, seven of them, one of which she should have shredded. File Explorer, where her documents are. PulseFit is there too and it will be empty: her band''s trail is under seal until you have earned it in the hearing.'),
+     'You are in. The apps that carry this case are on the desktop. Orbit is the browser and the only way to Loop, Wisp and Haven, through its bookmarks bar. Quill is her mail. Notes holds her passwords. File Explorer holds her documents and the case file. PulseFit shows her band''s SOS alerts, but only after you have named the man she feared.'),
     ('laptop-desktop', '', 2,
-     'One thing on this machine is locked and everything else is open, which is how she thought of it too: Documents, and then Dad. What is behind that padlock is the police file on her father''s death. The password for it is not hidden anywhere clever -- she wrote it down on this same laptop, in the same list as the wifi and the printer.'),
+     'Open File Explorer and go to Documents. The folder called Dad has a padlock on it. Inside it is the police file on her father''s death. The password for that folder is written in Notes, in the yellow note whose title starts with logins, on the line that starts with Dad''s folder. Read it there and type it into the padlock.'),
 
     -- The apps that carry the case. These say what an app is and how to work
     -- it; what the answer IS stays priced on the beat chain, so a step here
     -- never names a piece of evidence or its id. A gate is the same rule: the
     -- deepest step says where the code is written down, never what it is.
     ('laptop-app', 'files', 1,
-     'Her documents are what anyone''s are: an Aadhaar copy, a resume, a policy, a marriage certificate, a Coorg booking she never used. One folder is not. It carries a padlock on its tile and it is the only locked thing on this machine. Documents.'),
+     'Her documents are in Documents. Most are ordinary: a resume, an Aadhaar copy, a passport, insurance, a marriage certificate, contacts. The folder called Dad is the one that matters. It has a padlock on its tile and it is the only locked thing on this laptop. Open Documents and double-click Dad.'),
     ('laptop-app', 'files', 2,
-     'Documents, then Dad. Behind it: the police file on her father''s death, and one video she kept a local copy of when she had stopped trusting anything to stay online. The password is written down in Notes -- the yellow one, in with the wifi and the printer, exactly where she was told never to put it.'),
+     'Documents, then Dad. Inside are FATHER_DEATH_CASE.pdf, the police file on her father''s death, and one video she kept a local copy of. The folder password is in the Notes app, in the yellow note whose title starts with logins. The second line of that note starts with Dad''s folder, and the password is written after it. Type it exactly as written into the padlock.'),
 
     ('laptop-app', 'notes', 1,
-     'Seven notes, and two of them are the case. One is a list of passwords she meant to change and never did. One is four sentences her father used to say, and the fourth of those sentences is about the rock he died on. The grocery list is a grocery list.'),
+     'Open Notes. There are seven notes and two of them matter. The yellow one whose title starts with logins is a list of her passwords, including the one for the Dad folder in File Explorer. The other yellow one, things Dad said, holds four sentences from her father. The rest are ordinary.'),
     ('laptop-app', 'notes', 2,
-     'The yellow one, ''logins (CHANGE THESE!!)''. Second line down is Dad''s folder, and the password to it is written out on that line in her own hand, with the reason she chose it after it in brackets. Read it off the note and take it to the padlock in File Explorer: Documents, then Dad. Her father''s case file is inside.'),
+     'In Notes open the yellow note whose title starts with logins. Its second line starts with Dad''s folder. The password for that folder is written on that line, before the brackets. Type it exactly as written, capitals included, into the padlock on the Dad folder in File Explorer, under Documents. Her father''s case file is inside.'),
 
     ('laptop-app', 'orbit', 1,
-     'Orbit reaches four addresses and nothing else; the rest of the internet is outside my sandbox and the browser will tell you so. loop.social, wisp.chat, haven.cloud, quill.mail -- her whole life in four bookmarks. Two of the four are locked, and the third asks you questions instead.'),
+     'Orbit is the browser. It reaches only four sites and shows an offline page for anything else. The bookmarks bar has Loop, Wisp Web and Haven. Quill is also its own app on the desktop. Wisp opens with no password. Loop and Quill each ask for a password. Haven emails you a code and then asks security questions.'),
     ('laptop-app', 'orbit', 2,
-     'The key in the toolbar is her saved passwords, and it will show them to anyone who can answer the laptop''s own PIN -- which you can, since you are past the lock screen. Quill''s is saved there. Loop''s never was; she refused to let it. Haven''s was, and she deleted it twelve days before she was taken.'),
+     'The key icon in Orbit''s toolbar opens her saved passwords. Revealing one asks for the laptop PIN, which you already have. Quill''s password is saved there. Loop''s password was never saved. Haven''s was removed twelve days before she was taken, so Haven has to be opened with its emailed code and her security questions.'),
 
     ('laptop-app', 'quill', 1,
-     'Her mail is locked. Under the box there is a link that offers to help you sign in, and what it gives you is not a hint but a riddle, in her own words, about a name. Press it and read it as she wrote it: she is the one speaking, and she married into your family.'),
+     'Quill, her mail, is locked. Under the password box press Get help signing in. It shows her own password hint. The hint describes a person in her family by how he is related to her. Work out who that is. His first name is the password.'),
     ('laptop-app', 'quill', 2,
-     'Read the riddle from her side of that family and the name at the end of it is one you have known all your life. If you would rather read it than reason it, Orbit has it saved: the key in the browser''s toolbar, the quill.mail row, revealed with the laptop''s own PIN. What is inside the mail is a correspondence she kept off her phone on purpose -- and the one-time codes Haven sends land in here too, which is why you will be back at this window.'),
+     'Her password hint means her husband. His name is on the VICTIM card at the top of the MERCY AI Judge tab, on the Husband line under IDENTITY. Type his first name into Quill''s password box. It is also saved in Orbit: press the key icon in the toolbar and reveal the quill.mail row with the laptop PIN. Haven''s sign-in codes arrive in this inbox.'),
 
     ('laptop-app', 'wisp', 1,
-     'Wisp opens straight in; she never locked it. Six conversations -- Nikhil, Rahul, Priya, your brother, the college group, and you. The night she was taken is at the bottom of all six. Read them by their clock, not by whose name looks interesting.'),
+     'Wisp opens with no password. Six of the chats matter: Nikhil Rao, Rahul Nair, Priya Menon, Vikram Kapoor, the College Batch group, and you. The bank, delivery, promo and unknown-number chats are noise. Every message you open is added to your evidence index. Scroll to the bottom of each chat, to the night she was taken, and read by the timestamps.'),
     ('laptop-app', 'wisp', 2,
-     'One message in there landed after 23:00 that night -- an hour and a half after she was already gone -- and she never opened it. Who sent it, and where he says he was when he sent it, is the half of your own night that you have still not put in front of me.'),
+     'Open the chat with Vikram Kapoor, your brother. His message to Meera at 23:12 that night says you were staying over and that your mother fed you. She never opened it. Open it so it is in your evidence index. It is half of your alibi. The other half is Vikram''s post on Loop at 23:40 that night.'),
 
     ('laptop-app', 'loop', 1,
-     'Loop is locked, and its help does not hint, it asks. Press the link that offers to help you log in and she puts a question to you instead of an answer: when did everything change. The box wants a date and it wants it as eight digits with nothing between them -- day, month, year, no slashes.'),
+     'Loop is locked. Under the password box press Get help logging in. It asks: When did everything change? The answer is a date. Type it as eight digits with nothing between them: two for the day, two for the month, four for the year.'),
     ('laptop-app', 'loop', 2,
-     'The day everything changed for her is the morning her father was found at the base of Sunset Rock, and the quickest place to read that date is here rather than hunting for it: the VICTIM chip at the top of this hearing, under IDENTITY, the Father line -- it carries the day he died. Read it there and type it as eight digits. Once you are in, the posts that matter to you are not her own: read the accounts around her, and read the night she was taken by its timestamps rather than by its faces.'),
+     'The day everything changed for Meera is the day her father died. That date is on the VICTIM card at the top of the MERCY AI Judge tab, under IDENTITY, on the Father line. Read it there and type it as eight digits, day month year, no slashes. Once inside, read the posts of the people around her, not only hers, and read the night she was taken by the timestamps.'),
 
     ('laptop-app', 'haven', 1,
-     'Haven is her video diary, and it is the spine of this case: thirty-one recordings, dated, tagged and transcribed, including one the laptop never had a copy of. There is no password on it -- she deleted the saved one. Getting in is two steps instead: a code, and then four questions about her.'),
+     'Haven is her video diary. It holds thirty-one recordings with transcripts. There is no password. Sign-in is two steps. First press Email me a sign-in code, and the code arrives in Quill, her mail. Second, answer her security questions. Every question has a Show hint link beside it. Read the hints before you answer.'),
     ('laptop-app', 'haven', 2,
-     'The code is emailed. Ask Haven for it and then go and read it in Quill: it is a real message arriving in her inbox, and it dies after ten minutes, so open the mail first and ask for the code second. Then four security questions, asked together, and each one carries a hint of her own writing behind a link beside it. Open all four hints and read them before you answer anything: they are about where she was born, the dog, the person she loved, and the password she has used since she was a child, that last one without the year on the end of it.'),
+     'Open Quill first so the inbox is ready. Then in Haven press Email me a sign-in code, go back to Quill, open the new mail and type the six-digit code within ten minutes. Then answer the four security questions: where she was born, her pet''s name, her favourite person''s first name, and her childhood password without the year. Press Show hint under each one.'),
     ('laptop-app', 'haven', 3,
-     'Four questions, four places, and every one of them is open to you already. Where she was born: the VICTIM chip at the top of this hearing, under IDENTITY, the Birthplace line. The dog: the same card, the Residence line, and one of her Notes is titled with his name. The person she loved: the same card again, the Husband line. The password she has kept since she was a child: Loop, her direct messages with Rahul -- he asks her whether she still uses it and she names it in her reply, as a word with the year after it. Haven wants the word without the year. Capitals and punctuation do not matter to it. Inside, work by date: what she tagged to her father''s case, and then the last thing she ever recorded -- the newest entry on the account, and the one this hearing is waiting for.'),
+     'All four answers are written where you can read them. Birthplace: the VICTIM card at the top of the MERCY AI Judge tab, the Birthplace line, city name only. Pet: the same card, the Residence line names the dog. Favourite person: the same card, the Husband line, first name only. Childhood password: Loop, Messages, her chat with Rahul Nair, where she writes the word and then the year. Type only the word.'),
 
     ('laptop-app', 'pulsefit', 1,
-     'Her band kept transmitting after she went out of that door. What it sent is under evidence seal until you have named the man she was afraid of, and I am the one who breaks that seal. If this screen is empty, that is the seal -- and what opens it is not on this laptop, it is in the hearing, in her last recording.'),
+     'PulseFit shows the SOS alerts from her band. If the screen says No alerts on this device, they are still under evidence seal. The seal breaks when you name the man she feared in the MERCY AI Judge tab, using her last Haven recording. Do that first, then come back here.'),
     ('laptop-app', 'pulsefit', 2,
-     'Five alerts, 22:41 through 02:14, and then the band stops. They are not an answer, they are a route: take them to the city model in the order she sent them, one flight each, and read what the drones bring back from every one. The last fix is the only one that is not a building, and it is the loosest of the five by a long way.'),
+     'Five alerts, from 22:41 to 02:14. Each has a Send to map button and a Copy button. Press Send to map on the first alert, go to the City Map tab and press Launch drones. Wait for the report, then do the same for the second, third, fourth and fifth, in that order. The fifth fix is 300 metres off, so its pin is not the place.'),
 
     -- The rest of the laptop. A short honest step that clears the ground is
     -- worth its five points at an event run against a clock.
     ('laptop-app', 'photos', 1,
-     'Her camera roll, her wedding, her screenshots, and a folder of pictures somebody sent her that she kept out of the way. There is nothing in here that a beat of this hearing asks for. The photographs that decide this case are on the feed, not on the disk.'),
+     'Photos shows her Camera Roll, her wedding pictures and her screenshots. Nothing in here is needed by any beat of this hearing. The photographs that decide this case are in the case file PDF under Documents, then Dad, and on Loop. Close this and go there.'),
     ('laptop-app', 'notepad', 1,
-     'A text viewer. It shows you whatever File Explorer handed it and it holds nothing of its own. If you are reading her notes to herself, read them -- but the case is not in this window, it is in the window that opened it.'),
+     'Notepad only shows a text file that File Explorer opened. It holds nothing of its own. The case is not in this window. Close it and go back to File Explorer, or to Notes for her passwords.'),
     ('laptop-app', 'movies', 1,
-     'The laptop''s player. The only recording she kept a local copy of sits in the locked folder with her father''s case file; everything else she made lives in her diary, online, where he could not reach it.'),
+     'Movies & TV is the laptop''s video player. The only recording stored on this laptop is the video in the locked folder Documents, then Dad. Every other recording she made is in Haven, her online video diary, opened through Orbit. Go there.'),
 
     -- The map. Mine, not hers: nothing on it is evidence until the drones
     -- bring something back.
     ('map-idle', '', 1,
-     'This model is mine, not hers. Nothing on it is evidence until my drones bring something back. You send them two ways: type a latitude and a longitude into the box on the right and launch, or right-click any building on the model. Four lift off the roof of Police HQ, thread between the buildings, and sweep sixty metres around the point.'),
+     'This is my city model. Nothing on it is evidence until the drones report. To send them, type a latitude and a longitude into the Drone search boxes on the right and press Launch drones, or right-click any building on the model. The drones lift off Police HQ, search 60 metres around the point and report back.'),
     ('map-idle', '', 2,
-     'Coordinates come from the case, not from the map: I will not mark her for you, and I will not stop you looking anywhere. A sweep that finds nothing costs you only the flight and it takes a place off the list. When there is finally a car worth following, the padlock on Vehicle tracking opens by itself.'),
+     'The coordinates come from the case, not from the map. Her band''s SOS alerts in PulseFit on the laptop each have a Send to map button that fills the boxes here. A search that finds nothing costs only the flight and takes a place off the list. Vehicle tracking, the locked button at the top, opens by itself once the drones bring back her band''s memo.'),
 
     ('map-search', '', 1,
-     'Let it finish. The drones fly the line the streets allow and the frames come back as they sweep; the report is written when they are home, and a second flight will not leave the roof until the first has reported. The speed control runs the city at three times if you are impatient -- the sweep itself ignores it.'),
+     'Let the flight finish. The drones follow the streets and the report is written when they are back. A second flight will not launch until the first has reported. The speed button at the top makes the cars and drones move faster, but the search itself runs at normal speed.'),
     ('map-search', '', 2,
-     'Every sweep is logged whatever it finds. If you are following a car, it waits at the kerb until your drones have cleared the stop it is standing at, and I do not name the next stop until this one is finished -- so nothing is lost by taking them one at a time, and nothing is gained by hurrying them.');
+     'Every search is logged on the right whether it finds anything or not, and every report is evidence you can attach in the MERCY AI Judge tab. If you are following a car, it waits at its stop until your drones have searched it, and the next stop is not shown until this one is done. Search the stops one at a time.');
 
 -- Evidence with no live service to fetch it from: the case file's own
 -- photographs. Served by this container from public/case-photos/.
