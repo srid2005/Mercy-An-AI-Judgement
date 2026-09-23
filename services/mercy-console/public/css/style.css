@@ -80,13 +80,20 @@ body[data-gated] > #topbar, body[data-gated] > #panels, body[data-gated] > #evid
   backdrop-filter: blur(18px) saturate(1.3); -webkit-backdrop-filter: blur(18px) saturate(1.3);
   box-shadow: 0 6px 24px rgba(95, 62, 20, 0.08);
 }
-#brand { display: flex; align-items: baseline; gap: 12px; }
-#brand .mark { font-weight: 700; font-size: 17px; letter-spacing: 0.34em; color: var(--ink); }
-#brand .sub { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.26em; color: var(--amber-2); }
-#tabbar { display: flex; gap: 4px; padding: 4px; border-radius: 999px;
+/* The bar has no slack at 1366 with everything at its widest (windowed, so
+   FULL SCREEN is on it; a closed file, so the clock reads TIME'S UP and the
+   way out reads SEE THE LEADERBOARD). Flex used to make up the difference by
+   squeezing every item at once, and the file number wrapped onto the hint
+   chips. Now nothing on the bar wraps or shrinks below its text: the brand's
+   subline is the one thing that can give, and only by truncating, as the
+   last resort. The widths below set what yields before it comes to that. */
+#brand { display: flex; align-items: baseline; gap: 12px; white-space: nowrap; min-width: 0; }   /* min-width: 0, or flex can never shrink it and the subline's ellipsis never fires */
+#brand .mark { font-weight: 700; font-size: 17px; letter-spacing: 0.34em; color: var(--ink); flex: 0 0 auto; }
+#brand .sub { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.26em; color: var(--amber-2); overflow: hidden; text-overflow: ellipsis; }
+#tabbar { display: flex; flex: 0 0 auto; gap: 4px; padding: 4px; border-radius: 999px;
   background: rgba(255, 255, 255, 0.55); border: 1px solid rgba(255, 255, 255, 0.9);
   box-shadow: inset 0 1px 0 #fff, 0 4px 14px rgba(95, 62, 20, 0.08); }
-.tab-btn { border: 0; background: transparent; color: var(--ink-dim); font-weight: 600; font-size: 13px;
+.tab-btn { border: 0; background: transparent; color: var(--ink-dim); font-weight: 600; font-size: 13px; white-space: nowrap;
   padding: 8px 18px; border-radius: 999px; cursor: pointer; transition: color 0.2s, background 0.2s, box-shadow 0.2s; }
 .tab-btn:hover { color: var(--ink); }
 .tab-btn.active { background: linear-gradient(135deg, #3a2a18, #1f170f); color: #ffd79a;
@@ -94,8 +101,8 @@ body[data-gated] > #topbar, body[data-gated] > #panels, body[data-gated] > #evid
 /* "something new is waiting on that tab": lit by app.js, cleared when the tab is opened */
 .tab-btn .tab-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--amber-2); box-shadow: 0 0 8px var(--amber-glow); margin-left: 8px; vertical-align: 1px; }
 .tab-btn .tab-dot[hidden] { display: none; }
-#topbar-right { min-width: 160px; display: flex; align-items: center; justify-content: flex-end; gap: 14px; }
-#case-no { font-family: var(--mono); font-size: 11px; letter-spacing: 0.22em; color: var(--ink-soft); }
+#topbar-right { flex: 0 0 auto; display: flex; align-items: center; justify-content: flex-end; gap: 14px; }
+#case-no { font-family: var(--mono); font-size: 11px; letter-spacing: 0.22em; color: var(--ink-soft); white-space: nowrap; }
 /* the clock: HUD material at topbar size. Amber while there is time, red and
    pulsing under five minutes, a steady red TIME'S UP at zero. */
 #hud-clock { display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 9px;
@@ -963,7 +970,33 @@ body:has(#hint-drawer:not([hidden])) #hint-flash { top: calc(var(--topbar-h) + 8
   .ht-main i { font-size: 11px; }
 }
 @media (max-width: 1440px) {
+  /* windowed (FULL SCREEN on the bar) the case number is the first thing to go:
+     with tab dots lit and a three-digit cost the compact bar has no slack for it */
+  #topbar:has(#fs-btn:not([hidden])) #case-no { display: none; }
   .pr-id { display: none; } /* the column is narrow; tags matter more than the id, which search still matches */
+  /* the compact bar. 1440 wide is the first width where the bar at its
+     widest (see #brand above) no longer fits, and 1366 -- the event's
+     laptops -- is where it collided: the gutters, the tabs' padding and the
+     letter-spacing on the ghost buttons all tighten, and the file number
+     stands as its number alone, a compact chip beside the clock. */
+  #topbar { padding: 0 20px; }
+  #brand { gap: 10px; }
+  #brand .sub { letter-spacing: 0.2em; }
+  .tab-btn { padding: 8px 14px; }
+  #hint-btn { padding: 0 11px; }
+  #hint-toggle { padding: 0 10px 0 9px; }
+  #topbar-right { gap: 10px; }
+  #case-no { letter-spacing: 0.14em; } #case-no .cn-file { display: none; }
+  #leave-btn, #tour-btn, #fs-btn { padding: 0 10px; letter-spacing: 0.14em; }
+  /* with FULL SCREEN on the bar as well, the brand's subline is what goes;
+     the wordmark alone is still the brand */
+  #topbar:has(#fs-btn:not([hidden])) #brand .sub { display: none; }
+}
+@media (max-width: 1280px) {
+  #topbar { padding: 0 16px; }
+  .tab-btn { padding: 8px 12px; }
+  /* and windowed, the file number too: the clock and the controls are what
+     this bar is for, and the number is on the dossier */
 }
 @media (max-width: 880px) {
   #panel-mercy.active { grid-template-columns: minmax(0, 1fr); padding: 14px 16px 16px; }
@@ -1017,7 +1050,7 @@ body:has(#hint-drawer:not([hidden])) #hint-flash { top: calc(var(--topbar-h) + 8
   #topbar-right { gap: 6px; }
   /* the tabs are the one thing here that can give: let flexbox shrink them
      and clip, rather than have the clock land on top of "City Map" */
-  #tabbar { min-width: 0; }
+  #tabbar { min-width: 0; flex-shrink: 1; }   /* the base rule pins it at 0; a phone must be allowed to clip */
   .tab-btn { padding: 5px 7px; font-size: 10px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #hud-clock { padding: 0 6px; font-size: 12px; }
   #leave-btn, #tour-btn { padding: 0 6px; font-size: 9px; letter-spacing: 0.06em; }

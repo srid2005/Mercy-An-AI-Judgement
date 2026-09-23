@@ -679,11 +679,22 @@ app.post("/api/argue", async (req, res) => {
 // That is one of two questions the desk answers. The other is where the
 // participant is standing right now: the console reports the screen they are
 // on (mercy:context) and sends it with every press of its Hint button, and a
-// screen with a chain written for it (context_hints) answers that screen
+// screen with a chain written for it (context_hints) can answer that screen
 // instead -- the next unbought step of it, so pressing again escalates rather
-// than repeats. The two are priced the same, charged apart, and ordered:
-// screen first, beat second, and a chain that has been spent falls through to
-// the beat, because a hint button that can say nothing is a dead end.
+// than repeats. The two are priced the same and charged apart, and the beat
+// comes first. A screen is only ever the answer while it is a gate the
+// participant is provably still held at -- the lock screen, an app with a
+// login and nothing yet discovered from behind it -- because that is the one
+// case where the beat is not what they are stuck on. Anywhere else the screen
+// is where they chose to stand, not where they are stuck: a participant who
+// opened Quill and asked for help was told how to open Quill, and one who had
+// swept all five fixes on the map was told how the map works, which is what
+// screen-first bought. A gate chain that has been spent falls through to the
+// beat too, because a hint button that can say nothing is a dead end.
+//
+// The beat ladder starts at the first tier whose advice they have not already
+// followed, not at tier 1: what a tier says is bounded by its price, so a
+// participant who has done tier 1 is not sold it again on the way to tier 2.
 //
 // A hint informs and does nothing else. It opens no tab, reveals no panel and
 // touches nothing on any screen: the answer is the participant's to walk to,
@@ -702,12 +713,56 @@ async function stuckOn() {
   const accepted = (await pool.query("SELECT evidence_id FROM accepted_evidence")).rows.map((r) => r.evidence_id);
   const set = await acceptedSetFor(accepted);
   const missing = next.required_ids.filter((id) => !set.has(id));
-  if (!missing.length) return { code: next.code, missing, allDiscovered: false };
+  if (!missing.length) return { code: next.code, missing, allDiscovered: false, anyDiscovered: false };
   // MAP-FOUND is not a record anyone can open, so it is never discovered --
   // which is right: a participant who has not found her is stuck on finding
   // her, not on arguing her.
   const seen = (await pool.query("SELECT evidence_id FROM discovered_evidence WHERE evidence_id = ANY($1)", [missing])).rows.map((r) => r.evidence_id);
-  return { code: next.code, missing, allDiscovered: seen.length === missing.length };
+  return { code: next.code, missing, allDiscovered: seen.length === missing.length, anyDiscovered: seen.length > 0 };
+}
+
+// The first tier of the beat whose advice the participant has not already
+// followed. Tier 1 of every beat says where to look, and a participant who
+// has opened one of the pieces the beat needs has been there: the discovered
+// set is that signal for every beat. Two beats have a step before the piece
+// that the discovered set cannot see. the_cave's tier 1 sends them to the
+// five alerts and the map, and five discovered drone searches say they have
+// done that (every search on their screen is discovered, so the count is the
+// sweeps); located's tier 1 says the memo opened tracking, which the memo in
+// the accepted set says they already know. Tier 3 is never the start: it
+// names the piece, and nothing short of buying it earns that.
+async function ladderStart(stuck) {
+  if (stuck.anyDiscovered) return 2;
+  if (stuck.code === "the_cave") {
+    const swept = (
+      await pool.query("SELECT count(*)::int AS n FROM evidence_cache c JOIN discovered_evidence d ON d.evidence_id = c.evidence_id WHERE c.service = 'city-map'")
+    ).rows[0].n;
+    if (swept >= 5) return 2;
+  }
+  if (stuck.code === "located") {
+    const memo = await pool.query("SELECT 1 FROM accepted_evidence WHERE evidence_id = 'SW-06'");
+    if (memo.rows.length) return 2;
+  }
+  return 1;
+}
+
+// The screens that are gates, and what says each one is open. A screen chain
+// is consulted only while the participant is held at a gate that is provably
+// still shut: the lock screen always is, while they stand on it; an app with
+// a login is shut until a record from behind it has been discovered
+// (discovered_evidence is the proxy -- nothing from Quill can be opened
+// without Quill's password, and the case file's pages are behind the folder
+// password that Notes and File Explorer are the road to). Any other screen
+// is where they chose to stand, and the beat answers there.
+const GATE_PREFIX = { quill: "EML-", loop: "SOC-", haven: "HAV-", files: "CASE-", notes: "CASE-" };
+async function heldAtGate(screen, detail) {
+  if (screen === "laptop-lock") return true;
+  if (screen !== "laptop-app" || !GATE_PREFIX[detail]) return false;
+  // HAV-019 is the one Haven record with a copy on the laptop itself (Documents\Dad,
+  // "2024-08-02 The box.mp4"): it is discovered by opening a file, not by logging
+  // in, so it cannot stand as proof that Haven's gate is open.
+  const behind = await pool.query("SELECT 1 FROM discovered_evidence WHERE evidence_id LIKE $1 AND evidence_id <> 'HAV-019' LIMIT 1", [GATE_PREFIX[detail] + "%"]);
+  return !behind.rows.length;
 }
 
 // Where the participant is standing, as the console reports it: a fixed
@@ -741,13 +796,14 @@ async function chainFor(screen, detail) {
   return { screen, detail: steps[0].detail, steps, next: steps.find((s) => !taken.includes(s.step)) || null };
 }
 
-// The cheapest tier of this beat the participant does not already own. The nav
-// button sends no tier and still has to be answered; once all three are bought
-// the last one comes back again for nothing, because the button is never
-// allowed to be a dead end.
-async function nextBeatTier(code) {
+// The cheapest tier of this beat, from where the ladder starts, that the
+// participant does not already own. The nav button sends no tier and still
+// has to be answered; once every tier left on the ladder is bought the last
+// one comes back again for nothing, because the button is never allowed to
+// be a dead end.
+async function nextBeatTier(code, from) {
   const taken = (await pool.query("SELECT tier FROM hints_taken WHERE checkpoint_code = $1", [code])).rows.map((r) => r.tier);
-  return [1, 2, 3].find((t) => !taken.includes(t)) || 3;
+  return [1, 2, 3].filter((t) => t >= from).find((t) => !taken.includes(t)) || 3;
 }
 
 // The charge, once, against whichever ledger keys these words. The same words
@@ -791,9 +847,10 @@ app.post("/api/hint", async (req, res) => {
   if (state.outcome === "timeout") return res.status(409).json({ error: "time is up" });
   if (state.concluded) return res.status(409).json({ error: "the case is closed" });
 
-  // The screen first. A chain with a step left answers where they are
-  // standing; a chain they have spent falls past this and the beat answers.
-  const chain = asked === null ? await chainFor(screen, detail) : null;
+  // The gate first, and only a gate. A chain with a step left answers the
+  // screen they are held at; a chain they have spent, or a screen that is
+  // not a shut gate, falls past this and the beat answers.
+  const chain = asked === null && (await heldAtGate(screen, detail)) ? await chainFor(screen, detail) : null;
   if (chain && chain.next) {
     const step = chain.next;
     const paid = await chargeOnce(
@@ -818,12 +875,20 @@ app.post("/api/hint", async (req, res) => {
       step: step.step,
       steps_total: chain.steps.length,
       kind: "context",
+      // what the next press costs, for the console's ask card. null once this
+      // chain is spent: the next press falls to the beat, whose starting tier
+      // is not known until it is asked
+      next_cost: step.step < chain.steps.length ? HINT_COST[step.step + 1] : null,
     });
   }
 
   const stuck = await stuckOn();
   if (!stuck) return res.status(409).json({ error: "there is nothing left to point you at" });
-  const tier = asked === null ? await nextBeatTier(stuck.code) : asked;
+  // a tier named explicitly is the whole ladder, as it always was; the nav
+  // button's ladder begins past the advice they have already followed, and
+  // step/steps_total count that shorter ladder so the badge reads true
+  const from = asked === null ? await ladderStart(stuck) : 1;
+  const tier = asked === null ? await nextBeatTier(stuck.code, from) : asked;
   // read the words before taking the money: a tier with no row is a seeding
   // fault, and nobody pays for it
   const row = (await pool.query("SELECT body FROM hints WHERE checkpoint_code = $1 AND tier = $2", [stuck.code, tier])).rows[0];
@@ -845,9 +910,10 @@ app.post("/api/hint", async (req, res) => {
     hint_cost: paid.hintCost,
     points_left: paid.hintCost,
     target: `${stuck.code}/tier${tier}`,
-    step: tier,
-    steps_total: 3,
+    step: tier - from + 1,
+    steps_total: 4 - from,
     kind: "beat",
+    next_cost: tier < 3 ? HINT_COST[tier + 1] : 0,   // 0: the last tier is re-served free
   });
 });
 

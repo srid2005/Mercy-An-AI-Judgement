@@ -177,7 +177,12 @@ INSERT INTO checkpoints (code, sort_order, label, required_ids, guilt_after, unl
 --
 -- POST /api/hint picks the beat from where the participant is actually
 -- stuck (the next un-hit checkpoint, minus what it has already accepted),
--- so these are keyed on the checkpoint, not on an evidence id.
+-- so these are keyed on the checkpoint, not on an evidence id. The nav
+-- button's ladder starts past the advice they have already followed
+-- (server.js:ladderStart): tier 1 is skipped once a piece the beat needs has
+-- been discovered, once five drone searches have been made (the_cave), or
+-- once the memo is accepted (located) -- so every tier 2 below is written to
+-- be read first by someone who has done what tier 1 says.
 CREATE TABLE hints (
     checkpoint_code  TEXT NOT NULL,
     tier             INTEGER NOT NULL CHECK (tier IN (1, 2, 3)),
@@ -217,9 +222,14 @@ INSERT INTO hints (checkpoint_code, tier, body) VALUES
     ('the_confession', 2, 'The last thing she made, she made so that it would exist somewhere he could not reach: twelve minutes before she was taken, with his car already at the kerb and her husband away. She says the name out loud in it, and she says what she thinks he did in 2018.'),
     ('the_confession', 3, 'HAV-031, ''If something happens'', 21:52 -- her last recording. The carabiner in every trek photo since 2017, the 5:48 call in her father''s phone, ''R''. Attach it and put the name to me: Rahul Nair.'),
 
-    ('the_cave', 1, 'A name is not a place, and her band did not stop when she went out of the door. Five alerts are on the laptop now, released to PulseFit. The map takes coordinates.'),
-    ('the_cave', 2, 'Sweep the five fixes in the order she sent them. The last one is not a building and it is degraded by three hundred metres, so the pin is not the answer -- read the ground around it, and the two childhood photographs with the same geotag. What the drones bring back from there is not her. It is what she left behind so that you would know it was her.'),
-    ('the_cave', 3, 'SW-06: the two-minute voice memo on her band, recovered with her folded jacket from the cave on the north face of Kettle Hill. Sweep the cave, play the memo, attach it. She names the man who took her in it, and the name is not the one you just gave me.'),
+    -- The ladder starts at tier 2 for a participant with five drone searches
+    -- behind them (server.js:ladderStart), so tier 2 has to stand on its own:
+    -- it tells someone who has swept every fix, and the pin of the fifth,
+    -- where the place actually is, and tier 1 carries the sweep-in-order
+    -- instruction instead.
+    ('the_cave', 1, 'A name is not a place, and her band did not stop when she went out of the door. Five alerts are on the laptop now, released to PulseFit, and the map takes coordinates. Sweep them in the order she sent them, one flight each: the drones will not enter the last one blind.'),
+    ('the_cave', 2, 'The fifth fix is the only one that is not a building, and the band was under rock when it sent it: three hundred metres of error, so the pin is scree and thorn, and the pin is not the place. She told you the place herself, when she was a child. ''Our secret kingdom'' -- the cave in the two childhood photographs on her feed, tagged to Rahul, the one he asked her about the night before she was taken. Those photographs carry a geotag. Take it to the map, once the four fixes before it are swept. What the drones bring back from there is not her. It is what she left behind so that you would know it was her.'),
+    ('the_cave', 3, 'SW-06: the two-minute voice memo on her band, recovered with her folded jacket from the cave on the north face of Kettle Hill -- the geotag on SOC-006, 12.951181, 77.501304, the one cave on that face of the model. Sweep it, play the memo, attach it. She names the man who took her in it, and the name is not the one you just gave me.'),
 
     ('located', 1, 'The memo gave you a plate. A plate is enough for the map to follow a car, and tracking is open to you now. She is not at the cave and she is not where the band stopped.'),
     ('located', 2, 'His car was read by six cameras between 02:58 and 05:33 and it has not stopped moving since. Follow it. It waits at each of its stops until your drones have been there, so nothing is lost by sweeping them one at a time -- and she is at one of them, alive, behind a door that locks from outside.'),
@@ -231,7 +241,14 @@ INSERT INTO hints (checkpoint_code, tier, body) VALUES
 -- reports where they are standing (mercy:context, a fixed vocabulary of screen
 -- keys) and sends it with every press of the hint button; POST /api/hint
 -- serves the next step of the chain for that screen, so pressing again
--- escalates instead of repeating.
+-- escalates instead of repeating -- but only while that screen is a gate they
+-- are provably still held at (server.js:heldAtGate): the lock screen, or
+-- Quill / Loop / Haven / Notes / File Explorer with nothing yet discovered
+-- from behind its password. Everywhere else the beat answers, because a
+-- participant on the map who has swept every fix is stuck on the cave, not on
+-- how the map works. The other chains below stay seeded: they are still the
+-- right words for a gate that is added later, and a live schema never loses
+-- rows.
 --
 -- `screen` is the key, `detail` narrows it -- the app inside 'laptop-app' --
 -- and '' is the chain for the whole screen, used when a detail has no chain of

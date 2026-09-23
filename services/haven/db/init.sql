@@ -235,7 +235,7 @@ They called him to tell him Dad was dead. Nobody asked why he''d phoned Dad at t
 The register, the jogger, the phone, they all say one thing. The file says another. And it just... moves on.',
  '/videos/2024-08-10.mp4', '/images/posters/2024-08-10.jpg'),
 
-('HAV-022', 'The gate', t('2024-08-14 23:30:00+05:30'), 30, 'anxious', '{dad,case}',
+('HAV-022', 'The gate', t('2024-08-14 23:30:00+05:30'), 10, 'anxious', '{dad,case}',
  'I went to Turahalli today. First time since. The gate guard from 2018 is still there. Same chair. He remembers the young man on the scooter. Rucksack, glasses, said he was meeting a family friend up the trail.
 
 He told the police all of that. Nobody ever came back to ask him anything.
@@ -257,7 +257,7 @@ I know he''s scared for me. I know he''s probably right. But he didn''t know Dad
 Sixteen thousand rupees to be told my dog is dramatic. Worth it. Moving on.',
  '/videos/2024-08-19.mp4', '/images/posters/2024-08-19.jpg'),
 
-('HAV-025', 'You should stop', t('2024-08-21 00:40:00+05:30'), 30, 'afraid', '{case,threat}',
+('HAV-025', 'You should stop', t('2024-08-21 00:40:00+05:30'), 20, 'afraid', '{case,threat}',
  'Someone emailed me. Quarter to midnight. No name, an address that''s just numbers. ''Whatever you think you''re looking into, stop. This is the only warning you''ll get.''
 
 I''ve read it maybe forty times. I only use that address for a handful of people. So someone knows I''m looking into Dad''s case. Not ''might know''. Knows.
@@ -271,7 +271,7 @@ I locked the balcony door twice and then checked it again. Bruno keeps looking a
 Because whoever emailed me knows I''m looking. And a request from Ravi Sharma''s daughter is a flare going up. I''ll go and find the jogger myself instead. Her name''s in the statement. Next week. I''ll take leave.',
  '/videos/2024-08-23.mp4', '/images/posters/2024-08-23.jpg'),
 
-('HAV-027', 'Watched', t('2024-08-25 23:20:00+05:30'), 30, 'afraid', '{case,rahul}',
+('HAV-027', 'Watched', t('2024-08-25 23:20:00+05:30'), 10, 'afraid', '{case,rahul}',
  'I think I''m being watched. I don''t say that lightly. I went back to the gate guard, to thank him. He said someone had already been by. Asking what I''d wanted. This week.
 
 Somebody knew I went to the forest. I told exactly no one.
@@ -281,7 +281,7 @@ And Rahul called tonight. Out of nowhere. Just to chat, what have you been up to
 I''m scared of everyone now. That''s what this is doing to me.',
  '/videos/2024-08-25.mp4', '/images/posters/2024-08-25.jpg'),
 
-('HAV-028', 'Leave', t('2024-08-28 22:00:00+05:30'), 30, 'afraid', '{case,arjun,threat}',
+('HAV-028', 'Leave', t('2024-08-28 22:00:00+05:30'), 20, 'afraid', '{case,arjun,threat}',
  '''I know where you''ve been going. I know who you''ve been talking to.'' They know about the forest. They know about the gate guard. They might know about N.
 
 I''ve drafted a leave request for next week. I''m going to the district office in person, first thing, before anyone can pull anything else out of that file.
@@ -289,7 +289,7 @@ I''ve drafted a leave request for next week. I''m going to the district office i
 Arjun and I had a real fight tonight. A bad one. About nothing, about everything. I couldn''t tell him the actual reason. I got as far as ''there''s something about Dad''. And then I just... didn''t.',
  '/videos/2024-08-28.mp4', '/images/posters/2024-08-28.jpg'),
 
-('HAV-029', 'Close', t('2024-08-30 07:50:00+05:30'), 30, 'anxious', '{case,dad}',
+('HAV-029', 'Close', t('2024-08-30 07:50:00+05:30'), 20, 'anxious', '{case,dad}',
  'I''m close. I can feel it. The jogger. S. Iyer, she still runs there. She remembers more than the statement. The older voice said ''I told you to stay away from her''. Her.
 
 And a bit later a young man came running down the trail past her. No rucksack. Blood on his knuckles. She thought he''d fallen.
@@ -299,7 +299,7 @@ Dad''s diary. Three separate pages, same year, same line: ''Talked to R. again. 
 I''ve been staring at that R for an hour. I''m not saying the name until I''m sure.',
  '/videos/2024-08-30.mp4', '/images/posters/2024-08-30.jpg'),
 
-('HAV-030', 'Hide-and-seek', t('2024-09-01 23:20:00+05:30'), 30, 'reflective', '{rahul,childhood,case}',
+('HAV-030', 'Hide-and-seek', t('2024-09-01 23:20:00+05:30'), 20, 'reflective', '{rahul,childhood,case}',
  'Rahul messaged tonight. About passwords, of all things. ''You still use that?'' And then, out of nowhere, about the cave. Whether I remembered our kingdom. Whether I still cheated at hide-and-seek.
 
 It was sweet. It should have been sweet.

@@ -2479,6 +2479,7 @@
       tier: num(res.tier),
       step: num(res.step),
       steps_total: num(res.steps_total),
+      next_cost: num(res.next_cost),   // the engine's own price for the next press on this screen
       cost: Number(res.cost) || 0,
       hint: String(res.hint || ""),
       target: res.target || "",
@@ -2490,7 +2491,9 @@
     // filed against the engine's own target, so the same step is never
     // written (or read back as owned) twice. Nulls are normalised because a
     // record written by an older build has no step at all.
-    const same = (a, b) => a.target === b.target && (a.tier || null) === (b.tier || null) && (a.step || null) === (b.step || null);
+    // by target and tier only: the same tier reports a different step number
+    // depending on whether the ladder started at 1 or 2, and it is one purchase
+    const same = (a, b) => a.target === b.target && (a.tier || null) === (b.tier || null);
     let kept = boughtHints.find((h) => same(h, rec));
     if (!kept) {
       boughtHints.push(rec);
@@ -2559,7 +2562,14 @@
   function armNav() {
     const step = nextStep();
     const spent = chainSpent();
-    const cost = stepCost(step);
+    // The price is the engine's to state. After a purchase on this screen the
+    // response said what the next press costs; before one, or once a chain has
+    // fallen through to the beat, the ladder's starting tier is unknown here
+    // -- so say the range rather than a number that could be wrong.
+    const key = context.screen || null;
+    let last = null;
+    boughtHints.forEach((h) => { if ((h.context || null) === key) last = h; });
+    const cost = !spent && last && Number.isFinite(Number(last.next_cost)) ? Number(last.next_cost) : null;
     navArmed = true;
     el("hud-hint").classList.add("armed");
     const where = CONTEXT_LABEL[context.screen] || "the file";
@@ -2567,7 +2577,7 @@
     flash({
       kicker: spent ? "HINT" : step > 1 ? `HINT \u00b7 STEP ${step}` : "HINT",
       body: `The next steer for ${where}${context.detail ? ` \u2014 ${context.detail}` : ""}.`,
-      note: spent ? `THIS ADDS TO YOUR HINT COST${soFar}` : `THIS ADDS ${cost} POINTS TO YOUR HINT COST${soFar}`,
+      note: cost == null ? `THIS ADDS 5, 10 OR 20 POINTS BY DEPTH${soFar}` : cost === 0 ? `ALREADY YOURS · NOTHING ADDED${soFar}` : `THIS ADDS ${cost} POINTS TO YOUR HINT COST${soFar}`,
       noteKind: "warn",
       confirm: true,
       armed: true,

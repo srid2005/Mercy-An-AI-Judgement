@@ -242,8 +242,14 @@ body.tracking-open .hud-stack { transition: left 0.2s; }
 .cs-return { margin-top: 22px; padding: 11px 26px; border: 1px solid #8fdcff; border-radius: 6px; background: rgba(143,220,255,0.12); color: #fff; font: 700 13px var(--mono); letter-spacing: 3px; cursor: pointer; }
 .cs-return:hover, .cs-return:focus-visible { background: rgba(143,220,255,0.26); outline: none; }
 @keyframes mcard-in { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: none; } }
+/* the authorisation: the same sheet, over the field link (the memo may still be up under it), no way off but the one button */
+.mercy-overlay.brief { z-index: 45; outline: none; }
+.mercy-overlay.brief .mercy-body { padding-top: 72px; justify-content: safe center; }   /* 'safe': a column taller than the pane starts at the top and scrolls, instead of losing its head */
+.brief-actions { margin-top: 22px; }
+.brief-go { display: inline-block; padding: 12px 26px; border: 1px solid #8fdcff; border-radius: 6px; background: rgba(143,220,255,0.12); color: #fff; font: 700 13px var(--mono); letter-spacing: 3px; cursor: pointer; box-shadow: 0 0 20px rgba(143,220,255,0.25); animation: mcard-in 500ms ease-out both; }
+.brief-go:hover, .brief-go:focus-visible { background: rgba(143,220,255,0.26); outline: none; }
 @media (max-width: 800px) { .mercy-body { padding: 60px 16px 24px; } .cs-title { font-size: 26px; letter-spacing: 8px; } }
-@media (prefers-reduced-motion: reduce) { .mline.typing::after, .memo-card, .case-solved { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .mline.typing::after, .memo-card, .case-solved, .brief-go { animation: none !important; } }
 .readout { position: absolute; left: 16px; bottom: 16px; z-index: 3; background: rgba(10,15,22,0.9); border: 1px solid var(--line); padding: 6px 10px; border-radius: 6px; font: 12px var(--mono); color: #8fdcff; display: flex; gap: 16px; }
 .legend { position: absolute; right: 336px; bottom: 16px; z-index: 3; background: rgba(10,15,22,0.9); border: 1px solid var(--line); padding: 8px 10px; border-radius: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 3px 14px; font-size: 12px; color: var(--ink); }
 .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -2px; border: 1px solid rgba(255,255,255,0.15); }
@@ -368,7 +374,7 @@ button.send { flex: none; border-radius: 6px; padding: 5px 8px; font-size: 11px;
 .demo-hand svg { display: block; width: 100%; height: 100%; }
 .demo-hand path { fill: #fff; stroke: #0b1119; stroke-width: 2; stroke-linejoin: round; }
 /* the click: a ring bursts out from the fingertip; the right button of a small mouse lights up beside the hand */
-.demo-ring { position: absolute; left: 0; top: 0; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 2px solid #4fd1ff; box-shadow: 0 0 14px #4fd1ff; opacity: 0; }
+.demo-ring { position: absolute; left: 0; top: 0; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 2px solid #4fd1ff; box-shadow: 0 0 14px #4fd1ff; opacity: 0; pointer-events: none; }
 .demo-ring.go { animation: demo-ring 700ms ease-out both; }
 .demo-mouse { position: absolute; left: 0; top: 0; width: 22px; height: 32px; border: 2px solid #cfeeff; border-radius: 11px; background: rgba(6,26,48,0.9); opacity: 0; transition: opacity 0.25s; }
 .demo-mouse::before { content: ""; position: absolute; left: 50%; top: 0; width: 2px; height: 13px; margin-left: -1px; background: #cfeeff; }

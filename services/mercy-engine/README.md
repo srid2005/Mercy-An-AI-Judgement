@@ -27,14 +27,24 @@ player, and issues the final verdict.
   ceiling and is never refused. The bill ranks the leaderboard under
   `solved`, lowest first. The target is where the participant is actually
   stuck, not their choice, and a tier already paid for comes back free.
-- The desk answers two questions. Without a `context` it answers the beat, as
-  above. With one -- a screen key the console reports from the laptop and the
-  map (`laptop-lock`, `laptop-app` + the app's name, `map-search`, ...) -- it
-  answers that screen instead, from `context_hints`: the next step of that
-  chain the participant does not already own, so pressing the button again
-  escalates. Steps are priced like the tiers (5/10/20) and charged in their
-  own half of the ledger (`context_hints_taken`). A chain that has been spent
-  falls through to the beat, so the button never runs out of things to say.
+- The desk answers two questions, progress first. The beat is the answer
+  unless the `context` the console reports (a screen key from the laptop and
+  the map: `laptop-lock`, `laptop-app` + the app's name, `map-search`, ...)
+  is a gate the participant is provably still held at: `laptop-lock` always,
+  and `laptop-app` quill / loop / haven / files / notes while nothing from
+  behind that gate (an `EML-` / `SOC-` / `HAV-` / `CASE-` id) has been
+  discovered. Then, and only then, the screen answers instead, from
+  `context_hints`: the next step of that chain the participant does not
+  already own, so pressing the button again escalates. Steps are priced like
+  the tiers (5/10/20) and charged in their own half of the ledger
+  (`context_hints_taken`). A chain that has been spent falls through to the
+  beat, so the button never runs out of things to say.
+- The beat ladder starts at the first tier whose advice has not already been
+  followed: tier 2 once a piece the beat needs has been discovered, once five
+  drone searches have been made (`the_cave`), or once the memo is accepted
+  (`located`). `step`/`steps_total` count the ladder actually used, so a
+  ladder that starts at tier 2 reports `1 of 2`. A `tier` sent explicitly is
+  the whole ladder, as before.
 - A hint informs and does nothing else: no tab is switched, nothing is opened
   or revealed for them, and no step states a PIN, a password, a date or a
   security answer. The deepest step of a gate chain names the place the answer

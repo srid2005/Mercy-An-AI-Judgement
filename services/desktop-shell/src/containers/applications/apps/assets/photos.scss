@@ -1,4 +1,12 @@
 .photosApp {
+  // --bg1 is scoped to Explorer and Orbit; nothing defined it here, so the
+  // title bar and this top row were transparent and the window underneath
+  // (Explorer, maximised to the same rectangle) painted straight through them.
+  // The window itself carries the colour so the title bar is covered too.
+  --bg1: #ffffff;
+  background: var(--bg1);
+  color: var(--txt-col);
+
   .phTop {
     height: 36px;
     padding: 0 14px;
@@ -12,21 +20,34 @@
       gap: 6px;
       padding: 4px 8px;
       border-radius: 4px;
+      flex-shrink: 0;
       &:hover {
         background: rgba(128, 128, 128, 0.15);
       }
     }
-    .phTitle {
+    .phTitle,
+    .phName {
       font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex-shrink: 0;
     }
     .phPath {
       opacity: 0.7;
       font-family: Consolas, monospace;
       font-size: 11px;
+      // the long AppData path gives way before the name or the counter do
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .phCount {
       margin-left: auto;
       opacity: 0.7;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
     }
   }
   .phBody {
@@ -68,15 +89,6 @@
         right: 16px;
       }
     }
-    .phCaption {
-      position: absolute;
-      bottom: 10px;
-      left: 0;
-      right: 0;
-      text-align: center;
-      font-size: 12px;
-      opacity: 0.75;
-    }
   }
   .phGallery {
     position: absolute;
@@ -117,6 +129,9 @@
       font-size: 13px;
     }
   }
+}
+body[data-theme="dark"] .photosApp {
+  --bg1: #191919;
 }
 body[data-theme="dark"] .photosApp .phGallery {
   background: #202020;

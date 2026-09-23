@@ -46,6 +46,14 @@ export const Photos = () => {
   const prev = () => setIdx((i) => (i - 1 + list.length) % list.length);
   const next = () => setIdx((i) => (i + 1) % list.length);
 
+  // closing the window forgets the file: the desktop icon reopens on the
+  // gallery, not on whatever was last opened out of a hidden folder. A later
+  // PHOTOSOPEN still wins -- it dispatches a fresh payload that re-fires the
+  // effect above.
+  useEffect(() => {
+    if (wnapp && wnapp.hide) setFile(null);
+  }, [wnapp && wnapp.hide]);
+
   return (
     <div
       className="photosApp floatTab dpShad"
@@ -58,7 +66,7 @@ export const Photos = () => {
       data-hide={wnapp.hide}
       id={wnapp.icon + "App"}
     >
-      <ToolBar app={wnapp.action} icon={wnapp.icon} size={wnapp.size} name={cur ? `${cur.name} - Photos` : "Photos"} />
+      <ToolBar app={wnapp.action} icon={wnapp.icon} size={wnapp.size} name="Photos" />
       <div className="windowScreen flex flex-col" data-dock="true">
         <div className="phTop flex items-center">
           {cur ? (
@@ -66,7 +74,14 @@ export const Photos = () => {
               <div className="phBack prtclk" onClick={() => setFile(null)}>
                 <Icon fafa="faChevronLeft" width={10} /> <span>All photos</span>
               </div>
-              <div className="phPath">{file.folder}</div>
+              {/* the file name lives here and nowhere else: the title bar says
+                  "Photos" and there is no caption, so it cannot be drawn twice */}
+              <div className="phName" title={cur.name}>
+                {cur.name}
+              </div>
+              <div className="phPath" title={file.folder}>
+                {file.folder}
+              </div>
               <div className="phCount">
                 {idx + 1} / {list.length}
               </div>
@@ -92,7 +107,6 @@ export const Photos = () => {
                   <Icon fafa="faChevronRight" width={14} />
                 </div>
               ) : null}
-              <div className="phCaption">{cur.name}</div>
             </div>
           ) : (
             <div className="phGallery win11Scroll">

@@ -534,6 +534,9 @@ function enableTracking(slug = 'nikhil') {
   // the memo is the gate, whichever box the name was typed into
   if (!trackingUnlocked && data.config.vehicle_tracking && memoPlayed()) unlockTracking(false);
   if (!trackingUnlocked) { openTracking(); return Promise.resolve(null); }
+  // a name typed before the authorisation has been read: the briefing, and
+  // its CONTINUE opens the panel the name is typed into again
+  if (briefGate()) return Promise.resolve(null);
   if (vehicle && vehicle.slug === slug) return Promise.resolve(vehicle);
   if (!vehicleReq) vehicleReq = loadVehicle(slug).finally(() => { vehicleReq = null; });
   return vehicleReq;
@@ -722,6 +725,7 @@ function openTracking() {
     if (traced) openMemo();
     return;
   }
+  if (briefGate()) return;   // MERCY's authorisation comes first, once (CONTINUE lands back here)
   trackBtn.classList.remove('pulse');
   trackPanel.hidden = false;
   document.body.classList.add('tracking-open');
@@ -767,6 +771,7 @@ trackQ.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeTrackin
 // between showings, so closing the overlay and coming back through the chip
 // does not restart the audio.
 const overlay = $('#mercy-overlay'), overlayBody = $('#mercy-body');
+const brief = $('#mercy-brief'), briefBody = $('#brief-body');
 const memoChip = $('#memo-chip'), rescueChip = $('#rescue-chip');
 let running = null;        // 'cave' | 'rescue' while a sequence owns the overlay
 let activeRescue = null;   // the footage stage on screen: { finish }
@@ -826,6 +831,15 @@ function typeInto(el, text) {
   });
 }
 $('#mercy-close').onclick = () => mercyOverlay.close();
+// The authorisation (showBrief, below) sits over the field link and has no
+// way out but CONTINUE: while it is up no key reaches anything else, and
+// Escape in particular must not close the memo underneath it. Registered
+// before the field link's own handler so it is the first capture to run.
+document.addEventListener('keydown', (e) => {
+  if (brief.hidden || tourStep >= 0 || e.key === 'Tab') return;   // the walkthrough, replayed over it, keeps its keys
+  e.stopImmediatePropagation();
+  if (e.key === 'Escape') e.preventDefault();
+}, true);
 // the overlay owns the keyboard while it is up, the same way the lightbox does
 document.addEventListener('keydown', (e) => {
   if (overlay.hidden || !lightbox.hidden || e.key === 'Tab') return;
@@ -904,7 +918,7 @@ function memoCard() {
   audio.addEventListener('error', () => {
     audio.hidden = true;
     play.textContent = 'READ THE TRANSCRIPT';
-    play.onclick = () => { play.hidden = true; cues.forEach((c, i) => { const el = cuesEl.children[i]; if (el) el.textContent = c.text; }); audio.dispatchEvent(new Event('play')); };
+    play.onclick = () => { play.hidden = true; cues.forEach((c, i) => { const el = cuesEl.children[i]; if (el) el.textContent = c.text; }); memoEnded = true; audio.dispatchEvent(new Event('play')); };   // read, not played: nothing to wait for
     const f = document.createElement('div'); f.className = 'memo-foot';
     f.textContent = 'The recording could not be played: put SW-06-band-memo.m4a, .mp3 or .wav in city-map/public/audio/.';
     card.appendChild(f);
@@ -918,6 +932,9 @@ function memoCard() {
     card.insertBefore(v, card.querySelector('.memo-foot'));
     typeInto(v, 'MERCY: Nikhil Rao. His plate is on the ANPR grid. Vehicle tracking is yours -- search the name.');
   }, { once: true });
+  // played through: the authorisation follows it -- unless the drones are out
+  // (their report owns the stage), in which case the tracking gate gives it
+  audio.addEventListener('ended', () => { memoEnded = true; if (briefDue() && !briefBlocked()) showBrief(); });
   memoEl = card;
   return card;
 }
@@ -933,6 +950,73 @@ function openMemo() {
   mercyOverlay.open();
 }
 memoChip.onclick = openMemo;
+
+// --- the authorisation --------------------------------------------------------------------------
+// MERCY, once, between the memo and the tracking it opens: the name is out,
+// and the file's answer is to put the participant on Nikhil's car. Typed in
+// over the field link, and there is one way off it -- CONTINUE, into vehicle
+// tracking; no close, no Escape, nothing outside to click. It is remembered
+// per participant the way the memo is ('mercy-brief-shown'), on CONTINUE
+// rather than on sight, so a reload mid-sentence brings it back whole and a
+// reload after it never does. Held while the drones are out or the
+// walkthrough is up; every road into tracking (openTracking, enableTracking)
+// passes the gate, so a held briefing is given there instead.
+const briefShown = () => store.get(key('mercy-brief-shown')) === '1';
+const briefDue = () => memoPlayed() && !briefShown();
+const briefBlocked = () => dronesOut() || tourStep >= 0;
+const BRIEF = [
+  ['MERCY · AI JUDGEMENT — AUTHORISATION', 'head'],
+  ['Arjun Kapoor. The memo has been heard. The name on it is Nikhil Rao.'],
+  ['File UDR 0412/2018 now authorises ethical vehicle tracking. The grant is narrow: one car, his, for as long as your wife is missing.'],
+  ['His plate is on the ANPR grid. From here the model follows his car, live, and lists every place it stops.'],
+  ['Track it. Each time the car stops, send the drones to that place and search it. Meera is at one of the stops.'],
+  ['That is how you save your wife. Nothing else on this file will.', 'verdict'],
+];
+let briefRun = 0;
+async function showBrief() {
+  if (!brief.hidden) return;
+  const g = ++briefRun;
+  closeLightbox();
+  results.hidden = true;
+  briefBody.replaceChildren();
+  brief.hidden = false;
+  brief.focus({ preventScroll: true });
+  for (const [text, cls] of BRIEF) {
+    const el = document.createElement('div');
+    el.className = `mline ${cls || ''}`.trim();
+    briefBody.appendChild(el);
+    await typeInto(el, text);
+    await mercyOverlay.wait(cls === 'head' ? 500 : 350);
+    if (g !== briefRun || brief.hidden) return;
+  }
+  const go = document.createElement('button');
+  go.id = 'brief-go'; go.className = 'brief-go'; go.type = 'button'; go.textContent = 'CONTINUE › VEHICLE TRACKING';
+  go.onclick = () => {
+    store.set(key('mercy-brief-shown'), '1');
+    brief.hidden = true;
+    mercyOverlay.close();   // the memo card is kept (memoCard): the chip brings it back
+    openTracking();
+  };
+  const row = document.createElement('div');
+  row.className = 'brief-actions';
+  row.appendChild(go);
+  briefBody.appendChild(row);
+  go.focus();
+}
+// the gate: due and the stage is free, the briefing; due and the drones are
+// out, a wait -- the button is not dead, the flight is simply ahead of it
+// Heard through, THIS session. Set by the audio's ended event and by the
+// transcript stand-in (nothing to finish there). Initialised from the stored
+// played-state so a participant who heard it in an earlier session and reloads
+// is not told to wait for a memo that is not playing.
+let memoEnded = memoPlayed();
+function briefGate() {
+  if (!briefDue()) return false;
+  if (!memoEnded) { setStatus('busy', 'Let the memo play through. The file authorises the car once it has heard the name.'); return true; }
+  if (dronesOut()) setStatus('busy', 'The flight is still out. Wait for it to report.');
+  else showBrief();
+  return true;
+}
 
 // --- the rescue --------------------------------------------------------------------------------
 // She has been found. MERCY sends the units, the footage comes in (the real
@@ -1225,6 +1309,9 @@ function startTour() {
   $('#tour-next').focus({ preventScroll: true });
 }
 function endTour() {
+  // a ripple cut off by display:none never gets its animationend, so it would
+  // still be sitting in the sheet, at its old spot, the next time the tour opens
+  document.querySelectorAll('#tour .demo-ring').forEach((r) => r.remove());
   if (tourStep < 0) return;
   store.set(key('mercy-map-tour-done'), '1');
   stopDemo();
@@ -1359,7 +1446,9 @@ function startDemo() {
     const x = sx + (p.x - sx) * u, y = sy + (p.y - sy) * u;
     const press = pressed ? 0.9 + 0.1 * Math.min(1, (now - pressed) / 250) : 1;   // a dip on the click
     hand.style.transform = `translate(${x - HAND.tip.x}px, ${y - HAND.tip.y}px) scale(${pressed && now - pressed < 250 ? 0.9 : press})`;
-    ring.style.transform = `translate(${p.x}px, ${p.y}px)`;
+    // left/top, not transform: the .go keyframe sets transform itself and would
+    // throw the translate away, leaving the ring at the stage's origin
+    ring.style.left = `${p.x}px`; ring.style.top = `${p.y}px`;
     mouse.style.transform = `translate(${x + 40}px, ${y + 48}px)`;
     tag.style.transform = `translate(${p.x}px, ${p.y - 30}px) translate(-50%, 0)`;
     line.style.transform = `translate(${x}px, ${y + 92}px) translate(-50%, 0)`;
@@ -1390,6 +1479,27 @@ function stopDemo() {
     if (scene.controls.update) scene.controls.update();
     demo.camBefore = null;
   }
+}
+// The tour owns the right button too. Only the canvas swallows contextmenu
+// (scene3d), and the tour is a fixed sheet over it: a participant who tries
+// the gesture the demonstration just showed them right-clicks the sheet and
+// gets the browser's menu. Captured on the dialog, so it covers the card and
+// anything the hole and the demo layer might ever take; the canvas handler
+// is untouched and is reached again the moment the sheet is hidden. On the
+// demonstration step the click is answered in kind -- the ring, at their
+// pointer -- never a launch: nothing under the sheet can see the click.
+for (const el of [tourEl, tourHole, demoLayer]) el.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  if (tourStep >= 0 && TOUR[tourStep].demo) demoRipple(e.clientX, e.clientY);
+}, true);
+// the ring on its own, where they clicked: on the sheet rather than the demo
+// layer, which the hand's run empties, hides and fades on its own schedule
+function demoRipple(x, y) {
+  const ring = document.createElement('div');
+  ring.className = 'demo-ring go';
+  ring.style.left = `${x}px`; ring.style.top = `${y}px`;   // see demo ring above: transform belongs to the keyframe
+  ring.addEventListener('animationend', () => ring.remove());
+  tourEl.appendChild(ring);
 }
 
 // --- coordinates from Meera's laptop --------------------------------------------------------
@@ -1425,7 +1535,7 @@ if (pendingCoords) { const p = pendingCoords; pendingCoords = null; receiveCoord
 // --- story state on load ------------------------------------------------------------------
 // A reset game (docker compose down -v, reset_chase.sql) leaves last game's
 // keys in this browser: what the server says has not happened, has not.
-if (!data.config.vehicle_tracking) store.remove(key('mercy-sw06-played'));
+if (!data.config.vehicle_tracking) { store.remove(key('mercy-sw06-played')); store.remove(key('mercy-brief-shown')); }
 if (!(data.searches || []).some((s) => outcomeOf(s) === 'found')) store.remove(key('mercy-rescued'));
 if (data.config.vehicle_tracking) {
   // the cave has given up its trace: the memo is there to play (again), and
@@ -1438,7 +1548,10 @@ if (data.config.vehicle_tracking) {
     // tracked on their behalf
     let slug = null;
     try { slug = sessionStorage.getItem(key('track-slug')); } catch (e) {}
-    if (slug) enableTracking(slug);
+    // a car already chosen went through the tracking gate to get there -- or
+    // through a build without one, on a live game: either way the briefing
+    // is behind them, and must not stand between them and their car now
+    if (slug) { store.set(key('mercy-brief-shown'), '1'); enableTracking(slug); }
   }
 }
 // she has been found: the footage can be watched again, but it never plays itself
