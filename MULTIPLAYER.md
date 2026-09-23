@@ -27,17 +27,17 @@ browser ── mercy_sid cookie ──▶ any service  ──▶  SET search_pat
 
 ## The clock
 
-* The lobby's "Accept & continue" starts the game: mercy-engine writes `started_at` and `deadline = started_at + GAME_MINUTES` (25) into the participant's `case_state`; the console shows the countdown from `GET /api/me`.
+* The lobby's "Accept & continue" starts the game: mercy-engine writes `started_at` and `deadline = started_at + GAME_MINUTES` (60) into the participant's `case_state`; the console shows the countdown from `GET /api/me`.
 * At the deadline `/api/argue` refuses (`409 time is up`), `/api/state` reports `expired`, the console shows TIME EXPIRED and sends the participant to the lobby's result page.
 * **Leave the case** (console) → `POST /api/leave`: the file stands at the current guilt; the participant goes to their result page.
-* Outcomes: `solved` (the rescue closed the case), `timeout`, `left`. mercy-engine reports each to the lobby (`POST /api/internal/outcome`), which keeps the leaderboard.
+* Outcomes: `solved` (the rescue closed the case), `timeout`, `left`. mercy-engine reports each to the lobby (`POST /api/internal/outcome`, which carries the hint budget they finished with), which keeps the leaderboard: solved first, then points left descending, then the clock.
 
 ## The lobby (`mercy-lobby`, :3030)
 
 One service, one small database (`players`, `admin_events`), two faces:
 
-* **`/`** -- the participant's way in, one page in fullscreen: Zinnia ID → the intro film (`public/media/intro.mp4`) → the angel (`public/media/angel.png`; hovering it reveals **MERCY · AI JUDGEMENT**) → Continue → the briefing (`public/media/story.mp4` if present, else the built-in narrated briefing: why they are here, what they must do, the 25 minutes) → Accept & continue → the console. `/done` shows their result and the leaderboard; `/leaderboard` is the projector view.
-* **`/admin`** (password `ADMIN_PASSWORD`) -- participants (create one, paste many, restart one, delete), live status per participant (time left, guilt, checkpoints, evidence, searches, outcome), the leaderboard, event controls (reset every game, restart the app containers through the Docker socket when it is mounted), and resources (host CPU/memory/disk, per-container CPU/memory, each service's database size, connections and request rates).
+* **`/`** -- the participant's way in, one page in fullscreen: Zinnia ID → the intro film (`public/media/intro.mp4`) → the angel (`public/media/angel.png`; hovering it reveals **MERCY · AI JUDGEMENT**) → Continue → the briefing (`public/media/story.mp4` if present, else the built-in narrated briefing: why they are here, what they must do, the 60 minutes) → Accept & continue → the console. `/done` shows their result and the leaderboard; `/leaderboard` is the projector view.
+* **`/admin`** (password `ADMIN_PASSWORD`) -- participants (create one, paste many, restart one, delete), live status per participant (time left, guilt, points left, checkpoints, evidence, searches, outcome), the leaderboard, event controls (reset every game, restart the app containers through the Docker socket when it is mounted), and resources (host CPU/memory/disk, per-container CPU/memory, each service's database size, connections and request rates).
 
 ## What every stateful service gains
 

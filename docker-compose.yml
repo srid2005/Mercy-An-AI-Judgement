@@ -250,7 +250,7 @@ services:
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-internal-key}
       MERCY_SINGLE_PLAYER: ${MERCY_SINGLE_PLAYER:-0}
       LOBBY_URL: http://mercy-lobby:3030
-      GAME_MINUTES: ${GAME_MINUTES:-25}
+      GAME_MINUTES: ${GAME_MINUTES:-60}
       # MERCY's brain: stub (no model) or vertex (Gemini on Google Cloud; see DEPLOY_GCP.md).
       # On a Compute Engine VM the container authenticates as the VM's service
       # account through the metadata server; elsewhere mount a key file below.
@@ -311,7 +311,7 @@ services:
       MERCY_SESSION_SECRET: ${MERCY_SESSION_SECRET:-dev-session-secret-change-me}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY:-dev-internal-key}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-mercy-admin}
-      GAME_MINUTES: ${GAME_MINUTES:-25}
+      GAME_MINUTES: ${GAME_MINUTES:-60}
       # the stateful services, as the lobby reaches them inside the network
       SERVICE_URLS: social-media=http://social-media:4001,email=http://email:4002,whatsapp=http://whatsapp:4003,haven=http://haven:4008,city-map=http://city-map:4011,mercy-engine=http://mercy-engine:4010
       # the ports participants use, on whatever host they reached the lobby on

@@ -1,3 +1,4 @@
+const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
@@ -23,7 +24,36 @@ app.use(express.json());
 // Whose game this request belongs to -- resolved before the auth routes,
 // which write reset PINs that must land in the participant's own schema.
 app.use(tenant.middleware);
-app.use(express.static(path.join(__dirname, 'public')));
+// 49 MB of photographs used to go out with no Cache-Control at all, so every
+// navigation re-fetched them over event wifi. Re-encoding renames a post image
+// (scripts/optimise-images.py), which is the only way their bytes ever change,
+// so /images can be immutable for a year. Everything else -- the HTML, the CSS,
+// the app script -- keeps its name across a fix, so it revalidates instead.
+const PUBLIC_DIR = path.join(__dirname, 'public');
+app.use('/images', express.static(path.join(PUBLIC_DIR, 'images'), { maxAge: '365d', immutable: true }));
+app.use(express.static(PUBLIC_DIR, {
+  setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache'),
+}));
+
+// Intrinsic post dimensions, written beside the images by
+// scripts/optimise-images.py. The client puts them on the <img> so the browser
+// reserves each photo's box before the bytes land -- without them a page of
+// posts reflows once per image, which reads as the feed jumping under the
+// player's cursor.
+const IMAGE_SIZES = (() => {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(PUBLIC_DIR, 'images', 'manifest.json'), 'utf8'));
+  } catch (err) {
+    console.warn('[social-media] no image manifest, feed will ship without intrinsic sizes:', err.message);
+    return {};
+  }
+})();
+// Player-created posts carry a data: URL and are not in the manifest, so they
+// come back untouched and the client falls back to letting the image size itself.
+function withImageSize(item) {
+  const size = IMAGE_SIZES[item.image_url];
+  return size ? { ...item, image_width: size[0], image_height: size[1] } : item;
+}
 
 // Calls this service makes on the participant's behalf (to itself, to Quill)
 // carry the participant next to the key, so the far side runs in the same
@@ -146,29 +176,31 @@ function requireMercyKey(req, res, next) {
 // ---------------------------------------------------------------------------
 // Feed
 // ---------------------------------------------------------------------------
-app.get('/api/feed', requirePlayerAuth, async (req, res) => {
-  const posts = await pool.query(`
-    SELECT p.id, p.evidence_id, p.caption, p.image_url, p.era, p.likes_count, p.source, p.posted_at,
-           u.username, u.display_name, u.avatar_url
-    FROM posts p JOIN users u ON u.id = p.user_id
-    ORDER BY p.posted_at DESC
-  `);
+// A page of posts, not the whole of Meera's life. The feed used to return
+// every post with every comment in one response and the client dropped the lot
+// into a single innerHTML, which is a second of empty column on event wifi
+// before anything at all appears.
+const FEED_PAGE_SIZE = 12;
+// Sponsored posts and meme accounts: real feed noise with no evidence_id,
+// interleaved at fixed intervals like a real algorithmic feed. Never returned
+// by /api/evidence -- see the comment on feed_filler in init.sql. This used to
+// splice into the finished array, so each item landed after FILLER_EVERY more
+// *list* entries than the last, the earlier filler included -- which works out
+// to "filler i follows post FILLER_EVERY + (FILLER_EVERY - 1) * i". A page can
+// not rediscover that by splicing, so the arithmetic is spelled out and the
+// arrangement stays the one players have been seeing.
+const FILLER_EVERY = 4;
 
-  const tags = await pool.query(`
-    SELECT t.post_id, u.username, u.display_name
-    FROM tags t JOIN users u ON u.id = t.tagged_user_id
-  `);
-  const comments = await pool.query(`
-    SELECT c.id, c.evidence_id, c.post_id, c.body, c.source, c.commented_at,
-           u.username, u.display_name, u.avatar_url
-    FROM comments c JOIN users u ON u.id = c.user_id
-    ORDER BY c.commented_at ASC
-  `);
+function readInt(raw, fallback, min, max) {
+  const n = Number.parseInt(raw, 10);
+  return Number.isFinite(n) ? Math.min(Math.max(n, min), max) : fallback;
+}
 
-  const tagsByPost = groupBy(tags.rows, 'post_id');
-  const commentsByPost = groupBy(comments.rows, 'post_id');
-
-  const feed = posts.rows.map((p) => ({
+// A post row plus its tags and comments -> the shape the client renders.
+// Shared by the feed page and the single-post permalink fetch so the two can
+// not drift apart.
+function feedPost(p, tags, comments) {
+  return withImageSize({
     evidence_id: p.evidence_id,
     kind: 'post',
     era: p.era,
@@ -178,44 +210,127 @@ app.get('/api/feed', requirePlayerAuth, async (req, res) => {
     image_url: p.image_url,
     likes_count: p.likes_count,
     author: { username: p.username, display_name: p.display_name, avatar_url: p.avatar_url },
-    tags: (tagsByPost[p.id] || []).map((t) => ({ username: t.username, display_name: t.display_name })),
-    comments: (commentsByPost[p.id] || []).map((c) => ({
+    tags: tags.map((t) => ({ username: t.username, display_name: t.display_name })),
+    comments: comments.map((c) => ({
       evidence_id: c.evidence_id,
       body: c.body,
       source: c.source,
       commented_at: c.commented_at,
       author: { username: c.username, display_name: c.display_name, avatar_url: c.avatar_url },
     })),
-  }));
+  });
+}
 
-  // Sponsored posts and meme accounts: real feed noise with no evidence_id,
-  // interleaved at fixed intervals like a real algorithmic feed. Never
-  // returned by /api/evidence -- see the comment on feed_filler in init.sql.
+app.get('/api/feed', requirePlayerAuth, async (req, res) => {
+  const limit = readInt(req.query.limit, FEED_PAGE_SIZE, 1, 50);
+  const offset = readInt(req.query.offset, 0, 0, Number.MAX_SAFE_INTEGER);
+
+  const total = (await pool.query('SELECT count(*)::int AS n FROM posts')).rows[0].n;
+  const posts = await pool.query(
+    `SELECT p.id, p.evidence_id, p.caption, p.image_url, p.era, p.likes_count, p.source, p.posted_at,
+            u.username, u.display_name, u.avatar_url
+     FROM posts p JOIN users u ON u.id = p.user_id
+     ORDER BY p.posted_at DESC
+     LIMIT $1 OFFSET $2`,
+    [limit, offset]
+  );
+
+  // Tags and comments for this page only -- both used to be whole-table scans
+  // joined in memory, which cost the same whether the player read one post or
+  // twenty.
+  const ids = posts.rows.map((p) => p.id);
+  const none = { rows: [] };
+  const tags = ids.length
+    ? await pool.query(
+        `SELECT t.post_id, u.username, u.display_name
+         FROM tags t JOIN users u ON u.id = t.tagged_user_id
+         WHERE t.post_id = ANY($1::int[])`,
+        [ids]
+      )
+    : none;
+  const comments = ids.length
+    ? await pool.query(
+        `SELECT c.evidence_id, c.post_id, c.body, c.source, c.commented_at,
+                u.username, u.display_name, u.avatar_url
+         FROM comments c JOIN users u ON u.id = c.user_id
+         WHERE c.post_id = ANY($1::int[])
+         ORDER BY c.commented_at ASC`,
+        [ids]
+      )
+    : none;
+
+  const tagsByPost = groupBy(tags.rows, 'post_id');
+  const commentsByPost = groupBy(comments.rows, 'post_id');
+  const feed = posts.rows.map((p) => feedPost(p, tagsByPost[p.id] || [], commentsByPost[p.id] || []));
+
   const filler = await pool.query(
     `SELECT id, kind, account_name, account_avatar, caption, image_url, likes_count, cta_label, posted_at
      FROM feed_filler ORDER BY posted_at DESC`
   );
-  const fillerItems = filler.rows.map((f) => ({
-    evidence_id: null,
-    ui_id: `${f.kind.toUpperCase()}-${f.id}`,
-    kind: f.kind,
-    posted_at: f.posted_at,
-    caption: f.caption,
-    image_url: f.image_url,
-    likes_count: f.likes_count,
-    cta_label: f.cta_label,
-    author: { username: f.account_name, display_name: f.account_name, avatar_url: f.account_avatar },
-    tags: [],
-    comments: [],
-  }));
-
-  const INSERT_EVERY = 4;
-  fillerItems.forEach((item, i) => {
-    const pos = Math.min((i + 1) * INSERT_EVERY, feed.length);
-    feed.splice(pos, 0, item);
+  const pageEnd = offset + posts.rows.length;
+  let inserted = 0;
+  filler.rows.forEach((f, i) => {
+    // Clamped to `total` so the tail of the filler lands after the last post
+    // rather than past the end, exactly as the old min(..., feed.length) did.
+    const afterPosts = Math.min(FILLER_EVERY + (FILLER_EVERY - 1) * i, total);
+    // Its boundary has to fall inside this page -- at or before the first post
+    // means it went out with an earlier one. afterPosts is 0 only when there
+    // are no posts at all, and then the filler is the whole of the first page.
+    const mine = afterPosts > offset || (offset === 0 && afterPosts === 0);
+    if (!mine || afterPosts > pageEnd) return;
+    feed.splice(
+      afterPosts - offset + inserted,
+      0,
+      withImageSize({
+        evidence_id: null,
+        ui_id: `${f.kind.toUpperCase()}-${f.id}`,
+        kind: f.kind,
+        posted_at: f.posted_at,
+        caption: f.caption,
+        image_url: f.image_url,
+        likes_count: f.likes_count,
+        cta_label: f.cta_label,
+        author: { username: f.account_name, display_name: f.account_name, avatar_url: f.account_avatar },
+        tags: [],
+        comments: [],
+      })
+    );
+    inserted += 1;
   });
 
-  res.json({ feed });
+  res.json({ feed, offset, limit, total, next_offset: pageEnd, has_more: pageEnd < total });
+});
+
+// One post by evidence id: author, tags and the full comment thread -- what
+// the permalink modal needs. Opening a post used to re-fetch the entire feed
+// and linear-search it, which only got worse as the feed grew.
+app.get('/api/posts/:evidenceId', requirePlayerAuth, async (req, res) => {
+  const { rows } = await pool.query(
+    `SELECT p.id, p.evidence_id, p.caption, p.image_url, p.era, p.likes_count, p.source, p.posted_at,
+            u.username, u.display_name, u.avatar_url
+     FROM posts p JOIN users u ON u.id = p.user_id
+     WHERE p.evidence_id = $1`,
+    [req.params.evidenceId]
+  );
+  if (!rows.length) return res.status(404).json({ error: 'not found' });
+  const post = rows[0];
+
+  const tags = await pool.query(
+    `SELECT u.username, u.display_name
+     FROM tags t JOIN users u ON u.id = t.tagged_user_id
+     WHERE t.post_id = $1`,
+    [post.id]
+  );
+  const comments = await pool.query(
+    `SELECT c.evidence_id, c.body, c.source, c.commented_at,
+            u.username, u.display_name, u.avatar_url
+     FROM comments c JOIN users u ON u.id = c.user_id
+     WHERE c.post_id = $1
+     ORDER BY c.commented_at ASC`,
+    [post.id]
+  );
+
+  res.json(feedPost(post, tags.rows, comments.rows));
 });
 
 // The logged-in account's own profile (Meera) -- used to render the nav
@@ -293,7 +408,7 @@ async function getProfile(username) {
   return {
     ...user.rows[0],
     posts_count: posts.rows.length,
-    posts: posts.rows,
+    posts: posts.rows.map(withImageSize),
   };
 }
 
@@ -481,11 +596,57 @@ app.post('/api/messages/:key', requirePlayerAuth, async (req, res) => {
 // Returns every post/comment/message in this container as a flat, uniform
 // evidence record. See /ARCHITECTURE.md for the shared evidence contract.
 // ---------------------------------------------------------------------------
+// The three row shapes -> the flat evidence record. Pulled out of the dump
+// below because /api/evidence/:id builds the identical record from a single
+// row and the two must not drift.
+function postEvidence(p) {
+  return {
+    evidence_id: p.evidence_id,
+    service: 'social-media',
+    type: 'post',
+    timestamp: p.posted_at,
+    summary: p.caption,
+    involves: [p.author, ...(p.involves || [])],
+    content: {
+      caption: p.caption,
+      image_url: p.image_url,
+      era: p.era,
+      latitude: p.latitude,
+      longitude: p.longitude,
+      source: p.source,
+    },
+  };
+}
+function commentEvidence(c) {
+  return {
+    evidence_id: c.evidence_id,
+    service: 'social-media',
+    type: 'comment',
+    timestamp: c.posted_at,
+    summary: c.body,
+    involves: [c.author],
+    content: { body: c.body, parent_evidence_id: c.parent_evidence_id, source: c.source },
+  };
+}
+function messageEvidence(m) {
+  return {
+    evidence_id: m.evidence_id,
+    service: 'social-media',
+    type: 'message',
+    timestamp: m.posted_at,
+    summary: m.body,
+    involves: [m.author],
+    content: { body: m.body, thread_key: m.thread_key, source: m.source },
+  };
+}
+
 app.get('/api/evidence', requireMercyKey, async (req, res) => {
+  // array_agg is ordered so a post's `involves` reads the same here as it does
+  // from /api/evidence/:id -- MERCY caches records from both.
   const posts = await pool.query(`
     SELECT p.evidence_id, p.caption, p.image_url, p.era, p.latitude, p.longitude, p.source,
            p.posted_at, u.username AS author,
-           array_remove(array_agg(t.username), NULL) AS involves
+           array_remove(array_agg(t.username ORDER BY t.username), NULL) AS involves
     FROM posts p
     JOIN users u ON u.id = p.user_id
     LEFT JOIN (
@@ -505,53 +666,57 @@ app.get('/api/evidence', requireMercyKey, async (req, res) => {
   `);
 
   const evidence = [
-    ...posts.rows.map((p) => ({
-      evidence_id: p.evidence_id,
-      service: 'social-media',
-      type: 'post',
-      timestamp: p.posted_at,
-      summary: p.caption,
-      involves: [p.author, ...(p.involves || [])],
-      content: {
-        caption: p.caption,
-        image_url: p.image_url,
-        era: p.era,
-        latitude: p.latitude,
-        longitude: p.longitude,
-        source: p.source,
-      },
-    })),
-    ...comments.rows.map((c) => ({
-      evidence_id: c.evidence_id,
-      service: 'social-media',
-      type: 'comment',
-      timestamp: c.posted_at,
-      summary: c.body,
-      involves: [c.author],
-      content: { body: c.body, parent_evidence_id: c.parent_evidence_id, source: c.source },
-    })),
-    ...messages.rows.map((m) => ({
-      evidence_id: m.evidence_id,
-      service: 'social-media',
-      type: 'message',
-      timestamp: m.posted_at,
-      summary: m.body,
-      involves: [m.author],
-      content: { body: m.body, thread_key: m.thread_key, source: m.source },
-    })),
+    ...posts.rows.map(postEvidence),
+    ...comments.rows.map(commentEvidence),
+    ...messages.rows.map(messageEvidence),
   ].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
   res.json({ service: 'social-media', count: evidence.length, evidence });
 });
 
+// evidence_id is UNIQUE on each of the three tables, so this is at most three
+// index probes. It used to HTTP-fetch this service's own full dump from
+// localhost and .find() through it -- a whole-container read, a second trip
+// through the tenant middleware and a JSON round-trip for one row, on the path
+// that makes a piece of evidence appear in the console's search.
 app.get('/api/evidence/:evidenceId', requireMercyKey, async (req, res) => {
   const { evidenceId } = req.params;
-  const full = await fetch(`http://localhost:${PORT}/api/evidence`, {
-    headers: { 'x-mercy-key': MERCY_API_KEY, ...playerHeader() },
-  }).then((r) => r.json());
-  const item = full.evidence.find((e) => e.evidence_id === evidenceId);
-  if (!item) return res.status(404).json({ error: 'not found' });
-  res.json(item);
+
+  const post = await pool.query(
+    `SELECT p.evidence_id, p.caption, p.image_url, p.era, p.latitude, p.longitude, p.source,
+            p.posted_at, u.username AS author,
+            array_remove(array_agg(t.username ORDER BY t.username), NULL) AS involves
+     FROM posts p
+     JOIN users u ON u.id = p.user_id
+     LEFT JOIN (
+       SELECT tg.post_id, us.username FROM tags tg JOIN users us ON us.id = tg.tagged_user_id
+     ) t ON t.post_id = p.id
+     WHERE p.evidence_id = $1
+     GROUP BY p.id, u.username`,
+    [evidenceId]
+  );
+  if (post.rows.length) return res.json(postEvidence(post.rows[0]));
+
+  const comment = await pool.query(
+    `SELECT c.evidence_id, c.body, c.source, c.commented_at AS posted_at, u.username AS author,
+            p.evidence_id AS parent_evidence_id
+     FROM comments c
+     JOIN users u ON u.id = c.user_id
+     JOIN posts p ON p.id = c.post_id
+     WHERE c.evidence_id = $1`,
+    [evidenceId]
+  );
+  if (comment.rows.length) return res.json(commentEvidence(comment.rows[0]));
+
+  const message = await pool.query(
+    `SELECT m.evidence_id, m.body, m.source, m.sent_at AS posted_at, m.thread_key, u.username AS author
+     FROM messages m JOIN users u ON u.id = m.sender_id
+     WHERE m.evidence_id = $1`,
+    [evidenceId]
+  );
+  if (message.rows.length) return res.json(messageEvidence(message.rows[0]));
+
+  res.status(404).json({ error: 'not found' });
 });
 
 // Add a comment to a post, as the logged-in account. Gets a real evidence_id

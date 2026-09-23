@@ -394,6 +394,25 @@ header.app-bar {
 /* Posts                                                                   */
 /* ---------------------------------------------------------------------- */
 
+/* The feed is appended a page at a time (see renderFeedView): the column
+   holds one block per page, and both levels carry the same gap so a page
+   boundary is invisible. */
+.feed-column,
+.feed-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Watched by the pager; also the "Loading…" line while a page is in flight. */
+.feed-sentinel {
+  padding: 18px 0;
+  min-height: 1px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
 .post {
   background: var(--panel);
   border: 1px solid var(--border);

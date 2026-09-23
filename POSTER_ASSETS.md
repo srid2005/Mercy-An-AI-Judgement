@@ -55,7 +55,7 @@ _Everything below was made for this game (AI-generated or drawn for it), so it c
 - **I am MERCY. I decide.**
 - **Her laptop is yours. Her messages, her mail, her diary, her band, the city's cameras and four drones.**
 - **Argue. Every piece that holds moves the needle.**
-- **You have 25 minutes. Find her, and the file closes. Fail, and it stands.**
+- **You have 60 minutes. Find her, and the file closes. Fail, and it stands.**
 - **FILE UDR 0412/2018 · CLOSED -- ACCIDENTAL DEATH** (the father's case, the number on every console)
 - **It wasn't Rahul.** (do not print -- it is the twist)
 

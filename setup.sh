@@ -115,7 +115,7 @@ ADMIN_PASSWORD_FILE=''
 ADMIN_PASSWORD_SOURCE=''
 GENERATED_PASSWORD_FILE=''
 FORCE_PASSWORD=0
-GAME_MINUTES='25'
+GAME_MINUTES='60'
 LLM_PROVIDER='vertex'
 GCP_PROJECT='zinnia-mercy'
 GCP_LOCATION='global'
@@ -227,7 +227,7 @@ THE ADMIN PASSWORD          (never accepted on the command line -- argv is
                             ./admin-password.txt (mode 600) if none was given
 
 THE EVENT
-  --minutes N               GAME_MINUTES (default 25)
+  --minutes N               GAME_MINUTES (default 60)
   --provider P              stub | vertex | anthropic (default vertex)
   --gcp-project ID          GOOGLE_CLOUD_PROJECT (default zinnia-mercy)
   --gcp-location L          GOOGLE_CLOUD_LOCATION (default global)

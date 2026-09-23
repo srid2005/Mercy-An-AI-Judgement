@@ -138,7 +138,7 @@ The night ends and the film lets go of it: the only warm, bright, quiet shot in 
 0:06  MEERA (looking to the door):       Is Arjun here? Can he come in?
 ```
 
-Shorter alternative if eight seconds is tight: drop the doctor's line and open on *"Like I slept for a week."* Whatever is used, the last thing she says must be about Arjun -- the participant has spent twenty-five minutes being accused of killing her, and this is the film telling them she never thought it was him.
+Shorter alternative if eight seconds is tight: drop the doctor's line and open on *"Like I slept for a week."* Whatever is used, the last thing she says must be about Arjun -- the participant has spent an hour being accused of killing her, and this is the film telling them she never thought it was him.
 
 **AI PROMPT:**
 

@@ -117,7 +117,7 @@ CREATE TABLE feed_filler (
 
 INSERT INTO feed_filler (kind, account_name, account_avatar, caption, image_url, likes_count, cta_label, posted_at) VALUES
     ('ad',   'urbansole.in',     '/images/avatars/urbansole.in.svg',     'New drop. 30% off this week only.',            '/images/posts/ad-shoes.jpg',  2400, 'Shop Now',  now() - interval '2 hours'),
-    ('meme', 'daily.memez',      '/images/avatars/daily.memez.svg',      'when the wifi drops during the finale 💀',     '/images/posts/meme-1.png',   58200, NULL,        now() - interval '9 hours'),
+    ('meme', 'daily.memez',      '/images/avatars/daily.memez.svg',      'when the wifi drops during the finale 💀',     '/images/posts/meme-1.jpg',   58200, NULL,        now() - interval '9 hours'),
     ('ad',   'brewhouse.coffee', '/images/avatars/brewhouse.coffee.svg', 'Your Monday fix, delivered in 15 minutes.',    '/images/posts/ad-coffee.jpg', 1100, 'Order Now', now() - interval '1 day'),
     ('meme', 'daily.memez',      '/images/avatars/daily.memez.svg',      'me pretending i have my life together',        '/images/posts/meme-2.webp',   91500, NULL,        now() - interval '2 days');
 
@@ -171,7 +171,7 @@ INSERT INTO follows (follower_id, followee_id)
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-001', (SELECT id FROM users WHERE username='meera'),
      'Sunday breakfasts with this man are non-negotiable. ❤️',
-     '/images/posts/family-dad-1.png', 'family', 214, t('2016-05-08 09:12:00+05:30'));
+     '/images/posts/family-dad-1.jpg', 'family', 214, t('2016-05-08 09:12:00+05:30'));
 INSERT INTO tags (post_id, tagged_user_id)
     SELECT (SELECT id FROM posts WHERE evidence_id='SOC-001'), id FROM users WHERE username='ravi_sharma';
 
@@ -179,7 +179,7 @@ INSERT INTO tags (post_id, tagged_user_id)
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-002', (SELECT id FROM users WHERE username='meera'),
      'Dad teaching me to ride a bike... in an empty parking lot, at 32 years old. Still can''t balance.',
-     '/images/posts/family-dad-2.png', 'family', 331, t('2017-11-02 18:40:00+05:30'));
+     '/images/posts/family-dad-2.jpg', 'family', 331, t('2017-11-02 18:40:00+05:30'));
 INSERT INTO tags (post_id, tagged_user_id)
     SELECT (SELECT id FROM posts WHERE evidence_id='SOC-002'), id FROM users WHERE username='ravi_sharma';
 
@@ -205,7 +205,7 @@ INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, p
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, latitude, longitude, likes_count, posted_at) VALUES
     ('SOC-006', (SELECT id FROM users WHERE username='meera'),
      'Our secret kingdom.',
-     '/images/posts/cave-1.png', 'childhood', 12.951181, 77.501304, 87, t('2009-04-18 16:20:00+05:30'));
+     '/images/posts/cave-1.jpg', 'childhood', 12.951181, 77.501304, 87, t('2009-04-18 16:20:00+05:30'));
 INSERT INTO tags (post_id, tagged_user_id)
     SELECT (SELECT id FROM posts WHERE evidence_id='SOC-006'), id FROM users WHERE username='rahul';
 INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
@@ -218,7 +218,7 @@ INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, latitude, longitude, likes_count, posted_at) VALUES
     ('SOC-009', (SELECT id FROM users WHERE username='meera'),
      'We used to play hide-and-seek here for hours.',
-     '/images/posts/cave-2.png', 'childhood', 12.951181, 77.501304, 73, t('2009-07-22 15:10:00+05:30'));
+     '/images/posts/cave-2.jpg', 'childhood', 12.951181, 77.501304, 73, t('2009-07-22 15:10:00+05:30'));
 INSERT INTO tags (post_id, tagged_user_id)
     SELECT (SELECT id FROM posts WHERE evidence_id='SOC-009'), id FROM users WHERE username='rahul';
 INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
@@ -231,7 +231,7 @@ INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-012', (SELECT id FROM users WHERE username='meera'),
      'Group project chaos before it was cool.',
-     '/images/posts/college-1.png', 'college', 305, t('2016-09-30 14:00:00+05:30'));
+     '/images/posts/college-1.jpg', 'college', 305, t('2016-09-30 14:00:00+05:30'));
 INSERT INTO tags (post_id, tagged_user_id)
     SELECT (SELECT id FROM posts WHERE evidence_id='SOC-012'), id FROM users WHERE username IN ('rahul','priya','nikhil');
 
@@ -239,7 +239,7 @@ INSERT INTO tags (post_id, tagged_user_id)
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-013', (SELECT id FROM users WHERE username='meera'),
      'Last day of college hit different.',
-     '/images/posts/college-2.png', 'college', 412, t('2017-12-20 11:15:00+05:30'));
+     '/images/posts/college-2.jpg', 'college', 412, t('2017-12-20 11:15:00+05:30'));
 INSERT INTO tags (post_id, tagged_user_id)
     SELECT (SELECT id FROM posts WHERE evidence_id='SOC-013'), id FROM users WHERE username IN ('rahul','priya');
 
@@ -247,7 +247,7 @@ INSERT INTO tags (post_id, tagged_user_id)
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-014', (SELECT id FROM users WHERE username='meera'),
      'Back with the oldest troublemaker in my life 😂 @Rahul',
-     '/images/posts/reunion.png', 'reunion', 522, t('2023-05-06 21:00:00+05:30'));
+     '/images/posts/reunion.jpg', 'reunion', 522, t('2023-05-06 21:00:00+05:30'));
 INSERT INTO tags (post_id, tagged_user_id)
     SELECT (SELECT id FROM posts WHERE evidence_id='SOC-014'), id FROM users WHERE username='rahul';
 INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
@@ -260,7 +260,7 @@ INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-017', (SELECT id FROM users WHERE username='meera'),
      'Some people stay in your life forever.',
-     '/images/posts/tagged-forever.png', 'reunion', 467, t('2023-05-07 10:00:00+05:30'));
+     '/images/posts/tagged-forever.jpg', 'reunion', 467, t('2023-05-07 10:00:00+05:30'));
 INSERT INTO tags (post_id, tagged_user_id)
     SELECT (SELECT id FROM posts WHERE evidence_id='SOC-017'), id FROM users WHERE username='rahul';
 INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
@@ -273,7 +273,7 @@ INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-020', (SELECT id FROM users WHERE username='meera'),
      'Married my best friend (the other one 😉) — @Arjun',
-     '/images/posts/wedding.png', 'married-life', 891, t('2021-02-14 19:00:00+05:30'));
+     '/images/posts/wedding.jpg', 'married-life', 891, t('2021-02-14 19:00:00+05:30'));
 INSERT INTO tags (post_id, tagged_user_id)
     SELECT (SELECT id FROM posts WHERE evidence_id='SOC-020'), id FROM users WHERE username='arjun';
 
@@ -301,7 +301,7 @@ INSERT INTO messages (evidence_id, thread_key, sender_id, recipient_id, body, se
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-025', (SELECT id FROM users WHERE username='rahul'),
      'Turahalli at dawn with the usual suspects. Same rock, same carabiner, still on my 2018 batch tag. @trail.diaries',
-     '/images/posts/rahul-trek.png', 'lifestyle', 156, t('2024-05-12 08:40:00+05:30'));
+     '/images/posts/rahul-trek.jpg', 'lifestyle', 156, t('2024-05-12 08:40:00+05:30'));
 INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
     ('SOC-026', (SELECT id FROM posts WHERE evidence_id='SOC-025'), (SELECT id FROM users WHERE username='nikhil'),
      'Count me in next time.', t('2024-05-12 09:15:00+05:30')),
@@ -312,13 +312,13 @@ INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-027', (SELECT id FROM users WHERE username='nikhil'),
      'New desk, who dis.',
-     '/images/posts/nikhil-desk.png', 'lifestyle', 84, t('2024-06-03 17:20:00+05:30'));
+     '/images/posts/nikhil-desk.jpg', 'lifestyle', 84, t('2024-06-03 17:20:00+05:30'));
 
 -- SOC-028
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-028', (SELECT id FROM users WHERE username='priya'),
      'Sunday brunch, per tradition.',
-     '/images/posts/priya-brunch.png', 'lifestyle', 203, t('2024-06-16 12:05:00+05:30'));
+     '/images/posts/priya-brunch.jpg', 'lifestyle', 203, t('2024-06-16 12:05:00+05:30'));
 INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
     ('SOC-029', (SELECT id FROM posts WHERE evidence_id='SOC-028'), (SELECT id FROM users WHERE username='meera'),
      'Wish I was there!', t('2024-06-16 13:00:00+05:30'));
@@ -327,7 +327,7 @@ INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-030', (SELECT id FROM users WHERE username='arjun'),
      'Date night with my favorite person.',
-     '/images/posts/arjun-datenight.png', 'married-life', 312, t('2024-07-20 20:30:00+05:30'));
+     '/images/posts/arjun-datenight.jpg', 'married-life', 312, t('2024-07-20 20:30:00+05:30'));
 INSERT INTO tags (post_id, tagged_user_id)
     SELECT (SELECT id FROM posts WHERE evidence_id='SOC-030'), id FROM users WHERE username='meera';
 INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
@@ -338,7 +338,7 @@ INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-032', (SELECT id FROM users WHERE username='rahul'),
      'Monday motivation: coffee and denial.',
-     '/images/posts/rahul-monday.png', 'lifestyle', 71, t('2024-08-05 09:00:00+05:30'));
+     '/images/posts/rahul-monday.jpg', 'lifestyle', 71, t('2024-08-05 09:00:00+05:30'));
 
 -- ---------------------------------------------------------------------------
 -- TRAIL DIARIES (SOC-043..049): the trekking club's own posts. This is where
@@ -350,7 +350,7 @@ INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, p
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-043', (SELECT id FROM users WHERE username='trail.diaries'),
      'Eight years of batch tags. 2016 red, 2017 green, 2018 blue, 2019 yellow, 2020 grey, 2021 orange, 2022 white, 2023 black. New members get this year''s colour at the gate on Sunday. Old-timers, we know you''re still on your original. Clip it to your carabiner and don''t lose it -- we don''t reissue.',
-     '/images/posts/td-tags.png', 'lifestyle', 412, t('2024-03-03 18:20:00+05:30'));
+     '/images/posts/td-tags.jpg', 'lifestyle', 412, t('2024-03-03 18:20:00+05:30'));
 INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
     ('SOC-044', (SELECT id FROM posts WHERE evidence_id='SOC-043'), (SELECT id FROM users WHERE username='rahul'),
      'Blue gang. Never lost mine.', t('2024-03-03 19:05:00+05:30'));
@@ -359,13 +359,13 @@ INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-045', (SELECT id FROM users WHERE username='trail.diaries'),
      'Sunset Rock, Turahalli, 6 a.m. The ledge has a railing now (Forest Dept put it up in 2019). Before that it was a scramble on the north side and a prayer at the lip. Please use the railing. We''ve had one too many bad mornings on this rock.',
-     '/images/posts/td-rock.png', 'lifestyle', 388, t('2024-06-16 08:10:00+05:30'));
+     '/images/posts/td-rock.jpg', 'lifestyle', 388, t('2024-06-16 08:10:00+05:30'));
 
 -- SOC-046 -- Sunday crew at the gate
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-046', (SELECT id FROM users WHERE username='trail.diaries'),
      'Sunday crew at the Kanakapura Road gate. Nanjappa anna still writes every single one of us into the register and still asks your purpose. Nine years, same chair. Sign in, say hi, then go up.',
-     '/images/posts/td-gate.png', 'lifestyle', 265, t('2024-07-21 07:45:00+05:30'));
+     '/images/posts/td-gate.jpg', 'lifestyle', 265, t('2024-07-21 07:45:00+05:30'));
 INSERT INTO tags (post_id, tagged_user_id)
     SELECT (SELECT id FROM posts WHERE evidence_id='SOC-046'), id FROM users WHERE username='rahul';
 INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
@@ -376,7 +376,7 @@ INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-048', (SELECT id FROM users WHERE username='trail.diaries'),
      'Throwback: the 2018 batch on their first Turahalli Sunday, fresh blue tags and no idea what they were signing up for. Seven of you started. Five still show up. Tag yourself.',
-     '/images/posts/td-2018.png', 'lifestyle', 530, t('2024-08-11 20:15:00+05:30'));
+     '/images/posts/td-2018.jpg', 'lifestyle', 530, t('2024-08-11 20:15:00+05:30'));
 INSERT INTO tags (post_id, tagged_user_id)
     SELECT (SELECT id FROM posts WHERE evidence_id='SOC-048'), id FROM users WHERE username='rahul';
 INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES
@@ -463,7 +463,7 @@ INSERT INTO follows (follower_id, followee_id)
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-050', (SELECT id FROM users WHERE username='vikram'),
      'Late-night chai with the little brother. Mum refusing to go to bed until he finishes his plate. @arjun',
-     '/images/posts/chai-night.png', 'recent', 41, t('2024-09-02 23:40:00+05:30'));
+     '/images/posts/chai-night.jpg', 'recent', 41, t('2024-09-02 23:40:00+05:30'));
 INSERT INTO tags (post_id, tagged_user_id)
     SELECT (SELECT id FROM posts WHERE evidence_id='SOC-050'), id FROM users WHERE username='arjun';
 INSERT INTO comments (evidence_id, post_id, user_id, body, commented_at) VALUES

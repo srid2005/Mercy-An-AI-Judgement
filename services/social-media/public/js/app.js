@@ -27,6 +27,17 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;');
 }
 
+// Intrinsic pixel size of a seeded photo, handed down by /api/feed from the
+// image manifest. Putting it on the <img> lets the browser reserve the box
+// before the bytes land, so a page of posts stops reflowing under the reader
+// as each one arrives. Player uploads are data: URLs with no manifest entry --
+// they come back without a size and size themselves, exactly as before.
+function imgSize(item) {
+  return item.image_width && item.image_height
+    ? ` width="${item.image_width}" height="${item.image_height}"`
+    : '';
+}
+
 function timeAgo(iso) {
   const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
   const units = [
@@ -228,7 +239,7 @@ function openStoryViewer(name, avatar) {
 // expanding inline.
 function commentRowHtml(c) {
   const playerBadge = c.source === 'player' ? '<span class="player-badge">New</span>' : '';
-  return `<div class="comment"><img class="comment-avatar" src="${c.author.avatar_url}" alt="" /><span class="comment-author">${escapeHtml(c.author.username)}</span><span>${escapeHtml(c.body)}${playerBadge}</span><span class="evidence-badge">${c.evidence_id}</span></div>`;
+  return `<div class="comment"><img class="comment-avatar" src="${c.author.avatar_url}" alt="" width="18" height="18" loading="lazy" decoding="async" /><span class="comment-author">${escapeHtml(c.author.username)}</span><span>${escapeHtml(c.body)}${playerBadge}</span><span class="evidence-badge">${c.evidence_id}</span></div>`;
 }
 
 function commentsBlockHtml(post) {
@@ -261,7 +272,7 @@ function fullCommentRowHtml(c) {
   const playerBadge = c.source === 'player' ? '<span class="player-badge">New</span>' : '';
   return `
     <div class="pd-comment">
-      <img class="avatar" src="${c.author.avatar_url}" alt="" />
+      <img class="avatar" src="${c.author.avatar_url}" alt="" width="28" height="28" decoding="async" />
       <div class="body">
         <span class="comment-author">${escapeHtml(c.author.username)}</span> ${escapeHtml(c.body)}${playerBadge}
         <div class="meta-row"><span>${timeAgo(c.commented_at)}</span><span class="evidence-badge">${c.evidence_id}</span></div>
@@ -275,7 +286,7 @@ function fullCommentsHtml(post) {
     : '';
   const captionRow = `
     <div class="pd-comment">
-      <img class="avatar" src="${post.author.avatar_url}" alt="" />
+      <img class="avatar" src="${post.author.avatar_url}" alt="" width="28" height="28" decoding="async" />
       <div class="body">
         <span class="comment-author">${escapeHtml(post.author.username)}</span> ${escapeHtml(post.caption)}
         ${tags}
@@ -303,13 +314,13 @@ function postDetailHtml(post) {
   return `
     <div data-evidence="${post.evidence_id}" style="display:flex; width:100%; min-height:0;">
       <div class="post-media pd-media">
-        <img class="post-image" src="${post.image_url}" alt="post image" data-dbl-like="${post.evidence_id}" />
+        <img class="post-image" src="${post.image_url}" alt="post image" data-dbl-like="${post.evidence_id}"${imgSize(post)} decoding="async" />
         <span class="evidence-badge">${post.evidence_id}</span>
         <div class="heart-pop">❤️</div>
       </div>
       <div class="pd-body">
         <div class="pd-header">
-          <img class="avatar" src="${post.author.avatar_url}" alt="" />
+          <img class="avatar" src="${post.author.avatar_url}" alt="" width="32" height="32" decoding="async" />
           <div class="author">${escapeHtml(post.author.username)}${playerBadge}</div>
           <button class="modal-close-x" data-close-detail style="margin-left:auto;" title="Close">✕</button>
         </div>
@@ -364,7 +375,7 @@ function fillerCardHtml(item) {
   return `
     <article class="post" data-evidence="${key}">
       <div class="post-head">
-        <img class="avatar" src="${item.author.avatar_url}" alt="" />
+        <img class="avatar" src="${item.author.avatar_url}" alt="" width="32" height="32" loading="lazy" decoding="async" />
         <div>
           <div class="author">${escapeHtml(item.author.username)}</div>
           ${isAd ? '<div class="meta">Sponsored</div>' : ''}
@@ -372,7 +383,7 @@ function fillerCardHtml(item) {
         <div class="post-head-right">${isAd ? '' : `<span class="meta">${timeAgo(item.posted_at)}</span>`}</div>
       </div>
       <div class="post-media">
-        <img class="post-image" src="${item.image_url}" alt="" data-dbl-like="${key}" />
+        <img class="post-image" src="${item.image_url}" alt="" data-dbl-like="${key}"${imgSize(item)} loading="lazy" decoding="async" />
         <div class="heart-pop">❤️</div>
       </div>
       <div class="post-actions">
@@ -414,7 +425,7 @@ function postCardHtml(post) {
   return `
     <article class="post" data-evidence="${post.evidence_id}">
       <div class="post-head">
-        <img class="avatar" src="${post.author.avatar_url}" alt="" />
+        <img class="avatar" src="${post.author.avatar_url}" alt="" width="32" height="32" loading="lazy" decoding="async" />
         <div>
           <div class="author">${escapeHtml(post.author.username)}${playerBadge}</div>
         </div>
@@ -423,7 +434,7 @@ function postCardHtml(post) {
         </div>
       </div>
       <div class="post-media">
-        <img class="post-image" src="${post.image_url}" alt="post image" data-dbl-like="${post.evidence_id}" />
+        <img class="post-image" src="${post.image_url}" alt="post image" data-dbl-like="${post.evidence_id}"${imgSize(post)} loading="lazy" decoding="async" />
         <span class="evidence-badge">${post.evidence_id}</span>
         <div class="heart-pop">❤️</div>
       </div>
@@ -535,25 +546,77 @@ function toggleSave(evidenceId) {
 // views
 // ---------------------------------------------------------------------
 
+// The feed arrives a page at a time instead of as Meera's whole life in one
+// response, and each page is appended as its own block -- so the column paints
+// after the first dozen posts rather than after the last, and pulling the next
+// page never re-renders (or re-fetches the images of) the cards already up.
+const FEED_PAGE_SIZE = 12;
+let feedPager = null; // the live observer; only one feed is on screen at a time
+
 async function renderFeedView() {
+  feedPager?.disconnect();
   mainCol.innerHTML = '<div class="loading">Loading…</div>';
   await renderRightRail();
 
-  const { feed } = await api('/api/feed').then((r) => r.json());
+  const first = await api(`/api/feed?limit=${FEED_PAGE_SIZE}`).then((r) => r.json());
   mainCol.innerHTML = '';
   await renderStories();
 
-  if (!feed.length) {
+  if (!first.feed.length) {
     mainCol.insertAdjacentHTML('beforeend', '<div class="empty">Nothing here.</div>');
     return;
   }
+
   const feedEl = document.createElement('div');
-  feedEl.style.display = 'flex';
-  feedEl.style.flexDirection = 'column';
-  feedEl.style.gap = '20px';
-  feedEl.innerHTML = feed.map(postCardHtml).join('');
+  feedEl.className = 'feed-column';
   mainCol.appendChild(feedEl);
-  wirePostInteractions(feedEl);
+  appendFeedPage(feedEl, first.feed);
+
+  let offset = first.next_offset;
+  let hasMore = first.has_more;
+  if (!hasMore) return;
+
+  // Loads a page ahead of the scroll position, so in practice the next cards
+  // are already there by the time the player reaches the bottom of these.
+  const sentinel = document.createElement('div');
+  sentinel.className = 'feed-sentinel';
+  mainCol.appendChild(sentinel);
+
+  let loading = false;
+  const pager = new IntersectionObserver(
+    async (entries) => {
+      if (!entries[0].isIntersecting || loading || !hasMore) return;
+      loading = true;
+      sentinel.textContent = 'Loading…';
+      try {
+        const page = await api(`/api/feed?limit=${FEED_PAGE_SIZE}&offset=${offset}`).then((r) => r.json());
+        appendFeedPage(feedEl, page.feed);
+        offset = page.next_offset;
+        hasMore = page.has_more;
+      } finally {
+        loading = false;
+        sentinel.textContent = '';
+        if (!hasMore) {
+          pager.disconnect();
+          sentinel.remove();
+        }
+      }
+    },
+    { rootMargin: '600px' }
+  );
+  pager.observe(sentinel);
+  feedPager = pager;
+}
+
+// One page of cards in its own container: appending leaves every card already
+// on screen untouched, where re-rendering the column would drop and re-request
+// each image above the fold.
+function appendFeedPage(feedEl, items) {
+  const page = document.createElement('div');
+  page.className = 'feed-page';
+  page.innerHTML = items.map(postCardHtml).join('');
+  feedEl.appendChild(page);
+  wirePostInteractions(page);
 }
 
 async function renderProfileView(username) {
@@ -596,7 +659,7 @@ async function renderProfileView(username) {
     .map(
       (p) => `
     <div class="grid-item" data-evidence="${p.evidence_id}">
-      <img src="${p.image_url}" alt="" />
+      <img src="${p.image_url}" alt=""${imgSize(p)} loading="lazy" decoding="async" />
       <span class="evidence-badge grid-evidence">${p.evidence_id}</span>
     </div>`
     )
@@ -714,12 +777,15 @@ function dmBubbleHtml(m) {
 
 // Opens the full permalink-style modal for any post, from anywhere (feed,
 // profile grid, or another post's tag). Uses the live cache when we already
-// have the full post (author/tags/comments); otherwise pulls it from the
-// feed, which contains every post regardless of author.
+// have the full post (author/tags/comments); otherwise asks for that one post.
+// It used to pull the entire feed and linear-search it, which meant opening a
+// post from a profile grid downloaded every other post to throw them away.
 async function openPostDetail(evidenceId) {
   let post = postsByEvidence[evidenceId];
   if (!post || !post.comments) {
-    post = await api('/api/feed').then((r) => r.json()).then((d) => d.feed.find((p) => p.evidence_id === evidenceId));
+    const res = await api(`/api/posts/${encodeURIComponent(evidenceId)}`);
+    if (!res.ok) return;
+    post = await res.json();
   }
   if (!post) return;
 

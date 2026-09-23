@@ -14,7 +14,7 @@ INSERT INTO follows (follower_id, followee_id)
 INSERT INTO posts (evidence_id, user_id, caption, image_url, era, likes_count, posted_at) VALUES
     ('SOC-050', (SELECT id FROM users WHERE username='vikram'),
      'Late-night chai with the little brother. Mum refusing to go to bed until he finishes his plate. @arjun',
-     '/images/posts/chai-night.png', 'recent', 41, t('2024-09-02 23:40:00+05:30')) ON CONFLICT (evidence_id) DO NOTHING;
+     '/images/posts/chai-night.jpg', 'recent', 41, t('2024-09-02 23:40:00+05:30')) ON CONFLICT (evidence_id) DO NOTHING;
 INSERT INTO tags (post_id, tagged_user_id)
     SELECT (SELECT id FROM posts WHERE evidence_id='SOC-050'), id FROM users WHERE username='arjun'
     AND NOT EXISTS (SELECT 1 FROM tags WHERE post_id = (SELECT id FROM posts WHERE evidence_id='SOC-050'));

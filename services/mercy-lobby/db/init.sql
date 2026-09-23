@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS players (
     final_guilt      NUMERIC(4,1),                -- the standing at the end, 0.0 .. 100.0
     checkpoints_hit  INT,
     elapsed_s        INT,                         -- start to outcome, as the engine measured it
+    points           INT NOT NULL DEFAULT 100,    -- the hint budget left at the end, as the engine reported it;
+                                                  -- 100 until it does, and the board's key under 'solved'
     restarts         INT NOT NULL DEFAULT 0,      -- how often the admin rebuilt their game
     notes            TEXT
 );

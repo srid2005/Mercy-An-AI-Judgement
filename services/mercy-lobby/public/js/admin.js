@@ -137,18 +137,20 @@
     el('n-left').textContent = n((p) => p.outcome === 'left');
   }
   // What the row shows is the register's column, overridden by the live
-  // number when the engine or the map answered: guilt, checkpoints and the
-  // chase move during a game, the register only learns the end of it.
+  // number when the engine or the map answered: guilt, points, checkpoints
+  // and the chase move during a game, the register only learns the end of
+  // it. Points show the starting 100 until the engine reports otherwise.
   function renderPlayers() {
     renderCounts();
     const q = search.trim().toLowerCase();
     const rows = q ? players.filter((p) => p.zinnia_id.toLowerCase().includes(q) || String(p.name).toLowerCase().includes(q)) : players;
     const body = el('players');
-    if (!rows.length) { body.innerHTML = `<tr class="empty"><td colspan="12">${players.length ? 'nobody matches' : 'nobody on the list yet -- add them on the right'}</td></tr>`; return; }
+    if (!rows.length) { body.innerHTML = `<tr class="empty"><td colspan="13">${players.length ? 'nobody matches' : 'nobody on the list yet -- add them on the right'}</td></tr>`; return; }
     body.innerHTML = rows.map((p) => {
       const L = p.live || {};
       const state = B.stateOf(p);
       const guilt = L.guilt_percent != null ? L.guilt_percent : p.final_guilt;
+      const points = L.points != null ? L.points : p.points;
       const hits = L.checkpoints_hit != null ? L.checkpoints_hit : p.checkpoints_hit;
       const total = L.checkpoints_total || 7;
       const playing = state === 'playing';
@@ -162,6 +164,7 @@
         <td class="mono">${p.started_at ? fmtStamp(p.started_at) : '<span class="dim">-</span>'}</td>
         <td class="num left" ${playing && p.deadline ? `data-deadline="${esc(p.deadline)}"` : ''}>${playing && p.deadline ? '' : p.outcome ? B.fmtTime(p.elapsed_s) : '<span class="dim">-</span>'}</td>
         <td class="num">${guilt == null ? '<span class="dim">-</span>' : `${B.fmtGuilt(guilt)}%`}</td>
+        <td class="num">${points == null ? '<span class="dim">-</span>' : points}</td>
         <td class="num">${hits == null ? '<span class="dim">-</span>' : `${hits}/${total}`}</td>
         <td class="num">${L.discovered == null ? '<span class="dim">-</span>' : L.discovered}</td>
         <td class="num">${L.searches == null ? '<span class="dim">-</span>' : L.searches}</td>

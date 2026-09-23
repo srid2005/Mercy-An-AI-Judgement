@@ -111,6 +111,11 @@ body[data-gated="connecting"] > #gate-note { display: flex; }
   background: transparent; border: 1px solid rgba(119, 105, 79, 0.45); color: var(--ink-dim);
   font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.2em; transition: color 0.2s, border-color 0.2s, background 0.2s; }
 #leave-btn:hover, #leave-btn:focus-visible { color: var(--ink); border-color: var(--ink-dim); background: rgba(255, 255, 255, 0.5); outline: 0; }
+/* the walkthrough, always one click away -- same ghost as the way out */
+#tour-btn { height: 32px; padding: 0 12px; border-radius: 9px; cursor: pointer; white-space: nowrap;
+  background: transparent; border: 1px solid rgba(119, 105, 79, 0.45); color: var(--ink-dim);
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.2em; transition: color 0.2s, border-color 0.2s, background 0.2s; }
+#tour-btn:hover, #tour-btn:focus-visible { color: var(--ink); border-color: var(--ink-dim); background: rgba(255, 255, 255, 0.5); outline: 0; }
 
 /* ------------------------------------------------------------- panels */
 #panels { position: absolute; top: var(--topbar-h); left: 0; right: 0; bottom: 0; z-index: 1; }
@@ -165,8 +170,20 @@ button.hud-chip:hover { box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.3), 0 0 34px 
 .hud.bump .hud-chip { animation: hud-flicker 0.9s steps(1, end); }
 .hud.calm .hud-chip { --amber: #7be3a6; --amber-line: rgba(123, 227, 166, 0.85); --amber-glow: rgba(90, 220, 150, 0.5); }
 
+/* The turn's own contribution to the standing, floated once under the
+   gauge. Down is the accused gaining ground, so down is the green one. */
+#guilt-delta { position: absolute; top: calc(100% + 10px); right: 0; z-index: 1; pointer-events: none;
+  padding: 3px 11px 4px; border-radius: 9px; opacity: 0;
+  background: var(--hud-bg); border: 1px solid currentColor;
+  font-family: var(--mono); font-size: 20px; letter-spacing: 0.06em; font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#guilt-delta[hidden] { display: none; }
+#guilt-delta.down { color: #7be3a6; text-shadow: 0 0 12px rgba(90, 220, 150, 0.6); }
+#guilt-delta.up { color: #ff7a5c; text-shadow: 0 0 12px rgba(255, 90, 60, 0.6); }
+#guilt-delta.on { animation: delta-float 2.6s ease-out both; }
+
 #meter-popover {
-  position: absolute; top: calc(100% + 10px); right: 0; width: 272px;
+  position: absolute; top: calc(100% + 10px); right: 0; width: 272px; z-index: 2;
   background: var(--hud-bg); color: var(--hud-text);
   border: 1px solid rgba(255, 176, 67, 0.55); border-radius: 12px;
   padding: 12px 14px 12px;
@@ -179,10 +196,54 @@ button.hud-chip:hover { box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.3), 0 0 34px 
 .pop-sub { font-size: 11.5px; color: rgba(246, 226, 191, 0.65); margin: 4px 0 8px; }
 #cp-list:empty::before { content: "no checkpoint reached yet"; display: block; font-size: 12px; color: rgba(246, 226, 191, 0.5); padding: 8px 0 2px; border-top: 1px dashed rgba(255, 176, 67, 0.22); }
 .cp-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 7px 0; font-size: 12.5px; border-top: 1px dashed rgba(255, 176, 67, 0.22); }
-.cp-row .cp-pct { font-family: var(--mono); color: var(--amber); font-size: 12.5px; }
+.cp-row .cp-mark { font-family: var(--mono); color: var(--amber); font-size: 10px; letter-spacing: 0.2em; }
 #verdict-concluded { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 176, 67, 0.35);
   font-family: var(--mono); font-size: 11px; letter-spacing: 0.26em; color: var(--amber); text-align: center; }
 #verdict-concluded[hidden] { display: none; }
+
+/* ---------------------------------------------------------- hint desk */
+/* The chip carries the purse; the popover is the only place it is spent.
+   Anchored to the chip's right edge so it never runs off a narrow screen. */
+#hud-hint { position: relative; }
+.hud-chip:disabled { opacity: 0.5; cursor: default; }
+button.hud-chip:disabled:hover { transform: none; box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.18), 0 0 26px rgba(255, 140, 20, 0.42), 0 10px 26px rgba(50, 30, 8, 0.28), inset 0 0 22px rgba(255, 140, 20, 0.14); }
+#hint-popover {
+  position: absolute; top: calc(100% + 10px); right: 0; width: min(320px, calc(100vw - 32px));
+  background: var(--hud-bg); color: var(--hud-text);
+  border: 1px solid rgba(255, 176, 67, 0.55); border-radius: 12px;
+  padding: 12px 14px 12px;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 0 26px rgba(255, 140, 20, 0.28), 0 16px 34px rgba(50, 30, 8, 0.35);
+  animation: pop-in 0.18s ease-out;
+}
+#hint-popover[hidden] { display: none; }
+#hint-tiers { display: flex; flex-direction: column; gap: 6px; }
+.hint-tier { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; padding: 9px 11px; cursor: pointer;
+  background: rgba(255, 176, 67, 0.07); border: 1px solid rgba(255, 176, 67, 0.28); border-radius: 10px; color: inherit;
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s; }
+.hint-tier:hover:not(:disabled), .hint-tier:focus-visible { border-color: var(--amber-line); background: rgba(255, 176, 67, 0.14); outline: 0; }
+.hint-tier:disabled { opacity: 0.5; cursor: default; }
+.ht-cost { flex: 0 0 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: 7px;
+  background: rgba(255, 140, 20, 0.18); border: 1px solid rgba(255, 176, 67, 0.5);
+  font-family: var(--mono); font-size: 12px; color: var(--amber); }
+.ht-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.ht-main b { font-family: var(--mono); font-weight: 400; font-size: 11px; letter-spacing: 0.2em; color: var(--amber); }
+.ht-main i { font-style: normal; font-size: 11.5px; line-height: 1.4; color: rgba(246, 226, 191, 0.7); }
+.ht-act { flex: 0 0 auto; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.18em; color: rgba(246, 226, 191, 0.55); }
+/* armed: one more click spends real points, so it says so loudly */
+.hint-tier.armed { border-color: var(--amber); background: rgba(255, 140, 20, 0.2); box-shadow: 0 0 0 1px rgba(255, 176, 67, 0.4), 0 0 18px rgba(255, 140, 20, 0.35); }
+.hint-tier.armed .ht-act { color: var(--amber); }
+.hint-tier.known { border-style: dashed; }
+.hint-tier.known .ht-act { color: #7be3a6; }
+.hint-tier.dear .ht-act { color: #ff7a5c; }
+#hint-used { margin-top: 9px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.22em; color: rgba(246, 226, 191, 0.45); }
+#hint-used[hidden] { display: none; }
+#hint-msg { margin-top: 9px; padding-top: 8px; border-top: 1px dashed rgba(255, 176, 67, 0.22);
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; line-height: 1.5; color: rgba(246, 226, 191, 0.7); }
+#hint-msg[hidden] { display: none; }
+#hint-msg.is-bad { color: #ff7a5c; }
+#hint-msg.is-ok { color: #7be3a6; }
+#hint-msg.is-warn { color: var(--amber); }
 
 #victim-popover {
   position: absolute; top: calc(100% + 10px); left: 0; width: min(520px, calc(100vw - 56px));
@@ -280,6 +341,38 @@ button.hud-chip:hover { box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.3), 0 0 34px 
 .evi-text { white-space: pre-line; }
 .evi-link { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 600; color: var(--amber-2); text-decoration: none; border-bottom: 1px dashed rgba(255, 140, 26, 0.5); }
 .evi-link:hover { border-bottom-style: solid; }
+
+/* MERCY's verdict on the turn, beside its name: the feedback the standing
+   alone never gave. Live turns only -- /api/transcript has no verdict. */
+.verdict-badge { margin-left: 8px; padding: 3px 8px; border-radius: 6px; font-size: 9.5px; letter-spacing: 0.2em;
+  background: var(--hud-bg); border: 1px solid currentColor; box-shadow: 0 0 12px rgba(0, 0, 0, 0.18); }
+.verdict-badge.v-advanced { color: #6fe0a4; }
+.verdict-badge.v-partial { color: var(--amber); }
+.verdict-badge.v-rejected { color: rgba(246, 226, 191, 0.62); }
+.verdict-badge.v-contradicted { color: #ff8a70; }
+/* and what the turn did to the standing, so a replayed hearing still shows
+   the moves the participant watched the meter make */
+.turn-delta { margin-left: 7px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
+.turn-delta.down { color: #2c9c63; }
+.turn-delta.up { color: #d0472c; }
+
+/* which of the attached pieces MERCY actually leaned on, stamped on the
+   participant's own cards once the reply lands */
+.evi-card.is-accepted { box-shadow: var(--glass-shadow), inset 0 1px 0 #fff, 0 0 0 1px rgba(63, 191, 122, 0.6); }
+.evi-card.not-accepted { opacity: 0.68; }
+.acc-flag { padding: 6px 12px 7px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.18em;
+  color: var(--ink-soft); background: rgba(34, 20, 8, 0.05); border-top: 1px dashed rgba(120, 90, 50, 0.3); }
+.acc-flag.yes { color: #1c7a4c; background: rgba(63, 191, 122, 0.14); border-top-color: rgba(63, 191, 122, 0.45); }
+
+/* a hint in the record: it sits in the hearing because that is where the
+   participant is looking, but it is plainly not MERCY speaking */
+.hint-note { align-self: center; max-width: min(78%, 520px); padding: 11px 16px 12px; border-radius: 12px;
+  background: rgba(255, 176, 67, 0.14); border: 1px dashed rgba(255, 140, 26, 0.65);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5); animation: rise 0.28s ease-out; }
+.hint-note-h { display: flex; justify-content: space-between; gap: 14px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em; color: var(--amber-2); }
+.hint-note-b { margin: 8px 0 0; font-size: 14px; line-height: 1.55; color: var(--ink); }
+.hint-note-ref { margin-top: 7px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; color: var(--ink-soft); }
 
 /* a drone search's contact sheet (city-map): 16:9 tiles on the card's dark
    ground, the kind of frame stamped on each; n1..n4 set the layout */
@@ -643,6 +736,38 @@ button.hud-chip:hover { box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.3), 0 0 34px 
 #leave-go:hover:not(:disabled), #leave-go:focus-visible { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 26px rgba(255, 140, 20, 0.5); outline: 0; }
 #leave-go:disabled { opacity: 0.6; cursor: default; }
 
+/* ---------------------------------------------------------- the tour */
+/* Over the console, under the ending (z 58). The dim and the cut-out are
+   the same element -- one fixed box with a viewport-sized shadow around it
+   -- so they can never drift apart as the hole moves between steps. The
+   overlay takes the clicks: nothing underneath is live while it is up. */
+#tour { position: fixed; inset: 0; z-index: 58; }
+#tour[hidden] { display: none; }
+#tour-hole { position: fixed; border-radius: 14px; pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(14, 9, 3, 0.78), 0 0 0 1px var(--amber-line), 0 0 30px rgba(255, 140, 20, 0.5), inset 0 0 26px rgba(255, 140, 20, 0.12);
+  transition: left 0.32s cubic-bezier(0.2, 0.9, 0.2, 1), top 0.32s cubic-bezier(0.2, 0.9, 0.2, 1), width 0.32s cubic-bezier(0.2, 0.9, 0.2, 1), height 0.32s cubic-bezier(0.2, 0.9, 0.2, 1); }
+#tour-card { position: fixed; width: min(380px, calc(100vw - 24px)); padding: 16px 18px 14px; color: var(--hud-text);
+  background: var(--hud-bg); border: 1px solid rgba(255, 176, 67, 0.55); border-radius: 14px;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.14), 0 0 34px rgba(255, 140, 20, 0.28), 0 22px 50px rgba(0, 0, 0, 0.5);
+  animation: pop-in 0.18s ease-out;
+  transition: left 0.32s cubic-bezier(0.2, 0.9, 0.2, 1), top 0.32s cubic-bezier(0.2, 0.9, 0.2, 1); }
+.tour-kicker { font-family: var(--mono); font-size: 10px; letter-spacing: 0.3em; color: var(--amber); }
+.tour-title { margin: 8px 0 0; font-family: var(--mono); font-weight: 400; font-size: 15px; letter-spacing: 0.22em; color: #fff; }
+.tour-body { margin: 9px 0 0; font-size: 13.5px; line-height: 1.6; color: rgba(246, 226, 191, 0.9); }
+.tour-actions { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+.tour-dots { flex: 1; display: flex; align-items: center; gap: 5px; }
+.tour-dots i { width: 5px; height: 5px; border-radius: 50%; background: rgba(255, 176, 67, 0.28); }
+.tour-dots i.on { background: var(--amber); box-shadow: 0 0 8px var(--amber-glow); }
+.tour-actions button { height: 32px; padding: 0 14px; border-radius: 9px; cursor: pointer;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.2em; transition: transform 0.2s, box-shadow 0.2s, background 0.2s; }
+#tour-skip, #tour-back { background: transparent; color: var(--hud-text); border: 1px solid rgba(246, 226, 191, 0.32); }
+#tour-skip:hover, #tour-skip:focus-visible, #tour-back:hover:not(:disabled), #tour-back:focus-visible { background: rgba(255, 255, 255, 0.08); outline: 0; }
+#tour-back:disabled { opacity: 0.4; cursor: default; }
+#tour-next { background: linear-gradient(135deg, #3a2a18, #1f170f); color: #ffd79a; border: 1px solid rgba(255, 176, 67, 0.6);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 18px rgba(255, 140, 20, 0.3); }
+#tour-next:hover, #tour-next:focus-visible { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 26px rgba(255, 140, 20, 0.5); outline: 0; }
+
 /* ---------------------------------------------------------- keyframes */
 @keyframes closed-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes clock-pulse { 0%, 100% { box-shadow: 0 0 16px rgba(255, 80, 50, 0.4), inset 0 0 12px rgba(255, 80, 50, 0.16); } 50% { box-shadow: 0 0 26px rgba(255, 80, 50, 0.75), inset 0 0 16px rgba(255, 80, 50, 0.3); } }
@@ -662,6 +787,7 @@ button.hud-chip:hover { box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.3), 0 0 34px 
 @keyframes scan-sweep-back { from { transform: translateY(var(--sweep-h, 300px)); opacity: 0.55; } to { transform: translateY(-3px); opacity: 0.55; } }
 @keyframes pk-sweep { from { transform: translateY(-40px); opacity: 0.9; } to { transform: translateY(var(--sweep-h, 300px)); opacity: 0; } }
 @keyframes tile-lit { 0% { box-shadow: 0 0 0 rgba(255, 140, 20, 0); } 40% { box-shadow: 0 0 18px rgba(255, 140, 20, 0.65), inset 0 0 12px rgba(255, 140, 20, 0.3); } 100% { box-shadow: 0 0 10px rgba(255, 140, 20, 0.35), inset 0 0 8px rgba(255, 140, 20, 0.14); } }
+@keyframes delta-float { 0% { opacity: 0; transform: translateY(7px) scale(0.92); } 14% { opacity: 1; transform: none; } 68% { opacity: 1; transform: translateY(-6px); } 100% { opacity: 0; transform: translateY(-15px); } }
 @keyframes count-flicker { 0%, 100% { opacity: 1; } 30% { opacity: 0.25; } 60% { opacity: 0.9; } 80% { opacity: 0.4; } }
 
 /* --------------------------------------------------------- responsive */
@@ -670,6 +796,7 @@ button.hud-chip:hover { box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.3), 0 0 34px 
   #hud-evidence { left: 20px; } #hud-guilt { right: 20px; }
   #chat-head { padding-left: 44px; padding-right: 240px; }
   .pr-meta { display: none; }
+  .ht-main i { font-size: 11px; }
 }
 @media (max-width: 1440px) {
   .pr-id { display: none; } /* the column is narrow; tags matter more than the id, which search still matches */
@@ -688,6 +815,11 @@ button.hud-chip:hover { box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.3), 0 0 34px 
   .hud-value { font-size: 22px; }
   #victim-toggle .hud-value.name { display: none; } /* icon + label only; the name is one tap away */
   #victim-toggle .hud-label { margin: 0; padding: 8px 0; }
+  #hint-toggle .hud-value { font-size: 18px; }
+  .hint-note { max-width: 94%; }
+  /* the topbar is full at this width: the walkthrough keeps its control, the
+     leaderboard's wording is what gives way (see #leave-btn above) */
+  #tour-btn { padding: 0 9px; font-size: 10px; letter-spacing: 0.14em; }
   #chat-head { visibility: hidden; } /* both HUD chips sit here at this width; keep the spacing, drop the text */
   #topbar { padding: 0 16px; }
   /* the clock and the way out stay; the file number and the brand's subline go */
@@ -700,10 +832,43 @@ button.hud-chip:hover { box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.3), 0 0 34px 
   .closed-card { padding: 34px 20px 30px; }
   .closed-title { font-size: 28px; letter-spacing: 0.34em; padding-left: 0.34em; }
 }
+/* Phone widths. The event is played on laptops and everything above holds
+   from a tablet up; below ~620px the topbar and the HUD row were already
+   fighting for the same pixels, and a third chip there would simply pile on.
+   The chips drop to icon-and-number and the wordmark stands down, which is
+   what the chamber can spare -- the clock, the tabs and the controls cannot. */
+@media (max-width: 620px) {
+  /* the topbar: the wordmark and the tabs give up their padding so the
+     clock, the walkthrough and the way out all stay on the bar */
+  #topbar { padding: 0 10px; }
+  #brand .mark { display: none; }
+  #topbar-right { gap: 6px; }
+  /* the tabs are the one thing here that can give: let flexbox shrink them
+     and clip, rather than have the clock land on top of "City Map" */
+  #tabbar { min-width: 0; }
+  .tab-btn { padding: 5px 7px; font-size: 10px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #hud-clock { padding: 0 6px; font-size: 12px; }
+  #leave-btn, #tour-btn { padding: 0 6px; font-size: 9px; letter-spacing: 0.06em; }
+  /* the HUD row: four chips across a phone only fit as icon and number, and
+     the guilt chip has to shrink with them or the hint desk goes under it */
+  #hud-left { left: 16px; gap: 8px; }
+  .hud-chip { padding: 6px 10px 6px 8px; gap: 7px; }
+  .hud-icon { width: 24px; height: 24px; flex-basis: 24px; }
+  .hud-label { font-size: 9px; letter-spacing: 0.18em; margin-bottom: 2px; }
+  .hud-value { font-size: 17px; }
+  .hud-value .unit { font-size: 12px; }
+  #cp-ticks { display: none; }
+  #hud-evidence .hud-label, #hint-toggle .hud-label, #hint-toggle .hud-value .unit { display: none; }
+  #victim-toggle .hud-body { display: none; } /* the icon carries it; the card is one tap away */
+  #hint-popover { width: min(320px, calc(100vw - 24px)); }
+}
 @media (prefers-reduced-motion: reduce) {
   #picker, #picker-index, .pk-sec, .scan-tile, .st-count, #picker-sweep, .picker-row.pr-new, .idx-bar > i, .idx-line.active .idx-x::after, .pk-chip.pulse, #picker-scan, .ds-tile, .ds-tile img, .peek,
-  #case-closed, .closed-card, .closed-title, .closed-line, .closed-hud, .closed-file, .closed-actions, #hud-clock, #leave-confirm, .confirm-card {
+  #case-closed, .closed-card, .closed-title, .closed-line, .closed-hud, .closed-file, .closed-actions, #hud-clock, #leave-confirm, .confirm-card,
+  #hint-popover, .hint-note, #tour-hole, #tour-card {
     animation: none !important; transition: none !important; }
+  /* the delta still has to be readable: it holds still and simply fades */
+  #guilt-delta.on { animation: scan-in 0.2s ease-out both !important; }
   .ds-tile:hover img { transform: none; }
   .peek { transform: none; }
 }

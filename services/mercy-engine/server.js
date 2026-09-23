@@ -4,9 +4,11 @@
 // service owns: what the participant has actually found (discovered_
 // evidence), the argument itself (transcript), which pieces of evidence
 // have actually been used in an argument MERCY accepted (accepted_
-// evidence), and the running verdict (case_state), moved only by the
-// checkpoint script in db/init.sql -- and, once, by the rescue (/api/rescue),
-// which is how the map ends the game.
+// evidence), and the running verdict (case_state), which MERCY herself moves
+// on every turn of /api/argue -- and, once, the rescue (/api/rescue), which
+// is how the map ends the game. The checkpoints in db/init.sql are the
+// story's beats, not the meter: they open gates, say their line and close
+// the file, and the number is the judge's.
 //
 // For the event every participant has all of that in a schema of their own
 // (see /MULTIPLAYER.md): tenant.js picks the schema from the mercy_sid
@@ -26,7 +28,7 @@ const MERCY_API_KEY = process.env.MERCY_API_KEY || "dev-mercy-key";
 // the lobby, over the docker network, for the outcome report; and the
 // length of a game when the lobby's start does not say
 const LOBBY_URL = process.env.LOBBY_URL || "http://mercy-lobby:3030";
-const GAME_MINUTES = Number(process.env.GAME_MINUTES) || 25;
+const GAME_MINUTES = Number(process.env.GAME_MINUTES) || 60;
 // the raw pool is what tenant provisions with (schemas, no search path);
 // every query in this file goes through the proxy, which sets the
 // participant's search_path on each checkout
@@ -179,15 +181,64 @@ async function fetchSearchAsEvidence(evidenceId) {
   }
 }
 
+// Who sent a Wisp message. Every other service leaves the author somewhere
+// in the evidence record -- first in `involves` (social-media, haven), or
+// first of a [sender, recipient] pair (email) -- but whatsapp's `involves`
+// is the whole thread and its content carries only the body, so a message
+// arrives at MERCY unattributable: WA-199 is the alibi's keystone and she
+// cannot tell whether Meera wrote it or Vikram did. The sender is on the
+// owning service, on the thread the console reads, so fetch it once and keep
+// it in the cached content (llm/vertex.js:attribution reads content.sender).
+// The thread is addressed by key for a group and by the other participant
+// for a direct chat, which is why this tries several: a candidate counts
+// only if the thread it returns actually contains this message. Never
+// throws and never blocks a record -- an unreachable whatsapp gives MERCY
+// the message without the name, which is where we were before.
+async function whatsappSender(record) {
+  const base = SERVICE_BASE.WA;
+  const c = record.content || {};
+  if (!base || record.service !== "whatsapp" || c.sender) return record;
+  const candidates = [c.thread_key, ...(record.involves || [])].filter(Boolean);
+  for (const key of candidates) {
+    try {
+      // no deadline here would let a sick owner service hold the whole turn
+      // open: the catch below returns the record unattributed, which is the
+      // right failure -- MERCY sees one piece without a sender, not a timeout.
+      const r = await fetch(`${base}/api/chats/${encodeURIComponent(key)}`, { headers: ownerHeaders(), signal: AbortSignal.timeout(3000) });
+      if (!r.ok) continue;
+      const { thread } = await r.json();
+      const m = (thread || []).find((x) => x.evidence_id === record.evidence_id);
+      if (!m || !m.sender) continue;
+      return { ...record, content: { ...c, sender: m.sender, sender_display_name: m.sender_display_name || null } };
+    } catch (e) {
+      console.error(`[mercy-engine] sender lookup for ${record.evidence_id} via ${key} failed:`, e.message);
+    }
+  }
+  return record;
+}
+
 // Cache-through resolver. evidence_cache is pre-seeded with CASE- rows;
 // everything else lands here the first time anyone (a discovery event, or
 // the chat's own ID lookup) asks for it.
 async function resolveEvidence(evidenceId) {
   const cached = await pool.query("SELECT * FROM evidence_cache WHERE evidence_id = $1", [evidenceId]);
-  if (cached.rows.length) return rowToRecord(cached.rows[0]);
+  if (cached.rows.length) {
+    const row = rowToRecord(cached.rows[0]);
+    // a row cached before the sender was ever asked for -- fill it in place,
+    // once, rather than leaving that participant's MERCY blind for the game
+    if (row.service === "whatsapp" && !(row.content || {}).sender) {
+      const named = await whatsappSender(row);
+      if ((named.content || {}).sender) {
+        await pool.query("UPDATE evidence_cache SET content = $2 WHERE evidence_id = $1", [named.evidence_id, named.content]);
+        return named;
+      }
+    }
+    return row;
+  }
 
-  const record = await fetchFromOwner(evidenceId);
-  if (!record) return null;
+  const fetched = await fetchFromOwner(evidenceId);
+  if (!fetched) return null;
+  const record = await whatsappSender(fetched);
 
   await pool.query(
     `INSERT INTO evidence_cache (evidence_id, service, type, timestamp, summary, involves, content)
@@ -320,7 +371,7 @@ async function reportOutcome(outcome) {
   if (!id) return console.error(`[mercy-engine] outcome ${outcome} not reported: no participant (single-player)`);
   const { rows } = await pool.query(
     `UPDATE case_state SET reported_at = now() WHERE id = 1 AND reported_at IS NULL
-     RETURNING guilt_percent, started_at,
+     RETURNING guilt_percent, started_at, points, hints_used,
        GREATEST(0, EXTRACT(EPOCH FROM (LEAST(updated_at, COALESCE(deadline, updated_at)) - started_at)))::int AS elapsed_s`,
   );
   if (!rows.length) return;
@@ -330,6 +381,10 @@ async function reportOutcome(outcome) {
     outcome,
     guilt_percent: Number(rows[0].guilt_percent),
     checkpoints_hit: hit,
+    // what is left of the hint budget, and what it took: the leaderboard
+    // ranks solved files by the points still in hand, then by time
+    points: rows[0].points,
+    hints_used: rows[0].hints_used,
     elapsed_s: rows[0].started_at ? rows[0].elapsed_s : null,
   };
   try {
@@ -410,28 +465,96 @@ app.get("/api/state", async (req, res) => {
   await expireIfDue();
   const state = await readState();
   await reportIfPending(state);
-  const checkpoints = (await pool.query("SELECT code, sort_order, label, guilt_after, hit, hit_at FROM checkpoints ORDER BY sort_order")).rows;
+  const checkpoints = (await pool.query("SELECT code, sort_order, label, guilt_after, guilt_at_hit, hit, hit_at FROM checkpoints ORDER BY sort_order")).rows;
   res.json({
     guilt_percent: Number(state.guilt_percent),
     concluded: state.concluded,
     outcome: state.outcome,
+    points: state.points,
+    hints_used: state.hints_used,
+    // which beat a hint would be bought against right now. The console prices
+    // a tier before it asks, so it needs this to tell "you already own this
+    // one" from "this one is for the beat you have since moved on to" -- the
+    // same tier is a different hint, and a different charge, once the file
+    // advances. Never the missing ids: that would hand over free what the
+    // tiers are priced for.
+    hint_target: (await stuckOn())?.code || null,
     ...clockOf(state),
     // un-hit checkpoints are returned blank -- the participant can see the
     // shape of what's left (how many beats remain) without the content
-    // being spoiled by the state endpoint itself.
-    checkpoints: checkpoints.map((c) => (c.hit ? { sort_order: c.sort_order, label: c.label, guilt_after: Number(c.guilt_after), hit: true, hit_at: c.hit_at } : { sort_order: c.sort_order, hit: false })),
+    // being spoiled by the state endpoint itself. guilt_after is what the
+    // standing actually was when the beat fired, not the old script's
+    // number: MERCY moves the meter now, so the beat list has to read back
+    // the same as the meter did at the time.
+    checkpoints: checkpoints.map((c) => (c.hit ? { sort_order: c.sort_order, label: c.label, guilt_after: Number(c.guilt_at_hit === null ? c.guilt_after : c.guilt_at_hit), hit: true, hit_at: c.hit_at } : { sort_order: c.sort_order, hit: false })),
     gates: await openGates(),
   });
 });
 
 app.get("/api/transcript", async (req, res) => {
-  const { rows } = await pool.query("SELECT role, body, evidence_ids, checkpoint_hit, created_at FROM transcript ORDER BY id ASC");
-  res.json({ count: rows.length, transcript: rows });
+  // verdict and delta ride along so a reloaded hearing reads back the same
+  // moves the participant watched the meter make
+  const { rows } = await pool.query("SELECT role, body, evidence_ids, checkpoint_hit, verdict, delta, created_at FROM transcript ORDER BY id ASC");
+  res.json({ count: rows.length, transcript: rows.map((r) => ({ ...r, delta: r.delta === null ? null : Number(r.delta) })) });
 });
 
 // ---------------------------------------------------------------------------
 // The argument itself.
+//
+// MERCY owns the number. Every turn she returns a verdict and a delta and the
+// standing moves by it, up or down -- the checkpoints below are story beats
+// now, not the meter. The model is not trusted with any of that, so the
+// guards here are absolute and run on every turn whichever provider answered:
+//   * the delta is clamped to [-12, +6];
+//   * a turn with nothing attached can never move the file the accused's way;
+//   * only 'contradicted' -- evidence that turns on the person who brought
+//     it -- may cost more than three points;
+//   * the standing stays inside [0, 100], and above a floor of 2.0 until she
+//     has actually been found. Nobody talks their way to zero.
 // ---------------------------------------------------------------------------
+const DELTA_MIN = -12;
+const DELTA_MAX = 6;
+const REJECTED_MAX = 3;      // the most a turn can cost without being contradicted
+const GUILT_FLOOR = 2.0;     // while 'located' has not fired
+const round1 = (n) => Math.round(n * 10) / 10;
+
+function guardDelta(delta, verdict, hasEvidence) {
+  let d = Number.isFinite(Number(delta)) ? Number(delta) : 0;
+  d = Math.max(DELTA_MIN, Math.min(DELTA_MAX, d));
+  if (!hasEvidence && d < 0) d = 0;
+  if (verdict !== "contradicted" && d > REJECTED_MAX) d = REJECTED_MAX;
+  return round1(d);
+}
+
+// The accepted set as the beats read it: every id the file has taken, plus
+// MAP-FOUND once one of those is a drone search that actually located her --
+// which search id that is can't be known ahead of time (see db/init.sql on
+// the 'located' checkpoint).
+async function acceptedSetFor(accepted) {
+  const set = new Set(accepted);
+  if (!accepted.length) return set;
+  const found = await pool.query(
+    "SELECT 1 FROM evidence_cache WHERE service = 'city-map' AND (content->>'found')::boolean = true AND evidence_id = ANY($1) LIMIT 1",
+    [accepted],
+  );
+  if (found.rows.length) set.add("MAP-FOUND");
+  return set;
+}
+
+// Fire every beat the accepted set now covers, oldest first. All of them are
+// tested, not only the next one: sort_order is the story's order, not a gate
+// on the participant's, and a piece argued early for another reason has to
+// land its beat when the rest of that beat finally arrives.
+async function fireCheckpoints() {
+  const pending = (await pool.query("SELECT * FROM checkpoints WHERE hit = false ORDER BY sort_order")).rows;
+  if (!pending.length) return { hits: [], located: false };
+  const accepted = (await pool.query("SELECT evidence_id FROM accepted_evidence")).rows.map((r) => r.evidence_id);
+  const set = await acceptedSetFor(accepted);
+  const hits = pending.filter((c) => c.required_ids.every((id) => set.has(id)));
+  if (hits.length) await pool.query("UPDATE checkpoints SET hit = true, hit_at = now() WHERE code = ANY($1)", [hits.map((c) => c.code)]);
+  return { hits, located: hits.some((c) => c.code === "located") };
+}
+
 app.post("/api/argue", async (req, res) => {
   const { text, evidence_ids } = req.body || {};
   const ids = Array.isArray(evidence_ids) ? evidence_ids.filter(Boolean) : [];
@@ -454,18 +577,23 @@ app.post("/api/argue", async (req, res) => {
 
   await pool.query("INSERT INTO transcript (role, body, evidence_ids) VALUES ('participant', $1, $2)", [text || "", ids]);
 
-  // the model also sees the last turns and the beats the file has already
-  // accepted -- context, not answers: the hidden truth is never in the prompt
-  const [history, established] = await Promise.all([
-    pool.query("SELECT role, body FROM transcript ORDER BY id DESC LIMIT 9").then((r) => r.rows.slice(1).reverse()),
+  // the model also sees the last turns (with what was attached to each), the
+  // beats the file has already accepted and the ids behind them, and where
+  // the standing is -- context, not answers: the hidden truth is never in
+  // the prompt. Without the accepted ids a participant ten turns in reads
+  // to the model exactly like a participant on turn one.
+  const [history, established, acceptedIds] = await Promise.all([
+    pool.query("SELECT role, body, evidence_ids FROM transcript ORDER BY id DESC LIMIT 9").then((r) => r.rows.slice(1).reverse()),
     pool.query("SELECT label FROM checkpoints WHERE hit = true ORDER BY sort_order").then((r) => r.rows.map((c) => c.label)),
+    pool.query("SELECT evidence_id FROM accepted_evidence ORDER BY accepted_at").then((r) => r.rows.map((a) => a.evidence_id)),
   ]);
-  let { reply, coherent } = await llm.generateReply({
+  let { reply, verdict, delta, accepted_ids: acceptedNow } = await llm.generateReply({
     participantText: text || "",
     attachedEvidence: attached,
     guiltPercent: Number(state.guilt_percent),
     history,
     established,
+    acceptedIds,
   });
 
   // the model took its time: the clock may have run out, or the map may have
@@ -476,53 +604,141 @@ app.post("/api/argue", async (req, res) => {
     return res.status(409).json({ error: again.outcome === "timeout" ? "time is up" : "the case is closed" });
   }
 
-  if (coherent && ids.length) {
-    await Promise.all(ids.map((id) => pool.query("INSERT INTO accepted_evidence (evidence_id) VALUES ($1) ON CONFLICT DO NOTHING", [id])));
+  // Only the pieces that actually carried the claim fold into the accepted
+  // set: the right piece attached beside the wrong argument still proves
+  // nothing, and the beats below read this set, not what was attached.
+  const acceptedTurn = (acceptedNow || []).filter((id) => ids.includes(id));
+  if (acceptedTurn.length) {
+    await Promise.all(acceptedTurn.map((id) => pool.query("INSERT INTO accepted_evidence (evidence_id) VALUES ($1) ON CONFLICT DO NOTHING", [id])));
   }
 
-  // the next un-hit checkpoint, in order, fires the moment the accepted set
-  // covers its required ids -- so a checkpoint can't fire out of sequence
-  // even if its evidence happened to be accepted earlier for another reason.
+  // the beats first, then the number: whether she has been found decides
+  // whether the floor is still under the standing this turn
+  const { hits, located } = await fireCheckpoints();
+
+  const before = Number(again.guilt_percent);
+  const guarded = guardDelta(delta, verdict, ids.length > 0);
+  // Finding her is the only thing that takes the file to zero, and it takes
+  // it there outright -- the same ending the rescue writes from the map's
+  // side. Everything else lands between the floor and a hundred.
+  const guilt = located ? 0.0 : Math.min(100, Math.max(GUILT_FLOOR, round1(before + guarded)));
+  const moved = round1(guilt - before);
+  await pool.query(
+    "UPDATE case_state SET guilt_percent = $1, concluded = $2, outcome = CASE WHEN $2::boolean THEN 'solved' ELSE outcome END, updated_at = now() WHERE id = 1",
+    [guilt, located],
+  );
+
   let checkpointHit = null;
-  let solved = false;
-  const next = (await pool.query("SELECT * FROM checkpoints WHERE hit = false ORDER BY sort_order LIMIT 1")).rows[0];
-  if (next) {
-    const accepted = (await pool.query("SELECT evidence_id FROM accepted_evidence")).rows.map((r) => r.evidence_id);
-    const acceptedSet = new Set(accepted);
-    // MAP-FOUND is synthetic: true once any accepted drone-search result
-    // actually located her, since which search id that was isn't knowable
-    // ahead of time (see db/init.sql on the 'located' checkpoint).
-    const foundASearch = (
-      await pool.query(
-        "SELECT 1 FROM evidence_cache WHERE service = 'city-map' AND (content->>'found')::boolean = true AND evidence_id = ANY($1) LIMIT 1",
-        [accepted],
-      )
-    ).rows.length > 0;
-    if (foundASearch) acceptedSet.add("MAP-FOUND");
-    if (next.required_ids.every((id) => acceptedSet.has(id))) {
-      await pool.query("UPDATE checkpoints SET hit = true, hit_at = now() WHERE code = $1", [next.code]);
-      const isLast = (await pool.query("SELECT count(*)::int AS n FROM checkpoints WHERE hit = false")).rows[0].n === 0;
-      // the last beat closes the file: 'solved', the same outcome as the rescue
-      await pool.query(
-        "UPDATE case_state SET guilt_percent = $1, concluded = $2, outcome = CASE WHEN $2::boolean THEN 'solved' ELSE outcome END, updated_at = now() WHERE id = 1",
-        [next.guilt_after, isLast],
-      );
-      checkpointHit = next.code;
-      solved = isLast;
-      // MERCY's own line for the beat rides on the same turn, as its own
-      // paragraph after the model's reply -- into the transcript too, so a
-      // reload reads the same way.
-      if (next.reaction) reply = reply + "\n\n" + next.reaction;
-    }
+  if (hits.length) {
+    // what the meter actually read when each beat fired, so /api/state's
+    // beat list and the meter never disagree on a reload
+    await pool.query("UPDATE checkpoints SET guilt_at_hit = $1 WHERE code = ANY($2)", [guilt, hits.map((c) => c.code)]);
+    checkpointHit = hits[hits.length - 1].code;
+    // MERCY's own line for each beat rides on the same turn, as its own
+    // paragraph after the model's reply -- into the transcript too, so a
+    // reload reads the same way.
+    for (const c of hits) if (c.reaction) reply = reply + "\n\n" + c.reaction;
   }
 
-  await pool.query("INSERT INTO transcript (role, body, evidence_ids, checkpoint_hit) VALUES ('mercy', $1, $2, $3)", [reply, [], checkpointHit]);
+  await pool.query(
+    "INSERT INTO transcript (role, body, evidence_ids, checkpoint_hit, verdict, delta) VALUES ('mercy', $1, $2, $3, $4, $5)",
+    [reply, [], checkpointHit, verdict, moved],
+  );
   // after the closing line is in the transcript, so the lobby's next look
   // at the summary reads a finished file
-  if (solved) await reportOutcome("solved");
+  if (located) await reportOutcome("solved");
 
-  const fresh = (await pool.query("SELECT guilt_percent, concluded FROM case_state WHERE id = 1")).rows[0];
-  res.json({ reply, guilt_percent: Number(fresh.guilt_percent), checkpoint_hit: checkpointHit, concluded: fresh.concluded });
+  const fresh = (await pool.query("SELECT guilt_percent, concluded, points FROM case_state WHERE id = 1")).rows[0];
+  res.json({
+    reply,
+    guilt_percent: Number(fresh.guilt_percent),
+    delta: moved,
+    verdict,
+    accepted_ids: acceptedTurn,
+    points: fresh.points,
+    checkpoint_hit: checkpointHit,
+    concluded: fresh.concluded,
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Hints. A hundred points per participant, priced by how much of the work
+// the hint does for them: tier 1 (5) names the app or the part of the city,
+// tier 2 (10) says what to look for once they are there, tier 3 (20) names
+// the piece and its id. What is left of the budget ranks the leaderboard
+// under 'solved', so the price is real.
+//
+// The target is not the participant's to choose: it is wherever they are
+// actually stuck -- the next un-hit beat, minus the required ids the file
+// has already accepted. Of what is left, a piece they have not even found
+// outranks one they have found and not argued, because those are two
+// different kinds of stuck and only one of them is answered by being told
+// where to look; the other is told so in the body.
+// ---------------------------------------------------------------------------
+const HINT_COST = { 1: 5, 2: 10, 3: 20 };
+const ARGUE_IT =
+  "Every piece this beat needs is already in your evidence index. What is missing is not the finding. It is the argument: attach it in the hearing and tell me what it proves.";
+
+async function stuckOn() {
+  const next = (await pool.query("SELECT code, required_ids FROM checkpoints WHERE hit = false ORDER BY sort_order LIMIT 1")).rows[0];
+  if (!next) return null;
+  const accepted = (await pool.query("SELECT evidence_id FROM accepted_evidence")).rows.map((r) => r.evidence_id);
+  const set = await acceptedSetFor(accepted);
+  const missing = next.required_ids.filter((id) => !set.has(id));
+  if (!missing.length) return { code: next.code, missing, allDiscovered: false };
+  // MAP-FOUND is not a record anyone can open, so it is never discovered --
+  // which is right: a participant who has not found her is stuck on finding
+  // her, not on arguing her.
+  const seen = (await pool.query("SELECT evidence_id FROM discovered_evidence WHERE evidence_id = ANY($1)", [missing])).rows.map((r) => r.evidence_id);
+  return { code: next.code, missing, allDiscovered: seen.length === missing.length };
+}
+
+app.post("/api/hint", async (req, res) => {
+  const tier = Number((req.body || {}).tier);
+  if (!HINT_COST[tier]) return res.status(400).json({ error: "tier must be 1, 2 or 3" });
+
+  await expireIfDue();
+  const state = await readState();
+  if (state.outcome === "timeout") return res.status(409).json({ error: "time is up" });
+  if (state.concluded) return res.status(409).json({ error: "the case is closed" });
+
+  const stuck = await stuckOn();
+  if (!stuck) return res.status(409).json({ error: "there is nothing left to point you at" });
+  // read the words before taking the money: a tier with no row is a seeding
+  // fault, and nobody pays for it
+  const row = (await pool.query("SELECT body FROM hints WHERE checkpoint_code = $1 AND tier = $2", [stuck.code, tier])).rows[0];
+  if (!row) return res.status(409).json({ error: "no hint at that tier" });
+  const hint = stuck.allDiscovered ? `${row.body}\n\n${ARGUE_IT}` : row.body;
+
+  // The charge, once. The same tier of the same beat asked for twice is the
+  // same knowledge; the second time it is free. One transaction with the
+  // state row locked, so a double click cannot buy it twice or overdraw.
+  const cost = HINT_COST[tier];
+  const client = await pool.connect();
+  let charged = 0;
+  let pointsLeft = state.points;
+  try {
+    await client.query("BEGIN");
+    const cur = (await client.query("SELECT points FROM case_state WHERE id = 1 FOR UPDATE")).rows[0];
+    const taken = (await client.query("SELECT cost FROM hints_taken WHERE checkpoint_code = $1 AND tier = $2", [stuck.code, tier])).rows[0];
+    pointsLeft = cur.points;
+    if (!taken) {
+      if (cur.points < cost) {
+        await client.query("ROLLBACK");
+        return res.status(402).json({ error: "not enough points", points_left: cur.points });
+      }
+      await client.query("INSERT INTO hints_taken (checkpoint_code, tier, cost) VALUES ($1, $2, $3)", [stuck.code, tier, cost]);
+      pointsLeft = (await client.query("UPDATE case_state SET points = GREATEST(0, points - $1), hints_used = hints_used + 1 WHERE id = 1 RETURNING points", [cost])).rows[0].points;
+      charged = cost;
+    }
+    await client.query("COMMIT");
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+  res.json({ hint, tier, cost: charged, points_left: pointsLeft, target: `${stuck.code}/tier${tier}` });
 });
 
 // ---------------------------------------------------------------------------
@@ -570,7 +786,7 @@ app.post("/api/rescue", async (req, res) => {
     // as well as accepted, so the index and the accepted set stay consistent
     await client.query("INSERT INTO discovered_evidence (evidence_id) VALUES ($1) ON CONFLICT DO NOTHING", [evidence_id]);
     for (const id of [evidence_id, "SW-06"]) await client.query("INSERT INTO accepted_evidence (evidence_id) VALUES ($1) ON CONFLICT DO NOTHING", [id]);
-    await client.query("UPDATE checkpoints SET hit = true, hit_at = now() WHERE code = 'located'");
+    await client.query("UPDATE checkpoints SET hit = true, hit_at = now(), guilt_at_hit = 0.0 WHERE code = 'located'");
     await client.query("UPDATE case_state SET guilt_percent = 0.0, concluded = true, outcome = 'solved', updated_at = now() WHERE id = 1");
     await client.query("INSERT INTO transcript (role, body, evidence_ids, checkpoint_hit) VALUES ('mercy', $1, $2, 'located')", [reply, []]);
     await client.query("COMMIT");
@@ -608,7 +824,10 @@ app.get("/api/case", async (req, res) => {
   // across an event reset (the templates re-seed to a new "last night")
   const record = await resolveEvidence("HAV-031");
   if (!record || !record.timestamp) return res.status(503).json({ error: "haven not reachable yet" });
-  res.json({ missing_since: record.timestamp });
+  // the hint budget rides along: the console draws the header before it has
+  // asked for the state, and the points counter is part of that header
+  const state = await readState();
+  res.json({ missing_since: record.timestamp, points: state.points, hints_used: state.hints_used });
 });
 app.get("/api/health", (req, res) => res.json({ ok: true, service: "mercy-engine" }));
 
@@ -639,6 +858,8 @@ tenant.mount(app, {
       guilt_percent: Number(state.guilt_percent),
       concluded: state.concluded,
       outcome: state.outcome,
+      points: state.points,
+      hints_used: state.hints_used,
       ...clockOf(state),
       checkpoints_hit: beats.hit,
       checkpoints_total: beats.total,

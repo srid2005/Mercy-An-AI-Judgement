@@ -14,7 +14,7 @@
   const REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const el = (id) => document.getElementById(id);
-  let minutes = 25; // GAME_MINUTES, as the login answer says
+  let minutes = 60; // GAME_MINUTES, as the login answer says
 
   // ------------------------------------------------------------------ api
   async function api(path, body) {

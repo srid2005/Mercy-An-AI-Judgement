@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=10" />
+    <link rel="stylesheet" href="/css/style.css?v=11" />
   </head>
   <body data-gated="gate">
     <div id="gate-note" aria-live="polite">CONNECTING TO MERCY…</div>
@@ -27,11 +27,12 @@
         <button class="tab-btn" data-tab="laptop">Meera's Laptop<span class="tab-dot" hidden></span></button>
         <button class="tab-btn" data-tab="map">City Map<span class="tab-dot" hidden></span></button>
       </nav>
-      <!-- the clock: 25 minutes from the lobby's "Accept & continue", driven
+      <!-- the clock: 60 minutes from the lobby's "Accept & continue", driven
            by the engine's deadline (app.js tickClock); red under five minutes -->
       <div id="topbar-right">
         <span id="case-no">FILE UDR 0412/2018</span>
         <span id="hud-clock" title="Time left on the file" aria-live="off">--:--</span>
+        <button id="tour-btn" type="button" title="Replay the walkthrough">TOUR</button>
         <button id="leave-btn" type="button" data-mode="leave">LEAVE THE CASE</button>
       </div>
     </header>
@@ -104,6 +105,31 @@
               </div>
             </div>
           </div>
+
+          <!-- The hint desk. A hundred points per participant, spent in
+               three depths; the chip carries what is left so the price of
+               asking is never hidden, and the popover is where it is spent. -->
+          <div id="hud-hint">
+            <button id="hint-toggle" class="hud-chip" type="button" title="Spend points on a steer">
+              <svg class="hud-icon" viewBox="0 0 48 48" aria-hidden="true">
+                <circle cx="24" cy="20" r="9" fill="none" stroke="currentColor" stroke-width="2.2" />
+                <path d="M20 32h8M21.5 37h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                <path d="M24 4v4M42 20h-4M10 20H6M35.3 8.7 32.5 11.5M12.7 8.7l2.8 2.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".55" />
+              </svg>
+              <div class="hud-body">
+                <div class="hud-label">HINT</div>
+                <div class="hud-value"><span id="points-value">100</span><span class="unit">pts</span></div>
+              </div>
+            </button>
+
+            <div id="hint-popover" hidden>
+              <div class="pop-head"><span>ASK FOR A STEER</span><span id="hint-left">100 PTS LEFT</span></div>
+              <div class="pop-sub">a hundred points to start; the leaderboard counts what you have not spent</div>
+              <div id="hint-tiers"></div>
+              <div id="hint-used" hidden></div>
+              <div id="hint-msg" hidden></div>
+            </div>
+          </div>
         </div>
 
         <!-- HUD: guilt (right) -->
@@ -121,6 +147,10 @@
               <div id="cp-ticks" aria-hidden="true"></div>
             </div>
           </button>
+
+          <!-- the turn's signed delta, floated once under the gauge: DOWN is
+               the accused gaining ground, so it is the green one -->
+          <div id="guilt-delta" aria-hidden="true" hidden></div>
 
           <div id="meter-popover" hidden>
             <div class="pop-head">
@@ -255,6 +285,25 @@
       </div>
     </div>
 
-    <script src="/js/app.js?v=10"></script>
+    <!-- The walkthrough. First run per participant, then the TOUR button
+         replays it. The chamber dims, a hole is cut over the real element
+         being named, and the card says what that element is FOR in the game.
+         Next / Back / Skip, and Escape ends it wherever focus is. -->
+    <div id="tour" role="dialog" aria-modal="true" aria-labelledby="tour-title" hidden>
+      <div id="tour-hole" aria-hidden="true"></div>
+      <div id="tour-card">
+        <div id="tour-step" class="tour-kicker">STEP 1 / 7</div>
+        <h2 id="tour-title" class="tour-title">THE APPS</h2>
+        <p id="tour-body" class="tour-body"></p>
+        <div class="tour-actions">
+          <button id="tour-skip" type="button">SKIP</button>
+          <span id="tour-dots" class="tour-dots" aria-hidden="true"></span>
+          <button id="tour-back" type="button">BACK</button>
+          <button id="tour-next" type="button">NEXT</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/app.js?v=11"></script>
   </body>
 </html>

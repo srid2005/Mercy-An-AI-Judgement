@@ -5,7 +5,7 @@ DO $mig$ DECLARE sch TEXT; BEGIN
   FOR sch IN SELECT nspname FROM pg_namespace WHERE nspname IN ('public', 'template') OR nspname LIKE 'p\_%' LOOP
     EXECUTE format('SET LOCAL search_path TO %I', sch);
     IF to_regclass('posts') IS NOT NULL THEN
-      UPDATE posts SET image_url = '/images/posts/chai-night.png' WHERE image_url = '/images/posts/chai-night.svg';
+      UPDATE posts SET image_url = '/images/posts/chai-night.jpg' WHERE image_url = '/images/posts/chai-night.svg';
     END IF;
   END LOOP;
 END $mig$;

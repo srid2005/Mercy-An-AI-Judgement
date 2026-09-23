@@ -7,13 +7,24 @@ player, and issues the final verdict.
 - Not player-facing directly -- `desktop-shell` displays its output.
 - Needs read access to every other service's evidence endpoint, so it must
   come up after them in `docker-compose.yml`.
-- Scoring is a scripted sequence of checkpoints (`db/init.sql`), each fired
-  by the participant arguing coherently with its `required_ids`, strictly in
-  order: the alibi (WA-199 + SOC-050, 96.8 -> 90) -> the gate timeline (82)
-  -> the carabiner (70) -> the motive (42) -> Named (22, releases the SOS
-  trail) -> Not Rahul (SW-06, 8) -> Located (the drone find, 3, closed).
-  Nothing raises the meter yet. The LLM adapter (`llm/`) decides coherence;
-  the stub accepts any 12+ character argument that attaches evidence.
+- The meter is MERCY's. Every turn of `/api/argue` she returns a verdict
+  (`advanced` | `partial` | `rejected` | `contradicted`) and a delta, and the
+  standing moves by it, down when the accused gains ground and up when a
+  piece turns on him. The model is not trusted with it: the server clamps the
+  delta to [-12, +6], refuses a negative one on a turn with nothing attached,
+  caps anything but `contradicted` at +3, and holds a floor of 2.0 until she
+  has actually been found -- nobody talks their way to zero.
+- The checkpoints in `db/init.sql` are the story's beats, not the meter: the
+  alibi (WA-199 + SOC-050) -> the gate timeline -> the carabiner -> the
+  motive -> Named (releases the SOS trail) -> Not Rahul (SW-06) -> Located
+  (the drone find, which closes the file at 0.0). Every un-hit beat is tested
+  on every turn against the whole accepted set, so evidence argued out of
+  order still lands its beat. A beat opens its gates, says its line, and
+  records the standing it fired at (`guilt_at_hit`).
+- Hints (`POST /api/hint`) cost from a budget of 100 points: 5 for the app or
+  the part of the city, 10 for what to look for there, 20 for the piece by
+  name. The target is where the participant is actually stuck, not their
+  choice, and a tier already paid for comes back free.
 - The end of the game is not an argument but a rescue. `POST /api/rescue
   {evidence_id: 'MAP-<id>'}` -- called by the console when the map posts
   `mercy:case-solved` after the rescue footage -- concludes the case:
@@ -41,7 +52,7 @@ deadline is applied lazily -- the next `GET /api/state`, `GET /api/me`,
 `POST /api/argue`, `POST /api/rescue`, `POST /api/leave` or internal summary
 past it closes the file as `timeout`. Each outcome (`solved` | `timeout` |
 `left`) is reported to the lobby once: `POST {LOBBY_URL}/api/internal/outcome
-{id, outcome, guilt_percent, checkpoints_hit, elapsed_s}` with
+{id, outcome, guilt_percent, checkpoints_hit, points, hints_used, elapsed_s}` with
 `x-internal-key`; a report the lobby did not take is retried on the next
 read of `/api/me` or `/api/state`.
 
@@ -58,9 +69,20 @@ Participant (cookie), CORS with credentials for the console:
   file where it stands, with MERCY's line in the transcript; idempotent (a
   closed file answers with how it closed).
 - `GET /api/state` -- as before, plus `outcome`, `started_at`, `deadline`,
-  `time_left_s`, `expired`.
-- `POST /api/argue` -- 409 `time is up` past the deadline, 409 `the case is
-  closed` once concluded. The last checkpoint sets `outcome = 'solved'`.
+  `time_left_s`, `expired`, `points`, `hints_used`. A hit beat's
+  `guilt_after` is what the meter actually read when it fired.
+- `POST /api/argue` -> `{reply, guilt_percent, delta, verdict, accepted_ids,
+  points, checkpoint_hit, concluded}`. `delta` is signed and is the move the
+  meter actually made, after the guards; `accepted_ids` is the subset of what
+  was attached that carried the claim, and only that subset joins the
+  accepted set. 409 `time is up` past the deadline, 409 `the case is closed`
+  once concluded. The `located` beat sets `outcome = 'solved'` at 0.0.
+- `POST /api/hint {tier: 1|2|3}` -> `{hint, tier, cost, points_left, target}`
+  -- `target` is a console label like `the_alibi/tier2`, and `cost` is 0 when
+  that tier of that beat has already been bought. 402 `{error: "not enough
+  points", points_left}` when the tier costs more than is left; 409 once the
+  file is closed or the clock has run out; 400 on any other tier.
+- `GET /api/case` -- plus `points` and `hints_used`.
 - `POST /api/rescue` -- as before, and sets `outcome = 'solved'`.
 - `GET /api/transcript`, `GET /api/discovered`, `POST /api/discovered`,
   `GET /api/evidence/:id`, `GET /api/case`, `GET /api/health` -- unchanged.
@@ -74,9 +96,9 @@ Internal (`x-internal-key`; the lobby):
   `GET /api/internal/players`, `POST /api/internal/template`,
   `POST /api/internal/reset`, `GET /api/internal/stats` -- `tenant.js`.
 - `GET /api/internal/players/:id/summary` -> `{id, provisioned,
-  guilt_percent, concluded, outcome, started_at, deadline, time_left_s,
-  expired, checkpoints_hit, checkpoints_total, discovered, transcript_turns,
-  last_activity}`.
+  guilt_percent, concluded, outcome, points, hints_used, started_at,
+  deadline, time_left_s, expired, checkpoints_hit, checkpoints_total,
+  discovered, transcript_turns, last_activity}`.
 
 ### Environment
 
@@ -88,7 +110,7 @@ Internal (`x-internal-key`; the lobby):
 - `LOBBY_URL` -- where the outcome report goes (default
   `http://mercy-lobby:3030`).
 - `GAME_MINUTES` -- the length of a game when the lobby's start does not
-  say (default 25).
+  say (default 60).
 - `MERCY_API_KEY`, `DATABASE_URL`, `MERCY_LLM_PROVIDER`, the `*_URL` and
   `*_PUBLIC_URL` pairs -- as before.
 
@@ -100,8 +122,11 @@ Cloud Vertex AI (`llm/vertex.js`, `@google/genai`; `GOOGLE_CLOUD_PROJECT`,
 `GOOGLE_CLOUD_LOCATION=global`, `VERTEX_MODEL=gemini-2.5-flash`; Application
 Default Credentials, i.e. the VM's service account or a mounted key file).
 Every turn the model gets MERCY's persona, the participant's words, the
-attached evidence, the last eight turns and the beats the file has already
-accepted -- never the hidden truth -- and answers as JSON `{ reply, coherent }`.
-`coherent` is what gates the accepted set (and so the checkpoints), exactly as
-with the stub. A failure of any kind falls back to the stub's reply, so the
-hearing never stalls. See /DEPLOY_GCP.md.
+attached evidence rendered as a reader would meet it (who wrote it, to whom,
+where, when, in the city's own clock, and the text in full), where the
+standing stands, the last eight turns with what was attached to each, and the
+beats and evidence ids the file has already accepted -- never the hidden
+truth. It answers as JSON `{ reply, verdict, delta, accepted_ids, reason }`.
+A failure of any kind falls back to the stub, which returns the same shape
+with deltas of its own, so the hearing never stalls on the model. See
+/DEPLOY_GCP.md.

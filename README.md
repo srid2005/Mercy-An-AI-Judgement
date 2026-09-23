@@ -16,7 +16,7 @@ http://localhost:3030/admin (password `mercy-admin`, env `ADMIN_PASSWORD`),
 add the participants by Zinnia ID (`ZIN26-0158, Name`, one per line), press
 PREPARE TEMPLATES, and share http://<this machine's IP>:3030/ -- a
 participant enters their ID, watches the intro, meets MERCY, reads the
-briefing, accepts, and has 25 minutes (`GAME_MINUTES`) in the console.
+briefing, accepts, and has 60 minutes (`GAME_MINUTES`) in the console.
 Every participant gets an isolated game in every service (a Postgres schema
 each, picked by the `mercy_sid` cookie -- see MULTIPLAYER.md); the desk
 watches them live, restarts one, resets the event, restarts the containers,

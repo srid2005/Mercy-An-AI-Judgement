@@ -6,7 +6,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "gen:images": "node scripts/generate-placeholder-images.js"
+    "gen:images": "node scripts/generate-placeholder-images.js",
+    "opt:images": "python scripts/optimise-images.py"
   },
   "dependencies": {
     "cors": "^2.8.5",

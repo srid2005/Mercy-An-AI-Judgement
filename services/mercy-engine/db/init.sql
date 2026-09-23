@@ -3,8 +3,9 @@
 -- This service owns none of the story's evidence -- every other service
 -- does that. What it owns is the participant's side of the game: what
 -- they've actually found (discovered_evidence), the argument itself
--- (transcript), the running verdict (case_state), and the script of when
--- that verdict is allowed to move (checkpoints). evidence_cache is a local
+-- (transcript), the running verdict (case_state, which MERCY moves on every
+-- turn), the hint budget she is argued against with, and the story's beats
+-- (checkpoints, which no longer move that verdict). evidence_cache is a local
 -- copy of records fetched from the owning services (plus a handful this
 -- service seeds itself, for evidence with no live API -- the case file's
 -- photographs, and the band's SOS alerts), kept so the chat can re-render a
@@ -37,10 +38,11 @@ CREATE TABLE evidence_cache (
     cached_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Evidence that has actually been used in an argument MERCY judged
--- coherent -- not just attached. Checkpoints fire against this set, not the
--- raw discovered_evidence set, so attaching the right piece with no real
--- argument doesn't move the score.
+-- Evidence MERCY judged to have actually carried the claim it was attached
+-- to -- not merely attached, and not necessarily all of what was attached
+-- that turn. The beats fire against this set, not the raw
+-- discovered_evidence set, so the right piece beside no real argument
+-- proves nothing.
 CREATE TABLE accepted_evidence (
     evidence_id  TEXT PRIMARY KEY,
     accepted_at  TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -48,13 +50,20 @@ CREATE TABLE accepted_evidence (
 
 -- One row per turn, in order. evidence_ids is what the participant attached
 -- to that turn (empty for MERCY's own turns, and for text-only participant
--- turns that argued without evidence).
+-- turns that argued without evidence). verdict and delta are MERCY's judgement
+-- of the turn, written on her own row: the standing moves every turn now, so
+-- a reload has to be able to read back how each move was earned -- and the
+-- hint engine reads the recent ones to see how the participant is doing.
+-- A live database gets the two columns from
+-- scripts/migrate_live_v2_ai_meter.sql.
 CREATE TABLE transcript (
     id            SERIAL PRIMARY KEY,
     role          TEXT NOT NULL CHECK (role IN ('participant', 'mercy')),
     body          TEXT NOT NULL,
     evidence_ids  TEXT[] NOT NULL DEFAULT '{}',
     checkpoint_hit TEXT,                         -- code of the checkpoint this turn triggered, if any
+    verdict       TEXT CHECK (verdict IN ('advanced', 'partial', 'rejected', 'contradicted')),
+    delta         NUMERIC(4,1),                  -- the change this turn made to guilt_percent, signed, after the guards
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -67,6 +76,13 @@ CREATE TABLE transcript (
 -- way of concluding and by nothing after, so it is also when the file
 -- closed. A live database gets the four columns from
 -- scripts/migrate_live_clock.sql.
+--
+-- points is the hint budget: a hundred per participant, spent tier by tier
+-- (5 / 10 / 20) on POST /api/hint and never below zero. What is left of it
+-- ranks the leaderboard under 'solved', so a file argued unaided beats the
+-- same file bought a piece at a time. hints_used is how many hints were
+-- actually charged for. Both from scripts/migrate_live_v2_hints.sql on a
+-- live database.
 CREATE TABLE case_state (
     id              INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
     guilt_percent   NUMERIC(4,1) NOT NULL,
@@ -75,15 +91,23 @@ CREATE TABLE case_state (
     deadline        TIMESTAMPTZ,
     outcome         TEXT CHECK (outcome IN ('solved', 'timeout', 'left')),
     reported_at     TIMESTAMPTZ,
+    points          INTEGER NOT NULL DEFAULT 100 CHECK (points >= 0),
+    hints_used      INTEGER NOT NULL DEFAULT 0,
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 INSERT INTO case_state (id, guilt_percent) VALUES (1, 96.8);
 
 -- The script. `required_ids` must ALL be in the participant's accumulated
 -- accepted-evidence set (not necessarily attached in the same turn) for the
--- checkpoint to fire; checkpoints fire in `sort_order`, so a later one can't
--- fire before an earlier one even if its evidence arrives out of order.
--- Draft numbers -- easy to retune without touching any code.
+-- checkpoint to fire. Every un-hit beat is tested on every turn, so evidence
+-- argued out of order still registers the moment the set covers a beat.
+--
+-- Checkpoints no longer move the verdict: MERCY sets guilt_percent herself,
+-- every turn, on what that turn was worth (server.js:/api/argue). What a beat
+-- still does is story -- open its gates, say its line, and, for 'located',
+-- end the game. `guilt_after` is the old script's number, kept only so the
+-- retuning history is readable; `guilt_at_hit` is what the standing actually
+-- was when the beat fired, which is what /api/state reports.
 --
 -- `unlocks` names the gates a checkpoint opens when it fires; GET /api/state
 -- reports each gate in the fixed list server.js:GATES as open/closed, and
@@ -100,7 +124,8 @@ CREATE TABLE checkpoints (
     unlocks       TEXT[] NOT NULL DEFAULT '{}',
     reaction      TEXT,
     hit           BOOLEAN NOT NULL DEFAULT false,
-    hit_at        TIMESTAMPTZ
+    hit_at        TIMESTAMPTZ,
+    guilt_at_hit  NUMERIC(4,1)                   -- the standing when this beat fired; NULL until it does
 );
 
 INSERT INTO checkpoints (code, sort_order, label, required_ids, guilt_after, unlocks, reaction) VALUES
@@ -136,6 +161,63 @@ INSERT INTO checkpoints (code, sort_order, label, required_ids, guilt_after, unl
     ('located', 7, 'Located',
      ARRAY['SW-06', 'MAP-FOUND'], 3.0, '{}',
      'Alive, and where he left her. Units are moving. The file against you is closed.');
+
+-- The hint engine. Three tiers per beat, bought with case_state.points:
+-- tier 1 (5 points) says which app or which part of the city the answer is
+-- in; tier 2 (10) says what to look for once they are there; tier 3 (20)
+-- names the piece and its evidence id. Each tier is written to be genuinely
+-- enough at its price and to give away nothing the tier above it is for --
+-- a tier 1 that names a piece is a tier 3 sold cheap.
+--
+-- POST /api/hint picks the beat from where the participant is actually
+-- stuck (the next un-hit checkpoint, minus what it has already accepted),
+-- so these are keyed on the checkpoint, not on an evidence id.
+CREATE TABLE hints (
+    checkpoint_code  TEXT NOT NULL,
+    tier             INTEGER NOT NULL CHECK (tier IN (1, 2, 3)),
+    body             TEXT NOT NULL,
+    PRIMARY KEY (checkpoint_code, tier)
+);
+
+-- What has been bought, and for how much. A second request for a hint
+-- already taken returns the same words free -- the participant paid for the
+-- knowledge, not for the click -- so this is also the charge ledger.
+CREATE TABLE hints_taken (
+    checkpoint_code  TEXT NOT NULL,
+    tier             INTEGER NOT NULL,
+    cost             INTEGER NOT NULL,
+    taken_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (checkpoint_code, tier)
+);
+
+INSERT INTO hints (checkpoint_code, tier, body) VALUES
+    ('the_alibi', 1, 'You have put nothing between yourself and that night. Her laptop is not only hers -- the evening is on it. Two places carried traffic after eleven: the chat app, and the feed. Look at what the people who were with you did, not at what she did.'),
+    ('the_alibi', 2, 'Your brother did two things while you slept at your mother''s house. He wrote to your wife, and he put the evening on the feed with your name attached to it. Both are stamped after 23:00, an hour and a half after she was taken. One without the other is a claim; together they are a place.'),
+    ('the_alibi', 3, 'Wisp, her chat with Vikram: his message to her at 23:12, never opened. Loop: his post at 23:40, chai at your mother''s, tagging you. WA-199 and SOC-050. Attach both in one turn and tell me where you were at the time on them.'),
+
+    ('gate_timeline', 1, 'You have cleared your own night. That is not the case. The case is her father''s, and she kept two records of it: a document on the laptop behind a password, and the video diary she recorded it into. Start where she started.'),
+    ('gate_timeline', 2, 'The police file has a gate register in it -- who came in, who went out, and one word about how fast. Months before she disappeared she built the same morning herself, minute by minute, and read it out loud. The two accounts agree, and the file they came from does not. Put them in front of me together.'),
+    ('gate_timeline', 3, 'CASE-GATE: page three of FATHER_DEATH_CASE.pdf, in Documents/Dad -- the password is in Notes. HAV-021, ''Timelines'', in Haven: a scooter in at 06:05, out at 07:35, and the jogger who heard two men at 07:10. Attach both and tell me what the register makes of a fall at 07:15.'),
+
+    ('the_object', 1, 'A timeline puts someone on a rock. It does not say who. The case file''s exhibits are photographs of things, not statements -- and the man you have not named yet posts every weekend of his life in public. The same object is in both places.'),
+    ('the_object', 2, 'Among her father''s effects, laid out on a cloth, there is a clip that was not his: a trekking club''s, tagged with a year. Somebody on the feed still wears that same tag and writes about it in a caption, at that same rock. Match the object. The person follows from it.'),
+    ('the_object', 3, 'CASE-EFFECTS: exhibit four, page two -- the blue carabiner, tag ''TD 2018''. SOC-025 on Loop: ''same rock, same carabiner, still on my 2018 batch tag''. Attach both and tell me what that clip was doing at the base of the rock in 2018.'),
+
+    ('the_motive', 1, 'An object is not a reason. She spent the last fortnight of her diary on the reason. Go back into Haven, to the entries near the end, not the old ones.'),
+    ('the_motive', 2, 'She found the jogger again and the jogger remembered a sentence the statement left out. One word of it is the whole motive. Her father''s own diary says the same warning three separate times, in his handwriting, in the same year. It is one recording, and she stops just short of the name.'),
+    ('the_motive', 3, 'HAV-029, ''Close'', 30 August, in Haven: ''I told you to stay away from her'' -- her -- the young man running down the trail, and ''Talked to R. again. Warned him off.'' Attach it and tell me whose motive that is, since it cannot be yours.'),
+
+    ('the_confession', 1, 'You have a reason and an initial. You do not have a name. She recorded one more time, on the last evening, after everything else on that account. Haven, the final entry.'),
+    ('the_confession', 2, 'The last thing she made, she made so that it would exist somewhere he could not reach: twelve minutes before she was taken, with his car already at the kerb and her husband away. She says the name out loud in it, and she says what she thinks he did in 2018.'),
+    ('the_confession', 3, 'HAV-031, ''If something happens'', 21:52 -- her last recording. The carabiner in every trek photo since 2017, the 5:48 call in her father''s phone, ''R''. Attach it and put the name to me: Rahul Nair.'),
+
+    ('the_cave', 1, 'A name is not a place, and her band did not stop when she went out of the door. Five alerts are on the laptop now, released to PulseFit. The map takes coordinates.'),
+    ('the_cave', 2, 'Sweep the five fixes in the order she sent them. The last one is not a building and it is degraded by three hundred metres, so the pin is not the answer -- read the ground around it, and the two childhood photographs with the same geotag. What the drones bring back from there is not her. It is what she left behind so that you would know it was her.'),
+    ('the_cave', 3, 'SW-06: the two-minute voice memo on her band, recovered with her folded jacket from the cave on the north face of Kettle Hill. Sweep the cave, play the memo, attach it. She names the man who took her in it, and the name is not the one you just gave me.'),
+
+    ('located', 1, 'The memo gave you a plate. A plate is enough for the map to follow a car, and tracking is open to you now. She is not at the cave and she is not where the band stopped.'),
+    ('located', 2, 'His car was read by six cameras between 02:58 and 05:33 and it has not stopped moving since. Follow it. It waits at each of its stops until your drones have been there, so nothing is lost by sweeping them one at a time -- and she is at one of them, alive, behind a door that locks from outside.'),
+    ('located', 3, 'Nikhil Rao, KA 05 MN 4471, a grey hatchback. Follow it on the map and search every stop it makes: the campus basement under his own office, the stadium first-aid room, the market cold store, the rented house at the foot of Kettle Hill, Harrow Mills Unit 4, the chapel store behind the vestry. One of the six is thermal-positive. Search it and she is found.');
 
 -- Evidence with no live service to fetch it from: the case file's own
 -- photographs. Served by this container from public/case-photos/.
