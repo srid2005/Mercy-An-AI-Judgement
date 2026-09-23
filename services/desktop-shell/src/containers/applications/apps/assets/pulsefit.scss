@@ -6,6 +6,12 @@
     font-size: 13px;
     background: #fafafa;
     color: #222;
+    // win11Scroll hides the thumb until the pointer is over the pane; here the
+    // trail is five cards tall and a participant has to see there is more
+    &::-webkit-scrollbar-thumb {
+      display: block;
+    }
+    scrollbar-gutter: stable;
   }
   .pfHead {
     display: flex;
@@ -102,17 +108,36 @@
     }
     .pfCoords {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px 12px;
       background: #fff;
       border: 1px solid #eee;
       border-radius: 8px;
       padding: 10px 12px;
+      .pfFix {
+        flex: 1 1 200px;
+      }
+      // the numbers themselves are the fallback of last resort: one click
+      // selects the whole pair for Ctrl+C when neither copy path is available
       .pfVal {
         font-family: Consolas, monospace;
         font-size: 17px;
         font-weight: 600;
+        user-select: all;
+        cursor: text;
+      }
+      .pfActs {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+      .pfFb {
+        flex-basis: 100%;
+        font-size: 11px;
+        color: #b3261e;
+        animation: pffade 1.8s ease forwards;
       }
     }
   }
@@ -133,8 +158,17 @@
     padding: 6px 12px;
     font-size: 12px;
     white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
     &:hover {
       background: #fde8e8;
+    }
+    &.primary {
+      background: #d6343e;
+      color: #fff;
+      &:hover {
+        background: #b3261e;
+      }
     }
   }
   // before the console releases the trail there is nothing to show
@@ -204,6 +238,16 @@
         font-weight: 600;
       }
     }
+  }
+}
+
+@keyframes pffade {
+  0%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
   }
 }
 

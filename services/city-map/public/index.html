@@ -9,8 +9,42 @@
   <script type="importmap">
     { "imports": { "three": "/vendor/three/build/three.module.js", "three/addons/": "/vendor/three/examples/jsm/" } }
   </script>
+  <!-- The module graph is four deep (app -> scene3d -> three -> OrbitControls) and
+       the bundle is fetched at the top of app.js: named here, every one of them is
+       on the wire while the HTML is still being parsed instead of one after another. -->
+  <link rel="modulepreload" href="/js/app.js">
+  <link rel="modulepreload" href="/js/scene3d.js">
+  <link rel="modulepreload" href="/js/geo.js">
+  <link rel="modulepreload" href="/vendor/three/build/three.module.js">
+  <link rel="modulepreload" href="/vendor/three/examples/jsm/controls/OrbitControls.js">
+  <link rel="preload" href="/api/map/bundle" as="fetch" crossorigin>
 </head>
 <body>
+  <!-- On screen from the first byte of HTML, before a script has run: the bundle
+       and three.js take seconds over the event's uplink, and a black pane reads as
+       broken. app.js steps the caption as it goes and drops the whole thing the
+       moment the first frame has rendered. A script error before then is shown
+       here rather than left as a blank stage. -->
+  <div id="loader" class="loader" data-state="loading" role="status" aria-live="polite">
+    <div class="ld-mark"><span>MERCY</span><em>CITY MODEL</em></div>
+    <div class="ld-ring"><i></i></div>
+    <div id="ld-text" class="ld-text">Loading the model…</div>
+  </div>
+  <script>
+    window.addEventListener('error', function (e) {
+      var ld = document.getElementById('loader');
+      if (!ld || ld.dataset.state !== 'loading') return;
+      ld.dataset.state = 'failed';
+      document.getElementById('ld-text').textContent = 'The model could not be loaded: ' + ((e.error && e.error.message) || e.message || 'unknown error') + '. Reload the page.';
+    }, true);   // capture: a failed module fetch fires on the <script> only and never bubbles
+    // and a watchdog for the failures that fire nothing at all
+    setTimeout(function () {
+      var ld = document.getElementById('loader');
+      if (!ld || ld.dataset.state !== 'loading') return;
+      ld.dataset.state = 'failed';
+      document.getElementById('ld-text').textContent = 'The model is taking too long to load. Reload the page.';
+    }, 30000);
+  </script>
   <header class="topbar">
     <div class="brand"><img src="/images/mercy-map.svg" alt=""><span>MERCY</span><em>City Model · Blueprint</em></div>
     <div class="search-wrap">
@@ -21,6 +55,7 @@
     <label class="toggle"><input id="cctv-toggle" type="checkbox" checked> CCTV</label>
     <label class="toggle"><input id="labels-toggle" type="checkbox" checked> Labels</label>
     <button id="keys-toggle" class="chip small">Controls</button>
+    <button id="tour-btn" class="chip small" title="Replay the walkthrough">Tour</button>
   </header>
 
   <main class="stage">
@@ -46,7 +81,7 @@
       <ul id="stops"></ul>
     </section>
     <div class="hud-stack">
-      <div class="mission-row">
+      <div id="mission-row" class="mission-row">
         <div id="mission" class="mission" data-state="idle">Right-click any building, or enter coordinates, to send the drones.</div>
         <button id="speed" class="chip small" title="Playback speed of drones and cars; sweeps always run at normal speed">▶ ×1 normal</button>
       </div>
@@ -83,7 +118,7 @@
     </div>
 
     <aside class="rail">
-      <section>
+      <section id="drone-search">
         <h3>Drone search</h3>
         <p class="hint">Enter the coordinates you have found and send the flight, or right-click any building on the model. Four drones lift off the Police HQ roof, thread between the buildings to the point, search 60 m around it and report back.</p>
         <div class="coords">
@@ -121,6 +156,28 @@
       </div>
       <div id="lb-cap" class="lb-cap"></div>
       <div class="lb-keys"><b>←</b> <b>→</b> frames · <b>Esc</b> close</div>
+    </div>
+  </div>
+
+  <!-- The walkthrough, in the console's manner: first run per participant, then the
+       Tour button replays it. The stage dims, a hole is cut over the real control
+       being named, and the card says what it is FOR. One step is a demonstration: a
+       hand glides to a building and right-clicks it, so the gesture is seen before it
+       is asked for -- nothing is launched. Next / Back / Skip, Escape ends it. -->
+  <div id="tour" role="dialog" aria-modal="true" aria-labelledby="tour-title" hidden>
+    <div id="tour-hole" aria-hidden="true"></div>
+    <div id="tour-demo" aria-hidden="true" hidden></div>
+    <div id="tour-card">
+      <div id="tour-step" class="tour-kicker">STEP 1 / 7</div>
+      <h2 id="tour-title" class="tour-title">THE MODEL</h2>
+      <p id="tour-body" class="tour-body"></p>
+      <div class="tour-actions">
+        <button id="tour-skip" type="button">SKIP</button>
+        <span id="tour-dots" class="tour-dots" aria-hidden="true"></span>
+        <button id="tour-replay" type="button" hidden>REPLAY</button>
+        <button id="tour-back" type="button">BACK</button>
+        <button id="tour-next" type="button">NEXT</button>
+      </div>
     </div>
   </div>
 

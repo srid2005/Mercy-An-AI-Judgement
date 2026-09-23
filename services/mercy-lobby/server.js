@@ -128,21 +128,20 @@ async function playerRow(id) {
   const { rows } = await pool.query('SELECT * FROM players WHERE zinnia_id = $1', [id]);
   return rows[0] || null;
 }
-// The leaderboard's order: whoever closed the file; then the hint budget
-// they had left, highest first -- points are what a participant spends to
-// be told where to look, so a rescue nobody had to be walked through beats
-// one that was -- and only then the clock. Both of those keys are read off
-// a closed file alone: a game still running holds its untouched 100, which
-// would seat it above everyone who actually finished, and the register's
-// copy is stale until the outcome report anyway. Under them the old order
-// stands -- where they left the needle, lowest first, then how far down the
-// script they got -- and it is still what sorts the participants at the
-// desk, who trail at the bottom on NULLS LAST. Nobody is hidden: names are
-// public at the event.
+// The leaderboard's order: whoever closed the file; then what their hints
+// cost, lowest first -- the bill is what a participant runs up being told
+// where to look, so a rescue nobody had to be walked through beats one that
+// was -- and only then the clock. Both of those keys are read off a closed
+// file alone: a game still running holds its untouched 0, which would seat
+// it above everyone who actually finished, and the register's copy is stale
+// until the outcome report anyway. Under them the old order stands -- where
+// they left the needle, lowest first, then how far down the script they got
+// -- and it is still what sorts the participants at the desk, who trail at
+// the bottom on NULLS LAST. Nobody is hidden: names are public at the event.
 const LEADERBOARD_SQL = `
-  SELECT zinnia_id, name, outcome, elapsed_s, final_guilt, checkpoints_hit, points, started_at,
+  SELECT zinnia_id, name, outcome, elapsed_s, final_guilt, checkpoints_hit, hint_cost, started_at,
          (row_number() OVER (ORDER BY COALESCE(outcome = 'solved', false) DESC,
-                                     CASE WHEN outcome IS NOT NULL THEN points END DESC NULLS LAST,
+                                     CASE WHEN outcome IS NOT NULL THEN hint_cost END ASC NULLS LAST,
                                      CASE WHEN outcome = 'solved' THEN elapsed_s END ASC NULLS LAST,
                                      final_guilt ASC NULLS LAST,
                                      checkpoints_hit DESC NULLS LAST,
@@ -376,15 +375,15 @@ app.post('/api/internal/outcome', internal, async (req, res) => {
   const guilt = num(b.guilt_percent) == null ? null : Math.min(100, Math.max(0, num(b.guilt_percent)));
   const hits = Number.isInteger(num(b.checkpoints_hit)) ? num(b.checkpoints_hit) : null;
   const elapsed = num(b.elapsed_s) != null ? Math.round(num(b.elapsed_s)) : (row.started_at ? Math.round((Date.now() - new Date(row.started_at).getTime()) / 1000) : null);
-  // The hint budget they finished with. It is a ranking key, so it is never
-  // a debt however the engine's arithmetic went; an engine that does not
-  // report it at all leaves the row's 100 rather than nulling the column.
-  const points = num(b.points) == null ? null : Math.max(0, Math.round(num(b.points)));
+  // What their hints came to. It is a ranking key, so it is never a credit
+  // however the engine's arithmetic went; an engine that does not report it
+  // at all leaves the row's 0 rather than nulling the column.
+  const hintCost = num(b.hint_cost) == null ? null : Math.max(0, Math.round(num(b.hint_cost)));
   await pool.query(
-    'UPDATE players SET outcome = $2, final_guilt = $3, checkpoints_hit = $4, elapsed_s = $5, points = COALESCE($6, points), ended_at = now() WHERE zinnia_id = $1',
-    [id, b.outcome, guilt, hits, elapsed, points]
+    'UPDATE players SET outcome = $2, final_guilt = $3, checkpoints_hit = $4, elapsed_s = $5, hint_cost = COALESCE($6, hint_cost), ended_at = now() WHERE zinnia_id = $1',
+    [id, b.outcome, guilt, hits, elapsed, hintCost]
   );
-  await logEvent('outcome', `${id} (${row.name}) ${b.outcome} guilt ${guilt == null ? '?' : guilt.toFixed(1)}% checkpoints ${hits == null ? '?' : hits} points ${points == null ? '?' : points} elapsed ${elapsed == null ? '?' : elapsed}s`);
+  await logEvent('outcome', `${id} (${row.name}) ${b.outcome} guilt ${guilt == null ? '?' : guilt.toFixed(1)}% checkpoints ${hits == null ? '?' : hits} hint cost ${hintCost == null ? '?' : hintCost} elapsed ${elapsed == null ? '?' : elapsed}s`);
   res.json({ ok: true, outcome: b.outcome, kept: false });
 });
 
@@ -421,9 +420,9 @@ app.get('/api/admin/players', admin, async (req, res) => {
       ...row, final_guilt: numGuilt(row), status: statusOf(row),
       live: {
         guilt_percent: pick(engine, 'guilt_percent') == null ? null : Number(engine.guilt_percent), concluded: pick(engine, 'concluded'), outcome: pick(engine, 'outcome'),
-        // the budget as it is being spent; the register's column is only the
+        // the bill as it is being run up; the register's column is only the
         // number the outcome report left behind
-        points: pick(engine, 'points') == null ? null : Number(engine.points),
+        hint_cost: pick(engine, 'hint_cost') == null ? null : Number(engine.hint_cost),
         time_left_s: pick(engine, 'time_left_s'), checkpoints_hit: pick(engine, 'checkpoints_hit'), checkpoints_total: pick(engine, 'checkpoints_total'),
         discovered: pick(engine, 'discovered'), transcript_turns: pick(engine, 'transcript_turns'), last_activity: pick(engine, 'last_activity'),
         searches: pick(map, 'searches'), sos_swept: pick(map, 'sos_swept'), trace: pick(map, 'trace'), stops_searched: pick(map, 'stops_searched'), found: pick(map, 'found'),
@@ -487,7 +486,7 @@ app.post('/api/admin/players/:id/restart', admin, async (req, res) => {
   }
   const { rows } = await pool.query(
     `UPDATE players SET provisioned_at = now(), started_at = NULL, deadline = NULL, ended_at = NULL, outcome = NULL,
-       final_guilt = NULL, checkpoints_hit = NULL, elapsed_s = NULL, points = 100, restarts = restarts + 1
+       final_guilt = NULL, checkpoints_hit = NULL, elapsed_s = NULL, hint_cost = 0, points = 100, restarts = restarts + 1
      WHERE zinnia_id = $1 RETURNING *`, [id]);
   await logEvent('restart', `${id} (${row.name}) restart #${rows[0].restarts}`);
   res.json({ ok: true, player: { ...rows[0], final_guilt: null, status: 'new' } });
@@ -530,7 +529,7 @@ app.post('/api/admin/reset-event', admin, async (req, res) => {
   }
   const { rowCount } = await pool.query(
     `UPDATE players SET provisioned_at = NULL, started_at = NULL, deadline = NULL, ended_at = NULL, outcome = NULL,
-       final_guilt = NULL, checkpoints_hit = NULL, elapsed_s = NULL, points = 100, restarts = 0`);
+       final_guilt = NULL, checkpoints_hit = NULL, elapsed_s = NULL, hint_cost = 0, points = 100, restarts = 0`);
   await logEvent('reset_event', `${rowCount} players cleared; services reset: ${r.ok.join(', ') || 'none'}${r.failed.length ? `; failed: ${r.failed.map((f) => `${f.name} (${f.error})`).join(', ')}` : ''}`);
   res.status(r.failed.length ? 502 : 200).json({ ...r, players_cleared: rowCount });
 });

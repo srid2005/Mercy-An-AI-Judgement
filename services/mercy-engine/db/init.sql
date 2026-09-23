@@ -4,7 +4,8 @@
 -- does that. What it owns is the participant's side of the game: what
 -- they've actually found (discovered_evidence), the argument itself
 -- (transcript), the running verdict (case_state, which MERCY moves on every
--- turn), the hint budget she is argued against with, and the story's beats
+-- turn), the running bill for the hints she has been argued against with,
+-- and the story's beats
 -- (checkpoints, which no longer move that verdict). evidence_cache is a local
 -- copy of records fetched from the owning services (plus a handful this
 -- service seeds itself, for evidence with no live API -- the case file's
@@ -77,12 +78,16 @@ CREATE TABLE transcript (
 -- closed. A live database gets the four columns from
 -- scripts/migrate_live_clock.sql.
 --
--- points is the hint budget: a hundred per participant, spent tier by tier
--- (5 / 10 / 20) on POST /api/hint and never below zero. What is left of it
--- ranks the leaderboard under 'solved', so a file argued unaided beats the
--- same file bought a piece at a time. hints_used is how many hints were
--- actually charged for. Both from scripts/migrate_live_v2_hints.sql on a
--- live database.
+-- hint_cost is the hint bill: what POST /api/hint has charged so far, tier
+-- by tier (5 / 10 / 20), with no ceiling -- a participant can always buy the
+-- next step, and what it all came to ranks the leaderboard under 'solved',
+-- lowest first, so a file argued unaided beats the same file bought a piece
+-- at a time. hints_used is how many hints were actually charged for. points
+-- is the budget that used to be spent down from a hundred and refuse the
+-- next hint at zero; nothing reads or writes it any more, and it stays in
+-- the table because a column is never dropped under a running event.
+-- points and hints_used are from scripts/migrate_live_v2_hints.sql on a
+-- live database, hint_cost from scripts/migrate_live_v5_hint_cost.sql.
 CREATE TABLE case_state (
     id              INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
     guilt_percent   NUMERIC(4,1) NOT NULL,
@@ -93,6 +98,7 @@ CREATE TABLE case_state (
     reported_at     TIMESTAMPTZ,
     points          INTEGER NOT NULL DEFAULT 100 CHECK (points >= 0),
     hints_used      INTEGER NOT NULL DEFAULT 0,
+    hint_cost       INTEGER NOT NULL DEFAULT 0,
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 INSERT INTO case_state (id, guilt_percent) VALUES (1, 96.8);
@@ -162,7 +168,7 @@ INSERT INTO checkpoints (code, sort_order, label, required_ids, guilt_after, unl
      ARRAY['SW-06', 'MAP-FOUND'], 3.0, '{}',
      'Alive, and where he left her. Units are moving. The file against you is closed.');
 
--- The hint engine. Three tiers per beat, bought with case_state.points:
+-- The hint engine. Three tiers per beat, each added to case_state.hint_cost:
 -- tier 1 (5 points) says which app or which part of the city the answer is
 -- in; tier 2 (10) says what to look for once they are there; tier 3 (20)
 -- names the piece and its evidence id. Each tier is written to be genuinely

@@ -21,10 +21,12 @@ player, and issues the final verdict.
   on every turn against the whole accepted set, so evidence argued out of
   order still lands its beat. A beat opens its gates, says its line, and
   records the standing it fired at (`guilt_at_hit`).
-- Hints (`POST /api/hint`) cost from a budget of 100 points: 5 for the app or
-  the part of the city, 10 for what to look for there, 20 for the piece by
-  name. The target is where the participant is actually stuck, not their
-  choice, and a tier already paid for comes back free.
+- Hints (`POST /api/hint`) are priced, not budgeted: 5 for the app or the
+  part of the city, 10 for what to look for there, 20 for the piece by name,
+  every one of them added to a bill (`case_state.hint_cost`) that has no
+  ceiling and is never refused. The bill ranks the leaderboard under
+  `solved`, lowest first. The target is where the participant is actually
+  stuck, not their choice, and a tier already paid for comes back free.
 - The desk answers two questions. Without a `context` it answers the beat, as
   above. With one -- a screen key the console reports from the laptop and the
   map (`laptop-lock`, `laptop-app` + the app's name, `map-search`, ...) -- it
@@ -65,7 +67,7 @@ deadline is applied lazily -- the next `GET /api/state`, `GET /api/me`,
 `POST /api/argue`, `POST /api/rescue`, `POST /api/leave` or internal summary
 past it closes the file as `timeout`. Each outcome (`solved` | `timeout` |
 `left`) is reported to the lobby once: `POST {LOBBY_URL}/api/internal/outcome
-{id, outcome, guilt_percent, checkpoints_hit, points, hints_used, elapsed_s}` with
+{id, outcome, guilt_percent, checkpoints_hit, hint_cost, hints_used, elapsed_s}` with
 `x-internal-key`; a report the lobby did not take is retried on the next
 read of `/api/me` or `/api/state`.
 
@@ -82,16 +84,19 @@ Participant (cookie), CORS with credentials for the console:
   file where it stands, with MERCY's line in the transcript; idempotent (a
   closed file answers with how it closed).
 - `GET /api/state` -- as before, plus `outcome`, `started_at`, `deadline`,
-  `time_left_s`, `expired`, `points`, `hints_used`. A hit beat's
+  `time_left_s`, `expired`, `hint_cost`, `hints_used`. A hit beat's
   `guilt_after` is what the meter actually read when it fired.
 - `POST /api/argue` -> `{reply, guilt_percent, delta, verdict, accepted_ids,
-  points, checkpoint_hit, concluded}`. `delta` is signed and is the move the
+  hint_cost, checkpoint_hit, concluded}`. `delta` is signed and is the move the
   meter actually made, after the guards; `accepted_ids` is the subset of what
   was attached that carried the claim, and only that subset joins the
   accepted set. 409 `time is up` past the deadline, 409 `the case is closed`
   once concluded. The `located` beat sets `outcome = 'solved'` at 0.0.
 - `POST /api/hint {context?, detail?, tier?}` -> `{hint, tier, cost,
-  points_left, target, step, steps_total, kind}`. `kind` is `context`
+  hint_cost, points_left, target, step, steps_total, kind}`. `hint_cost` is
+  the bill after this purchase; `points_left` is the same number under the
+  field's old name, kept for one release so a console built against v4 still
+  reads a number. `kind` is `context`
   when a chain for `context`/`detail` answered and `beat` otherwise; `step` of
   `steps_total` is where in that chain the words came from. The response
   carries words and a price and nothing the console is meant to act on.
@@ -99,11 +104,10 @@ Participant (cookie), CORS with credentials for the console:
   beat, `laptop-app:wisp/step2` for a chain -- and `cost` is 0 when those words
   have already been bought. `tier` is optional: sent, it means exactly what it
   meant before (that tier of that beat, context ignored); left out, the desk
-  picks the next unbought step itself, which is what the nav button does. 402
-  `{error: "not enough points", points_left}` when it costs more than is left;
-  409 once the file is closed or the clock has run out; 400 on a `tier` that
-  is not 1, 2 or 3.
-- `GET /api/case` -- plus `points` and `hints_used`.
+  picks the next unbought step itself, which is what the nav button does.
+  There is no 402: a hint is never refused for its price. 409 once the file
+  is closed or the clock has run out; 400 on a `tier` that is not 1, 2 or 3.
+- `GET /api/case` -- plus `hint_cost` and `hints_used`.
 - `POST /api/rescue` -- as before, and sets `outcome = 'solved'`.
 - `GET /api/transcript`, `GET /api/discovered`, `POST /api/discovered`,
   `GET /api/evidence/:id`, `GET /api/case`, `GET /api/health` -- unchanged.
@@ -117,7 +121,7 @@ Internal (`x-internal-key`; the lobby):
   `GET /api/internal/players`, `POST /api/internal/template`,
   `POST /api/internal/reset`, `GET /api/internal/stats` -- `tenant.js`.
 - `GET /api/internal/players/:id/summary` -> `{id, provisioned,
-  guilt_percent, concluded, outcome, points, hints_used, started_at,
+  guilt_percent, concluded, outcome, hint_cost, hints_used, started_at,
   deadline, time_left_s, expired, checkpoints_hit, checkpoints_total,
   discovered, transcript_turns, last_activity}`.
 

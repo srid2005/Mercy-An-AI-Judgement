@@ -312,3 +312,78 @@ button.send { flex: none; border-radius: 6px; padding: 5px 8px; font-size: 11px;
   .rail { position: absolute; right: 0; top: 0; bottom: 0; width: 260px; }
   .legend { right: 276px; }
 }
+
+/* ---------------------------------------------------------- the loader */
+/* Over everything from the first byte of HTML until the first frame has
+   rendered (app.js removes it). Static: no script has to run for it to show. */
+.loader { position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; background: #061a30;
+  background-image: repeating-linear-gradient(0deg, rgba(28,74,114,0.35) 0 1px, transparent 1px 48px), repeating-linear-gradient(90deg, rgba(28,74,114,0.35) 0 1px, transparent 1px 48px); }
+.loader[hidden] { display: none; }
+.ld-mark { font: 800 15px var(--mono); letter-spacing: 6px; color: #8fdcff; text-shadow: 0 0 16px rgba(143,220,255,0.6); text-align: center; }
+.ld-mark em { display: block; font-style: normal; font-weight: 500; font-size: 9px; letter-spacing: 3px; color: var(--muted); margin-top: 4px; text-shadow: none; }
+.ld-ring { width: 44px; height: 44px; border-radius: 50%; border: 2px solid rgba(143,220,255,0.18); position: relative; }
+.ld-ring i { position: absolute; inset: -2px; border-radius: 50%; border: 2px solid transparent; border-top-color: #8fdcff; box-shadow: 0 0 12px rgba(143,220,255,0.5); animation: ld-spin 0.9s linear infinite; }
+.ld-text { max-width: 420px; padding: 0 16px; text-align: center; font: 12px var(--mono); letter-spacing: 1px; color: var(--muted); }
+.loader[data-state="failed"] .ld-ring i { animation: none; border-top-color: var(--danger); box-shadow: none; }
+.loader[data-state="failed"] .ld-text { color: #ff8fa3; }
+@keyframes ld-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ld-ring i { animation: none; border-color: rgba(143,220,255,0.5); } }
+
+/* ---------------------------------------------------------- the tour */
+/* Over the model, above the lightbox and the field link (z 60). The dim and the
+   cut-out are one element -- a fixed box with a viewport-sized shadow around it
+   -- so they cannot drift apart as the hole moves. The overlay takes the clicks:
+   nothing underneath is live while it is up. */
+#tour { position: fixed; inset: 0; z-index: 60; }
+#tour[hidden] { display: none; }
+#tour-hole { position: fixed; border-radius: 12px; pointer-events: none;
+  box-shadow: 0 0 0 9999px rgba(3,10,20,0.78), 0 0 0 1px rgba(143,220,255,0.7), 0 0 30px rgba(79,209,255,0.45), inset 0 0 26px rgba(79,209,255,0.12);
+  transition: left 0.32s cubic-bezier(0.2,0.9,0.2,1), top 0.32s cubic-bezier(0.2,0.9,0.2,1), width 0.32s cubic-bezier(0.2,0.9,0.2,1), height 0.32s cubic-bezier(0.2,0.9,0.2,1); }
+#tour-card { position: fixed; width: min(380px, calc(100vw - 24px)); padding: 16px 18px 14px; color: var(--ink);
+  background: rgba(6,26,48,0.94); border: 1px solid rgba(143,220,255,0.55); border-radius: 12px;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 0 0 1px rgba(79,209,255,0.12), 0 0 34px rgba(79,209,255,0.22), 0 22px 50px rgba(0,0,0,0.5);
+  animation: mcard-in 0.18s ease-out;
+  transition: left 0.32s cubic-bezier(0.2,0.9,0.2,1), top 0.32s cubic-bezier(0.2,0.9,0.2,1); }
+.tour-kicker { font: 10px var(--mono); letter-spacing: 0.3em; color: #8fdcff; }
+.tour-title { margin: 8px 0 0; font: 400 15px var(--mono); letter-spacing: 0.22em; color: #fff; }
+.tour-body { margin: 9px 0 0; font-size: 13.5px; line-height: 1.6; color: rgba(230,237,243,0.9); }
+.tour-actions { display: flex; align-items: center; gap: 8px; margin-top: 16px; }
+.tour-dots { flex: 1; display: flex; align-items: center; gap: 5px; }
+.tour-dots i { width: 5px; height: 5px; border-radius: 50%; background: rgba(143,220,255,0.28); }
+.tour-dots i.on { background: #8fdcff; box-shadow: 0 0 8px rgba(143,220,255,0.8); }
+.tour-actions button { height: 32px; padding: 0 13px; border-radius: 8px; cursor: pointer; font: 10.5px var(--mono); letter-spacing: 0.18em; transition: transform 0.2s, box-shadow 0.2s, background 0.2s; }
+#tour-skip, #tour-back, #tour-replay { background: transparent; color: var(--ink); border: 1px solid rgba(143,220,255,0.32); }
+#tour-skip:hover, #tour-skip:focus-visible, #tour-replay:hover, #tour-replay:focus-visible, #tour-back:hover:not(:disabled), #tour-back:focus-visible { background: rgba(143,220,255,0.1); outline: 0; }
+#tour-back:disabled { opacity: 0.4; cursor: default; }
+#tour-replay[hidden] { display: none; }
+#tour-next { background: linear-gradient(135deg, #1f4fa8, #0f2a5a); color: #fff; border: 1px solid rgba(143,220,255,0.6); box-shadow: 0 8px 20px rgba(0,0,0,0.4), 0 0 18px rgba(79,209,255,0.3); }
+#tour-next:hover, #tour-next:focus-visible { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,0.45), 0 0 26px rgba(79,209,255,0.5); outline: 0; }
+/* the demonstration: a hand glides in over the model and right-clicks a building.
+   Its layer covers the stage and passes clicks through; app.js positions the hand
+   by the building's projection every frame, so it rides the camera. */
+#tour-demo { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+#tour-demo[hidden] { display: none; }
+.demo-hand { position: absolute; left: 0; top: 0; width: 52px; height: 62px; transform-origin: 20px 4px; will-change: transform; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.6)) drop-shadow(0 0 10px rgba(79,209,255,0.35)); }
+.demo-hand svg { display: block; width: 100%; height: 100%; }
+.demo-hand path { fill: #fff; stroke: #0b1119; stroke-width: 2; stroke-linejoin: round; }
+/* the click: a ring bursts out from the fingertip; the right button of a small mouse lights up beside the hand */
+.demo-ring { position: absolute; left: 0; top: 0; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; border: 2px solid #4fd1ff; box-shadow: 0 0 14px #4fd1ff; opacity: 0; }
+.demo-ring.go { animation: demo-ring 700ms ease-out both; }
+.demo-mouse { position: absolute; left: 0; top: 0; width: 22px; height: 32px; border: 2px solid #cfeeff; border-radius: 11px; background: rgba(6,26,48,0.9); opacity: 0; transition: opacity 0.25s; }
+.demo-mouse::before { content: ""; position: absolute; left: 50%; top: 0; width: 2px; height: 13px; margin-left: -1px; background: #cfeeff; }
+.demo-mouse::after { content: ""; position: absolute; left: 50%; top: 0; right: 0; height: 13px; border-radius: 0 9px 0 0; background: transparent; transition: background 0.15s; }
+.demo-mouse.show { opacity: 1; }
+.demo-mouse.press::after { background: #ff3b30; box-shadow: 0 0 10px #ff3b30; }
+/* what the click does, shown as the mission line would show it -- a mock, never the real one */
+.demo-tag { position: absolute; left: 0; top: 0; transform: translate(-50%, 0); white-space: nowrap; font: 700 10px var(--mono); letter-spacing: 1.5px; padding: 3px 8px; border-radius: 3px; background: rgba(6,26,48,0.95); color: #fff; border: 1px solid #8fdcff; opacity: 0; transition: opacity 0.25s; }
+.demo-tag.show { opacity: 1; }
+.demo-line { position: absolute; left: 0; top: 0; transform: translate(-50%, 0); max-width: 360px; font: 12px var(--mono); padding: 6px 10px; border-radius: 6px; background: rgba(10,15,22,0.95); border: 1px solid var(--accent); color: #fff; opacity: 0; transition: opacity 0.3s; }
+.demo-line.show { opacity: 1; }
+.demo-line b { color: #8fdcff; font-weight: 700; }
+@keyframes demo-ring { 0% { opacity: 1; transform: scale(0.4); } 100% { opacity: 0; transform: scale(4); } }
+@media (prefers-reduced-motion: reduce) { #tour-hole, #tour-card { transition: none; } .demo-ring.go { animation-duration: 1ms; } }
+/* coordinates handed over from Meera's laptop: the boxes light up, and the launch button is the next thing to press */
+.coords input.flash { animation: coords-flash 1.6s ease-out; }
+@keyframes coords-flash { 0% { border-color: #8fdcff; box-shadow: 0 0 0 4px rgba(143,220,255,0.55), 0 0 18px rgba(79,209,255,0.7); background: rgba(143,220,255,0.18); } 100% { border-color: var(--line); box-shadow: none; background: #0b1119; } }
+#launch:focus-visible { outline: 2px solid #8fdcff; outline-offset: 2px; }

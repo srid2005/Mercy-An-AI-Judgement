@@ -7,10 +7,38 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=13" />
+    <link rel="stylesheet" href="/css/style.css?v=14" />
+    <!-- Justice, behind the hearing: the biggest file on this origin and a
+         CSS background, which the browser would only ask for after the
+         stylesheet had arrived and been applied. Asked for now instead. -->
+    <link rel="preload" href="/img/mercy/justice.png?v=5" as="image" />
+    <style>
+      /* The loader's own styling lives here, not in style.css: it has to be
+         painted before that file, or a byte of app.js, has arrived. */
+      #boot { position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+        background: #14100c; color: #e8c98a; font-family: "Share Tech Mono", ui-monospace, Consolas, monospace; transition: opacity 0.35s ease-out; }
+      #boot.off { opacity: 0; pointer-events: none; }
+      .boot-brand { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+      .boot-brand .mark { font-size: 26px; letter-spacing: 0.5em; padding-left: 0.5em; color: #ffb043; text-shadow: 0 0 22px rgba(255, 150, 40, 0.55); }
+      .boot-brand .sub { font-size: 10px; letter-spacing: 0.4em; padding-left: 0.4em; opacity: 0.7; }
+      .boot-bar { width: 180px; height: 2px; border-radius: 2px; overflow: hidden; background: rgba(255, 176, 67, 0.18); }
+      .boot-bar i { display: block; width: 40%; height: 100%; background: #ffb043; box-shadow: 0 0 12px rgba(255, 150, 40, 0.8); animation: boot-sweep 1.1s ease-in-out infinite alternate; }
+      #boot-note { font-size: 11px; letter-spacing: 3px; }
+      @keyframes boot-sweep { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+      @media (prefers-reduced-motion: reduce) { .boot-bar i { animation: none; width: 100%; } }
+    </style>
   </head>
   <body data-gated="gate">
-    <div id="gate-note" aria-live="polite">CONNECTING TO MERCY…</div>
+    <!-- The loader: static markup styled from the head, so it is on screen
+         before the stylesheet or app.js has arrived and the chamber never
+         shows half-built underneath. app.js takes it down the moment the
+         engine has said whose file this is; until then it carries the
+         connecting note. -->
+    <div id="boot" aria-live="polite">
+      <div class="boot-brand"><span class="mark">MERCY</span><span class="sub">AI JUDGEMENT</span></div>
+      <div class="boot-bar"><i></i></div>
+      <div id="boot-note">OPENING THE FILE</div>
+    </div>
     <div id="bg" aria-hidden="true">
       <div class="orb o1"></div>
       <div class="orb o2"></div>
@@ -32,8 +60,11 @@
              and a steer that costs three clicks to reach is a steer nobody
              asks for. HINT is the progressive ask: the engine is told which
              screen they are standing on and hands back the next step of help
-             for it. The purse sits beside it so the price is never hidden,
-             and the caret still opens the three-depth desk underneath. -->
+             for it. There is no purse: every steer adds its price to a
+             running HINT COST, shown beside it so the price is never hidden,
+             and the leaderboard ranks solved files by the lowest cost. The
+             log button opens the drawer that keeps every hint bought, and
+             the caret still opens the three-depth desk underneath. -->
         <div id="hud-hint">
           <button id="hint-btn" type="button" title="The next steer for wherever you are">
             <svg class="hb-ico" viewBox="0 0 48 48" aria-hidden="true">
@@ -44,16 +75,23 @@
             <span class="hb-word">HINT</span>
             <span id="hint-step" class="hb-step" hidden></span>
           </button>
+          <button id="hint-log-btn" type="button" title="Every hint taken this game" aria-expanded="false">
+            <svg class="hb-ico" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M12 9h24v30H12z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
+              <path d="M18 18h12M18 25h12M18 32h7" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            </svg>
+            <span id="hint-count" class="hb-count" hidden>0</span>
+          </button>
           <button id="hint-toggle" type="button" title="The hint desk: the three depths, priced">
-            <span id="points-value">100</span><span class="unit">pts</span>
+            <span class="hb-cost-label">COST</span><span id="hint-cost-value">0</span><span class="unit">pts</span>
             <svg class="hb-caret" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4.5 6 8.5 10 4.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </button>
 
           <div id="hint-popover" hidden>
-            <div class="pop-head"><span>ASK FOR A STEER</span><span id="hint-left">100 PTS LEFT</span></div>
-            <div class="pop-sub">a hundred points to start; the leaderboard counts what you have not spent</div>
+            <div class="pop-head"><span>ASK FOR A STEER</span><span id="hint-spent">0 PTS SPENT</span></div>
+            <div class="pop-sub">every steer adds its price to your hint cost; among the files that find her, the leaderboard ranks the lowest cost first</div>
             <div id="hint-tiers"></div>
-            <div id="hint-used" hidden></div>
+            <button id="hint-used" type="button" hidden></button>
             <div id="hint-msg" hidden></div>
           </div>
         </div>
@@ -161,10 +199,6 @@
             </div>
           </button>
 
-          <!-- the turn's signed delta, floated once under the gauge: DOWN is
-               the accused gaining ground, so it is the green one -->
-          <div id="guilt-delta" aria-hidden="true" hidden></div>
-
           <div id="meter-popover" hidden>
             <div class="pop-head">
               <span>CASE STANDING</span>
@@ -241,9 +275,9 @@
       </section>
     </main>
 
-    <!-- The steer, where they are standing. It has to be readable over the
+    <!-- The ask, where they are standing. It has to be readable over the
          laptop and the map, so it is a card in this document rather than a
-         line in the hearing -- the hearing gets its own copy for the record.
+         line in the hearing; the answer itself lands in the hint log below.
          Nothing here is modal: only the card itself takes clicks. -->
     <div id="hint-flash" hidden>
       <div class="hf-head">
@@ -255,6 +289,20 @@
         <span id="hf-note"></span>
         <button id="hf-go" type="button" hidden>CONFIRM</button>
       </div>
+    </div>
+
+    <!-- The hint log: every steer bought this game, newest first. The
+         hearing is MERCY and the participant only, so a hint never goes in
+         there -- it lives here, in a drawer off the nav's HINT area that
+         opens itself when a hint lands and stays up while they work. -->
+    <div id="hint-drawer" role="region" aria-label="Hints taken" hidden>
+      <div class="hl-head">
+        <span class="hl-title">HINT LOG</span>
+        <span class="hl-meta"><span id="hl-count">0 TAKEN</span> &middot; <span id="hl-cost">0 PTS</span></span>
+        <button id="hl-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <div id="hl-list"></div>
+      <div id="hl-empty">NO HINTS TAKEN YET. PRESS HINT WHEREVER YOU ARE STUCK &mdash; HERE, THE LAPTOP OR THE MAP &mdash; AND THE STEER LANDS HERE.</div>
     </div>
 
     <!-- The standing, centre stage. MERCY moves the file every turn and that
@@ -279,7 +327,6 @@
           <div class="ms-value"><span id="ms-percent">96.8</span><span class="unit">%</span></div>
           <div id="ms-verdict" class="ms-verdict"></div>
         </div>
-        <div id="ms-delta" class="ms-delta"></div>
       </div>
     </div>
 
@@ -359,6 +406,6 @@
       </div>
     </div>
 
-    <script src="/js/app.js?v=13"></script>
+    <script src="/js/app.js?v=14"></script>
   </body>
 </html>

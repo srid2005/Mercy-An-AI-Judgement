@@ -1,8 +1,12 @@
 @tailwind components;
 @tailwind utilities;
 
-*::selection {
-  background: initial;
+/* A real laptop lets you select what is on screen. Content is selectable
+   everywhere; only the chrome opts out (below), so window drags, desktop
+   double-clicks and taskbar taps do not start a text selection. */
+::selection {
+  background: #0074ff;
+  color: #fefefe;
 }
 
 body {
@@ -15,8 +19,39 @@ body {
   -moz-osx-font-smoothing: grayscale;
   width: 100vw;
   height: 100vh;
-  user-select: none;
   overflow: hidden !important;
+}
+
+/* The chrome: everything a participant drags, double-clicks or taps rather
+   than reads. Keep this list to surfaces, not apps -- a document, a note, a
+   message or the SOS trail must stay copyable. */
+.desktopCont,
+.taskbar,
+.prevCont,
+.toolbar,
+.resizecont,
+.startMenu,
+.sidePane,
+.bandpane,
+.actmenu,
+.lockscreen,
+.bootscreen,
+.uicon,
+.sosToast .stHead,
+.sosToast .stBtns,
+.edgeBrowser .overTool,
+.edgeBrowser .addressBar,
+.edgeBrowser .bookbar,
+.msfiles .sec1,
+.msfiles .sec2,
+.msfiles .sec3,
+.msfiles .navpane,
+.msfiles .gridshow,
+.photosApp .phTop,
+.photosApp .phNav,
+.settingsApp .nav_top,
+.settingsApp .nav_bottom {
+  user-select: none;
 }
 
 body:before {

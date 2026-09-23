@@ -34,6 +34,14 @@
       white-space: nowrap;
       text-overflow: ellipsis;
     }
+    .tabclose {
+      flex-shrink: 0;
+      padding: 3px;
+      border-radius: 4px;
+      &:hover {
+        background: rgba(0, 0, 0, 0.12);
+      }
+    }
   }
   .newtabbtn {
     font-size: 16px;

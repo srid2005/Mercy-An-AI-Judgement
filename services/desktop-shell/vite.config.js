@@ -15,7 +15,10 @@ export default defineConfig(({ mode }) => ({
     outDir: "build",
     rollupOptions: {
       output: {
-        manualChunks: () => "vendor",
+        // node_modules in their own chunk: a rebuild that only touches the
+        // shell leaves the vendor hash alone, so a returning browser keeps
+        // it cached. Vite adds the modulepreload link for it.
+        manualChunks: (id) => (id.includes("node_modules") ? "vendor" : undefined),
       },
     },
   },

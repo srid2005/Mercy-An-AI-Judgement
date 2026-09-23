@@ -4,6 +4,13 @@
 // console releases the trail (mercy:gates -> state.sos.released).
 export const BAND = { device: "PulseFit Band 3", owner: "Meera", battery: 41, lostTime: "02:16" };
 
+// minutes since the evening the trail started: rows after midnight sort after
+// the ones before it, whatever order the array is in
+export const sosMinute = (a) => {
+  const [h, m] = a.time.split(":").map(Number);
+  return (a.nextDay ? 24 * 60 : 0) + h * 60 + m;
+};
+
 export const SOS_ALERTS = [
   { n: 1, id: "SW-01", time: "22:41", nextDay: false, place: "St Aldric's Church", district: "Old Town", lat: 12.981491, lng: 77.510465, accuracy: 25, hr: 121, battery: 58 },
   { n: 2, id: "SW-02", time: "23:27", nextDay: false, place: "Auditorium", district: "Tech Quarter", lat: 13.016808, lng: 77.517941, accuracy: 40, hr: 141, battery: 54 },

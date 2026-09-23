@@ -23,9 +23,9 @@
 
   // rows: GET /api/leaderboard's; opts.me highlights one id; opts.top how
   // many rows are lit (3 on the projector); opts.total the checkpoint count.
-  // Points, like the time and the standing, are only shown once the file is
-  // closed: until the engine reports the outcome the register still holds
-  // the starting 100, and the board does not rank on it either.
+  // The hint cost, like the time and the standing, is only shown once the
+  // file is closed: until the engine reports the outcome the register still
+  // holds the starting 0, and the board does not rank on it either.
   function renderRows(tbody, rows, opts) {
     const o = opts || {};
     const total = o.total || 7;
@@ -43,7 +43,7 @@
         <td>${pill(state)}</td>
         <td class="num">${r.outcome ? fmtTime(r.elapsed_s) : '--:--'}</td>
         <td class="num guilt">${r.final_guilt == null ? '--' : fmtGuilt(r.final_guilt) + '%'}</td>
-        <td class="num">${r.outcome && r.points != null ? r.points : '--'}</td>
+        <td class="num">${r.outcome && r.hint_cost != null ? r.hint_cost : '--'}</td>
         <td class="num">${r.checkpoints_hit == null ? '--' : `${r.checkpoints_hit}/${total}`}</td>
       </tr>`;
     }).join('');

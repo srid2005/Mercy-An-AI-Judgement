@@ -137,9 +137,9 @@
     el('n-left').textContent = n((p) => p.outcome === 'left');
   }
   // What the row shows is the register's column, overridden by the live
-  // number when the engine or the map answered: guilt, points, checkpoints
-  // and the chase move during a game, the register only learns the end of
-  // it. Points show the starting 100 until the engine reports otherwise.
+  // number when the engine or the map answered: guilt, the hint cost,
+  // checkpoints and the chase move during a game, the register only learns
+  // the end of it. The hint cost shows 0 until the engine reports otherwise.
   function renderPlayers() {
     renderCounts();
     const q = search.trim().toLowerCase();
@@ -150,7 +150,7 @@
       const L = p.live || {};
       const state = B.stateOf(p);
       const guilt = L.guilt_percent != null ? L.guilt_percent : p.final_guilt;
-      const points = L.points != null ? L.points : p.points;
+      const hintCost = L.hint_cost != null ? L.hint_cost : p.hint_cost;
       const hits = L.checkpoints_hit != null ? L.checkpoints_hit : p.checkpoints_hit;
       const total = L.checkpoints_total || 7;
       const playing = state === 'playing';
@@ -164,7 +164,7 @@
         <td class="mono">${p.started_at ? fmtStamp(p.started_at) : '<span class="dim">-</span>'}</td>
         <td class="num left" ${playing && p.deadline ? `data-deadline="${esc(p.deadline)}"` : ''}>${playing && p.deadline ? '' : p.outcome ? B.fmtTime(p.elapsed_s) : '<span class="dim">-</span>'}</td>
         <td class="num">${guilt == null ? '<span class="dim">-</span>' : `${B.fmtGuilt(guilt)}%`}</td>
-        <td class="num">${points == null ? '<span class="dim">-</span>' : points}</td>
+        <td class="num">${hintCost == null ? '<span class="dim">-</span>' : hintCost}</td>
         <td class="num">${hits == null ? '<span class="dim">-</span>' : `${hits}/${total}`}</td>
         <td class="num">${L.discovered == null ? '<span class="dim">-</span>' : L.discovered}</td>
         <td class="num">${L.searches == null ? '<span class="dim">-</span>' : L.searches}</td>

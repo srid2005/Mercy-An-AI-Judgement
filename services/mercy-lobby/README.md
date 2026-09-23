@@ -42,7 +42,7 @@ ticket ──▶ POST /api/login ──▶ provision in all six services ──�
                             { minutes: GAME_MINUTES } -> { started_at, deadline }
                             location.href = http://<host>:3020/
                                         ...the game...
-   mercy-engine ──▶ POST /api/internal/outcome { id, outcome, guilt_percent, checkpoints_hit, points, elapsed_s }
+   mercy-engine ──▶ POST /api/internal/outcome { id, outcome, guilt_percent, checkpoints_hit, hint_cost, elapsed_s }
    the console ──▶ /done
 ```
 
@@ -67,22 +67,22 @@ Participant (the `mercy_sid` cookie, or 401):
 | `POST /api/login` `{ zinnia_id }` | 400 malformed, 404 not on the list, 502 a service could not provision (`failed: [names]`); else sets the cookie, `{ id, name, status: new\|playing\|finished, minutes }` |
 | `POST /api/start` | starts the clock (idempotent) -> `{ started_at, deadline, console_url }`; 409 when the game is over |
 | `GET /api/me` | `{ id, name, status, started_at, deadline, ended_at, outcome, elapsed_s, guilt_percent, final_guilt, checkpoints_hit, checkpoints_total, restarts, rank, players, console_url }` -- `guilt_percent` is the final standing once the file is closed, else the engine's live number, else null |
-| `GET /api/leaderboard` | `{ rows: [{ rank, zinnia_id, name, outcome, elapsed_s, final_guilt, checkpoints_hit, points, started_at }] }` -- no cookie needed; solved first, then the points left on a closed file desc, then a solver's time asc, then everyone by guilt asc and checkpoints desc. A game still running is ranked on neither of the first two -- it still holds its starting 100 -- so the participants at the desk trail at the bottom as before |
+| `GET /api/leaderboard` | `{ rows: [{ rank, zinnia_id, name, outcome, elapsed_s, final_guilt, checkpoints_hit, hint_cost, started_at }] }` -- no cookie needed; solved first, then the hint cost of a closed file asc, then a solver's time asc, then everyone by guilt asc and checkpoints desc. A game still running is ranked on neither of the first two -- it still holds its starting 0 -- so the participants at the desk trail at the bottom as before |
 | `POST /api/logout` | clears the cookie |
 
 Internal (`x-internal-key`):
 
 | | |
 |---|---|
-| `POST /api/internal/outcome` `{ id, outcome, guilt_percent, checkpoints_hit, points, elapsed_s }` | 404 unknown id; `{ ok, outcome, kept }`. `points` is the hint budget left, floored at 0; omit it and the row keeps what it had |
+| `POST /api/internal/outcome` `{ id, outcome, guilt_percent, checkpoints_hit, hint_cost, elapsed_s }` | 404 unknown id; `{ ok, outcome, kept }`. `hint_cost` is what their hints came to, floored at 0; omit it and the row keeps what it had |
 
 Admin (the `mercy_admin` cookie from `POST /api/admin/login { password }`, or 401):
 
 | | |
 |---|---|
-| `GET /api/admin/players` | every row, each with `live: { guilt_percent, points, concluded, outcome, time_left_s, checkpoints_hit, checkpoints_total, discovered, transcript_turns, last_activity, searches, sos_swept, trace, stops_searched, found }` from the engine's and city-map's summaries (2 s timeout each; null where a service did not answer) |
+| `GET /api/admin/players` | every row, each with `live: { guilt_percent, hint_cost, concluded, outcome, time_left_s, checkpoints_hit, checkpoints_total, discovered, transcript_turns, last_activity, searches, sos_swept, trace, stops_searched, found }` from the engine's and city-map's summaries (2 s timeout each; null where a service did not answer) |
 | `POST /api/admin/players` `{ zinnia_id, name }` or `{ bulk }` | one per line, id then name (comma, tab or space); known ids get their name updated -> `{ created, updated, rejected: [{ line, reason }] }`. Nothing is provisioned here. |
-| `POST /api/admin/players/:id/restart` | drop + rebuild their schema in every service, clear the clock and the outcome, give the 100 points back, `restarts + 1`; 502 with `failed` if a service did not answer |
+| `POST /api/admin/players/:id/restart` | drop + rebuild their schema in every service, clear the clock and the outcome, zero the hint bill, `restarts + 1`; 502 with `failed` if a service did not answer |
 | `DELETE /api/admin/players/:id` | drop their schemas, delete the row |
 | `POST /api/admin/prepare` | `POST /api/internal/template` on all six -- seed the templates before the doors open |
 | `POST /api/admin/reset-event` `{ confirm: 'RESET' }` | `POST /api/internal/reset` on all six (every participant schema and the templates go, so the seeds' story clock re-anchors to the day of the next provision) and every row's game columns are cleared; the rows stay |
@@ -97,7 +97,7 @@ Every admin action and every outcome is a row in `admin_events`.
 | | |
 |---|---|
 | `PORT` | 3030 |
-| `DATABASE_URL` | the lobby's own Postgres (`lobby-db` in compose; `db/init.sql` runs on its first start, and `server.js` replays it if the tables are missing). A volume that predates a column is brought up by hand -- `players.points` with `scripts/migrate_live_points.sql` -- because initdb never runs twice |
+| `DATABASE_URL` | the lobby's own Postgres (`lobby-db` in compose; `db/init.sql` runs on its first start, and `server.js` replays it if the tables are missing). A volume that predates a column is brought up by hand -- `players.hint_cost` with `scripts/migrate_live_hint_cost.sql`, `players.points` before it with `scripts/migrate_live_points.sql` -- because initdb never runs twice |
 | `MERCY_SESSION_SECRET` | signs `mercy_sid` -- **the same value in every service** -- and `mercy_admin` |
 | `INTERNAL_API_KEY` | `x-internal-key`, sent to the services and expected on `/api/internal/outcome` |
 | `ADMIN_PASSWORD` | the desk's password (default `mercy-admin`; change it for the event) |

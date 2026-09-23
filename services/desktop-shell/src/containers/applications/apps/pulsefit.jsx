@@ -4,12 +4,16 @@
 // SOS-related is in the DOM until the console releases the trail
 // (state.sos.released); once it is, every alert on screen is filed as evidence
 // (SW-01..05) whenever the window is visible -- the photos.jsx pattern.
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { ToolBar } from "../../../utils/general";
-import { BAND, SOS_ALERTS } from "../../../utils/sos";
+import { BAND, SOS_ALERTS, sosMinute } from "../../../utils/sos";
 import { reportEvidenceIds } from "../../../actions";
 import "./assets/pulsefit.scss";
+
+// the trail as the participant reads it: oldest alert first, the last fix at
+// the bottom next to the signal-lost line
+const TRAIL = [...SOS_ALERTS].sort((a, b) => sosMinute(a) - sosMinute(b));
 
 // the trail ran across midnight: rows before it are dated yesterday, after it today
 const dayLabel = (nextDay) => {
@@ -46,20 +50,70 @@ const LOG = [
 
 const rowClass = (what) => (what === "SOS" ? " sos" : what === "Signal lost" ? " lost" : what === "Voice memo" ? " memo" : "");
 
-const copyCoords = (a) => {
-  const text = `${a.lat.toFixed(6)}, ${a.lng.toFixed(6)}`;
-  if (navigator.clipboard) navigator.clipboard.writeText(text);
+const coordText = (a) => `${a.lat.toFixed(6)}, ${a.lng.toFixed(6)}`;
+
+// execCommand path: the event is served over plain HTTP, where
+// navigator.clipboard does not exist. Must run inside the click itself.
+const legacyCopy = (text) => {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;user-select:text";
+  document.body.appendChild(ta);
+  ta.select();
+  ta.setSelectionRange(0, text.length);
+  let ok = false;
+  try {
+    ok = document.execCommand("copy");
+  } catch (e) {}
+  ta.remove();
+  return ok;
+};
+const copyText = (text) => {
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(text).then(
+      () => true,
+      () => legacyCopy(text),
+    );
+  }
+  return Promise.resolve(legacyCopy(text));
+};
+
+// The console (window.top) owns the map tab: it switches to it and forwards
+// this to the map, which fills its lat/lng fields and waits for the
+// participant to launch. Same window.top channel the evidence emitter uses,
+// same "*" target -- the shell does not know the console's hostname.
+const sendToMap = (a) => {
+  try {
+    window.top.postMessage({ type: "mercy:coords", lat: a.lat, lng: a.lng, label: `SOS ${a.n} - ${a.time}` }, "*");
+    return true;
+  } catch (e) {
+    return false;
+  }
 };
 
 export const PulseFit = () => {
   const wnapp = useSelector((state) => state.apps.pulsefit);
   const sos = useSelector((state) => state.sos);
   const dispatch = useDispatch();
+  // per-alert button feedback ("Copied" / "Sent to map"), gone after a moment
+  const [fb, setFb] = useState({});
+  const fbTimer = useRef({});
+  const flash = (id, text) => {
+    setFb((f) => ({ ...f, [id]: { text, n: ((f[id] && f[id].n) || 0) + 1 } }));   // n remounts the node, so the fade restarts
+    clearTimeout(fbTimer.current[id]);
+    fbTimer.current[id] = setTimeout(() => setFb((f) => ({ ...f, [id]: null })), 1800);
+  };
+  useEffect(() => () => Object.values(fbTimer.current).forEach(clearTimeout), []);
+  const embedded = window.self !== window.top;
+
+  const onCopy = (a) => copyText(coordText(a)).then((ok) => flash(a.id, ok ? "Copied" : "Select the numbers and press Ctrl+C"));
+  const onSend = (a) => flash(a.id, embedded && sendToMap(a) ? "Sent to the map" : "Open the map from the console");
 
   // every alert on screen counts as seen -- the toast and the lock screen
   // report nothing, the participant has to open the app
   useEffect(() => {
-    if (wnapp && !wnapp.hide && sos.released) reportEvidenceIds(SOS_ALERTS.map((a) => a.id));
+    if (wnapp && !wnapp.hide && sos.released) reportEvidenceIds(TRAIL.map((a) => a.id));
   }, [wnapp && wnapp.hide, sos.released]);
   if (!wnapp) return null;
 
@@ -88,7 +142,8 @@ export const PulseFit = () => {
 
           {sos.released ? (
             <>
-              {SOS_ALERTS.map((a) => (
+              <div className="pfSection">SOS trail · oldest first</div>
+              {TRAIL.map((a) => (
                 <div key={a.id} className={"pfSos" + (a.last ? " last" : "")}>
                   <div className="pfSosTitle">
                     <span className="pfDot" /> SOS alert
@@ -101,18 +156,22 @@ export const PulseFit = () => {
                     Long-press SOS from the band, near {a.place}, {a.district}. Delivered to this laptop (paired device).
                   </p>
                   <div className="pfCoords">
-                    <div>
+                    <div className="pfFix">
                       <div className="pfLbl">Location at {a.time}</div>
-                      <div className="pfVal">
-                        {a.lat.toFixed(6)}, {a.lng.toFixed(6)}
-                      </div>
+                      <div className="pfVal">{coordText(a)}</div>
                       <div className="pfSub">
                         ±{a.accuracy} m{FIX_NOTE[a.id] ? ` · ${FIX_NOTE[a.id]}` : ""}
                       </div>
                     </div>
-                    <div className="pfBtn prtclk" onClick={() => copyCoords(a)}>
-                      Copy coordinates
+                    <div className="pfActs">
+                      <div className="pfBtn prtclk" onClick={() => onCopy(a)}>
+                        Copy
+                      </div>
+                      <div className="pfBtn primary prtclk" onClick={() => onSend(a)}>
+                        Send to map
+                      </div>
                     </div>
+                    {fb[a.id] ? <div key={fb[a.id].n} className="pfFb">{fb[a.id].text}</div> : null}
                   </div>
                   <div className="pfMeta">
                     <span>HR {a.hr}</span>

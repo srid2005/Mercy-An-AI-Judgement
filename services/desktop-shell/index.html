@@ -8,9 +8,51 @@
     <meta name="description" content="MERCY: AI Judgement -- evidence image of Meera Kapoor's laptop" />
     <title>MEERA-LAPTOP -- MERCY evidence image</title>
     <link rel="stylesheet" href="/dycalendar.css" />
+    <!-- Paints from the HTML alone, before the bundle arrives; index.jsx takes
+         it down once React has mounted. Same black as the shell's own boot
+         screen so the hand-off is invisible. -->
+    <style>
+      #app-loader {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        background: #010001;
+        color: #9a9a9a;
+        font: 12px/1.4 "Segoe UI", system-ui, sans-serif;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        transition: opacity 300ms ease;
+      }
+      #app-loader[data-done="true"] {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #app-loader .ring {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.12);
+        border-top-color: #fff;
+        animation: app-loader-spin 0.9s linear infinite;
+      }
+      @keyframes app-loader-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="app-loader">
+      <div class="ring"></div>
+      <div>Mounting MEERA-LAPTOP.img</div>
+    </div>
     <span id="root"></span>
     <span id="brightoverlay"></span>
     <script type="text/javascript" src="/dycalendar.js"></script>

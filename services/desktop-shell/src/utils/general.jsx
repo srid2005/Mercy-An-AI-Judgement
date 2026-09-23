@@ -4,8 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import "./general.scss";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 
-import * as FaIcons from "@fortawesome/free-solid-svg-icons";
-import * as FaRegIcons from "@fortawesome/free-regular-svg-icons";
+import { FaIcons, FaRegIcons } from "./fa";
 import * as AllIcons from "./icons";
 
 String.prototype.strip = function (c) {
@@ -60,6 +59,7 @@ export const Icon = (props) => {
         data-action={props.click}
         data-payload={props.payload}
         data-menu={props.menu}
+        title={props.title}
       >
         <FontAwesomeIcon
           data-flip={props.flip != null}

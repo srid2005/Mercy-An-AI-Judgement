@@ -67,10 +67,10 @@ button { font-family: inherit; }
   background: radial-gradient(ellipse at 50% 40%, transparent 45%, rgba(120, 78, 28, 0.16) 100%); }
 
 /* ------------------------------------------------------------- topbar */
-/* the gate: nothing of the chamber shows until the engine has answered /api/me */
+/* the gate: nothing of the chamber shows until the engine has answered
+   /api/me. The loader that stands over it meanwhile (#boot) is styled from
+   index.html's own head, because it has to paint before this file arrives. */
 body[data-gated] > #topbar, body[data-gated] > #panels, body[data-gated] > #evidence-panel { visibility: hidden; }
-#gate-note { display: none; position: fixed; inset: 0; align-items: center; justify-content: center; font: 12px var(--mono, ui-monospace, monospace); letter-spacing: 3px; color: var(--hud-text, #e8c98a); background: var(--bg, #14100c); z-index: 70; }
-body[data-gated="connecting"] > #gate-note { display: flex; }
 #topbar {
   position: relative; z-index: 10; height: var(--topbar-h);
   display: flex; align-items: center; justify-content: space-between;
@@ -178,18 +178,6 @@ button.hud-chip:hover { box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.3), 0 0 34px 
 .hud.bump .hud-chip { animation: hud-flicker 0.9s steps(1, end); }
 .hud.calm .hud-chip { --amber: #7be3a6; --amber-line: rgba(123, 227, 166, 0.85); --amber-glow: rgba(90, 220, 150, 0.5); }
 
-/* The turn's own contribution to the standing, floated once under the
-   gauge. Down is the accused gaining ground, so down is the green one. */
-#guilt-delta { position: absolute; top: calc(100% + 10px); right: 0; z-index: 1; pointer-events: none;
-  padding: 3px 11px 4px; border-radius: 9px; opacity: 0;
-  background: var(--hud-bg); border: 1px solid currentColor;
-  font-family: var(--mono); font-size: 20px; letter-spacing: 0.06em; font-variant-numeric: tabular-nums;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-#guilt-delta[hidden] { display: none; }
-#guilt-delta.down { color: #7be3a6; text-shadow: 0 0 12px rgba(90, 220, 150, 0.6); }
-#guilt-delta.up { color: #ff7a5c; text-shadow: 0 0 12px rgba(255, 90, 60, 0.6); }
-#guilt-delta.on { animation: delta-float 2.6s ease-out both; }
-
 #meter-popover {
   position: absolute; top: calc(100% + 10px); right: 0; width: 272px; z-index: 2;
   background: var(--hud-bg); color: var(--hud-text);
@@ -211,13 +199,14 @@ button.hud-chip:hover { box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.3), 0 0 34px 
 
 /* ---------------------------------------------------------- hint desk */
 /* In the tab bar now, so it reaches the laptop and the map too: HINT is the
-   progressive ask, the purse sits beside it, and the caret opens the desk.
-   Dark HUD material inside the light pill -- it has to read as the one
-   control here that spends something. The popover is anchored to the
-   cluster's right edge so it never runs off a narrow screen. */
+   progressive ask, the log opens the drawer of everything bought, the
+   running cost sits beside them, and the caret opens the desk. Dark HUD
+   material inside the light pill -- it has to read as the one control here
+   that costs something. The popover is anchored to the cluster's right edge
+   so it never runs off a narrow screen. */
 #hud-hint { position: relative; z-index: 3; display: flex; align-items: stretch; gap: 1px; margin-left: 8px;
   border-radius: 999px; overflow: visible; }
-#hint-btn, #hint-toggle {
+#hint-btn, #hint-log-btn, #hint-toggle {
   border: 1px solid var(--amber-line); background: var(--hud-bg); color: var(--amber);
   display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 13px; cursor: pointer;
   font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.18em;
@@ -225,8 +214,10 @@ button.hud-chip:hover { box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.3), 0 0 34px 
   transition: box-shadow 0.2s, background 0.2s, color 0.2s;
 }
 #hint-btn { border-radius: 999px 6px 6px 999px; }
+#hint-log-btn { border-radius: 6px; padding: 0 10px; gap: 5px; }
+#hint-log-btn[aria-expanded="true"] { background: rgba(255, 140, 20, 0.22); color: #fff0d6; }
 #hint-toggle { border-radius: 6px 999px 999px 6px; letter-spacing: 0.06em; padding: 0 11px 0 10px; }
-#hint-btn:hover:not(:disabled), #hint-toggle:hover:not(:disabled), #hint-btn:focus-visible, #hint-toggle:focus-visible {
+#hint-btn:hover:not(:disabled), #hint-log-btn:hover, #hint-toggle:hover:not(:disabled), #hint-btn:focus-visible, #hint-log-btn:focus-visible, #hint-toggle:focus-visible {
   outline: 0; background: rgba(60, 33, 10, 0.86); box-shadow: 0 0 26px rgba(255, 140, 20, 0.55), inset 0 0 16px rgba(255, 140, 20, 0.22); }
 #hint-btn:disabled, #hint-toggle:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
 .hb-ico { width: 15px; height: 15px; flex: 0 0 15px; filter: drop-shadow(0 0 5px var(--amber-glow)); }
@@ -236,7 +227,13 @@ button.hud-chip:hover { box-shadow: 0 0 0 1px rgba(255, 140, 20, 0.3), 0 0 34px 
 .hb-step { font-size: 9px; letter-spacing: 0.14em; padding: 2px 5px; border-radius: 5px;
   background: rgba(255, 140, 20, 0.2); border: 1px solid rgba(255, 176, 67, 0.45); color: var(--hud-text); }
 .hb-step[hidden] { display: none; }
-#hint-toggle #points-value { font-size: 14px; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; text-shadow: 0 0 9px var(--amber-glow); }
+/* how many the log holds, on the button that opens it */
+.hb-count { min-width: 17px; height: 17px; padding: 0 5px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 10px; letter-spacing: 0.04em; background: rgba(255, 140, 20, 0.22); border: 1px solid rgba(255, 176, 67, 0.45); color: var(--hud-text); }
+.hb-count[hidden] { display: none; }
+/* the running cost: what the steers have added up to, never a balance */
+.hb-cost-label { font-size: 9px; letter-spacing: 0.2em; opacity: 0.7; margin-right: 2px; }
+#hint-toggle #hint-cost-value { font-size: 14px; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; text-shadow: 0 0 9px var(--amber-glow); }
 #hint-toggle .unit { font-size: 9.5px; opacity: 0.8; margin-left: 1px; }
 .hb-caret { width: 11px; height: 11px; flex: 0 0 11px; opacity: 0.75; }
 /* one press away from spending: the button says so itself, not only the card */
@@ -267,13 +264,15 @@ button.hud-chip:disabled:hover { transform: none; box-shadow: 0 0 0 1px rgba(255
 .ht-main b { font-family: var(--mono); font-weight: 400; font-size: 11px; letter-spacing: 0.2em; color: var(--amber); }
 .ht-main i { font-style: normal; font-size: 11.5px; line-height: 1.4; color: rgba(246, 226, 191, 0.7); }
 .ht-act { flex: 0 0 auto; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.18em; color: rgba(246, 226, 191, 0.55); }
-/* armed: one more click spends real points, so it says so loudly */
+/* armed: one more click adds real points to the cost, so it says so loudly */
 .hint-tier.armed { border-color: var(--amber); background: rgba(255, 140, 20, 0.2); box-shadow: 0 0 0 1px rgba(255, 176, 67, 0.4), 0 0 18px rgba(255, 140, 20, 0.35); }
 .hint-tier.armed .ht-act { color: var(--amber); }
 .hint-tier.known { border-style: dashed; }
 .hint-tier.known .ht-act { color: #7be3a6; }
-.hint-tier.dear .ht-act { color: #ff7a5c; }
-#hint-used { margin-top: 9px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.22em; color: rgba(246, 226, 191, 0.45); }
+/* the way from the desk to the log */
+#hint-used { display: block; width: 100%; margin-top: 9px; padding: 7px 0 0; text-align: left; cursor: pointer; background: none; border: 0; border-top: 1px dashed rgba(255, 176, 67, 0.22);
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.22em; color: rgba(246, 226, 191, 0.55); }
+#hint-used:hover, #hint-used:focus-visible { color: var(--amber); outline: 0; }
 #hint-used[hidden] { display: none; }
 #hint-msg { margin-top: 9px; padding-top: 8px; border-top: 1px dashed rgba(255, 176, 67, 0.22);
   font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; line-height: 1.5; color: rgba(246, 226, 191, 0.7); }
@@ -400,16 +399,6 @@ button.hud-chip:disabled:hover { transform: none; box-shadow: 0 0 0 1px rgba(255
 .acc-flag { padding: 6px 12px 7px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.18em;
   color: var(--ink-soft); background: rgba(34, 20, 8, 0.05); border-top: 1px dashed rgba(120, 90, 50, 0.3); }
 .acc-flag.yes { color: #1c7a4c; background: rgba(63, 191, 122, 0.14); border-top-color: rgba(63, 191, 122, 0.45); }
-
-/* a hint in the record: it sits in the hearing because that is where the
-   participant is looking, but it is plainly not MERCY speaking */
-.hint-note { align-self: center; max-width: min(78%, 520px); padding: 11px 16px 12px; border-radius: 12px;
-  background: rgba(255, 176, 67, 0.14); border: 1px dashed rgba(255, 140, 26, 0.65);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5); animation: rise 0.28s ease-out; }
-.hint-note-h { display: flex; justify-content: space-between; gap: 14px;
-  font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em; color: var(--amber-2); }
-.hint-note-b { margin: 8px 0 0; font-size: 14px; line-height: 1.55; color: var(--ink); }
-.hint-note-ref { margin-top: 7px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; color: var(--ink-soft); }
 
 /* a drone search's contact sheet (city-map): 16:9 tiles on the card's dark
    ground, the kind of frame stamped on each; n1..n4 set the layout */
@@ -701,12 +690,12 @@ button.hud-chip:disabled:hover { transform: none; box-shadow: 0 0 0 1px rgba(255
 #toast[hidden] { display: none; }
 
 /* --------------------------------------------------------- the steer */
-/* The hint card. It has to be readable over the laptop and the map, both of
+/* The ask. It has to be readable over the laptop and the map, both of
    which are iframes on another origin, so it is a card in THIS document
-   floating over the frames (z 52: above the toast, below the way out and
-   the ending). Only the card itself takes clicks -- the participant can go
-   on working underneath it while it stands. */
-#hint-flash { position: fixed; z-index: 52; top: calc(var(--topbar-h) + 14px); right: 18px;
+   floating over the frames (z 53: above the toast and the hint log it
+   answers into, below the way out and the ending). Only the card itself
+   takes clicks -- the participant can go on working underneath it. */
+#hint-flash { position: fixed; z-index: 53; top: calc(var(--topbar-h) + 14px); right: 18px;
   width: min(390px, calc(100vw - 32px)); padding: 13px 15px 13px;
   background: var(--hud-bg); color: var(--hud-text);
   border: 1px solid rgba(255, 176, 67, 0.55); border-radius: 13px;
@@ -714,8 +703,8 @@ button.hud-chip:disabled:hover { transform: none; box-shadow: 0 0 0 1px rgba(255
   box-shadow: 0 0 26px rgba(255, 140, 20, 0.3), 0 18px 40px rgba(30, 18, 5, 0.45);
   animation: pop-in 0.2s ease-out; }
 #hint-flash[hidden] { display: none; }
-/* armed: the next press spends real points, and the card says so in the
-   same amber the nav button lights up in */
+/* armed: the next press adds real points to the cost, and the card says
+   so in the same amber the nav button lights up in */
 #hint-flash.armed { border-color: var(--amber); box-shadow: 0 0 0 1px rgba(255, 176, 67, 0.4), 0 0 30px rgba(255, 140, 20, 0.45), 0 18px 40px rgba(30, 18, 5, 0.45); }
 .hf-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 #hf-kicker { font-family: var(--mono); font-size: 10px; letter-spacing: 0.3em; color: var(--amber); }
@@ -734,6 +723,45 @@ button.hud-chip:disabled:hover { transform: none; box-shadow: 0 0 0 1px rgba(255
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 18px rgba(255, 140, 20, 0.3); transition: transform 0.2s, box-shadow 0.2s; }
 #hf-go:hover, #hf-go:focus-visible { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 0 26px rgba(255, 140, 20, 0.5); outline: 0; }
 #hf-go[hidden] { display: none; }
+
+/* ------------------------------------------------------- the hint log */
+/* Every steer bought this game, newest first. Its own drawer rather than
+   lines in the hearing: the transcript is MERCY and the participant only.
+   Fixed over the frames like the ask card (z 52), dark HUD material, and it
+   slides in on its own when a hint lands so the answer is seen where it was
+   asked for. It stays up while they work -- only the X, the nav button and
+   Escape close it. */
+/* with the drawer open, the ask card would sit exactly over its title row and
+   its close button; drop it below the header instead */
+body:has(#hint-drawer:not([hidden])) #hint-flash { top: calc(var(--topbar-h) + 84px); }
+#hint-drawer { position: fixed; z-index: 52; top: calc(var(--topbar-h) + 14px); right: 18px; bottom: 18px;
+  width: min(400px, calc(100vw - 32px)); display: flex; flex-direction: column;
+  background: var(--hud-bg); color: var(--hud-text);
+  border: 1px solid rgba(255, 176, 67, 0.55); border-radius: 14px;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 0 26px rgba(255, 140, 20, 0.3), 0 18px 40px rgba(30, 18, 5, 0.45);
+  animation: drawer-in 0.24s cubic-bezier(0.2, 0.9, 0.2, 1); }
+#hint-drawer[hidden] { display: none; }
+.hl-head { display: flex; align-items: center; gap: 10px; padding: 13px 15px 11px; border-bottom: 1px solid rgba(255, 176, 67, 0.22); }
+.hl-title { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.3em; color: var(--amber); }
+.hl-meta { flex: 1; text-align: right; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.16em; color: rgba(246, 226, 191, 0.6); white-space: nowrap; }
+#hl-close { width: 22px; height: 22px; flex: 0 0 22px; padding: 0; border-radius: 6px; cursor: pointer; line-height: 1;
+  background: transparent; border: 1px solid rgba(246, 226, 191, 0.28); color: rgba(246, 226, 191, 0.7); font-size: 15px; }
+#hl-close:hover, #hl-close:focus-visible { background: rgba(255, 255, 255, 0.08); color: #fff; outline: 0; }
+#hl-list { flex: 1; min-height: 0; overflow-y: auto; padding: 12px 15px 16px; display: flex; flex-direction: column; gap: 10px; }
+#hl-empty { padding: 18px 16px 22px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; line-height: 1.7; color: rgba(246, 226, 191, 0.5); }
+#hl-empty[hidden] { display: none; }
+.hl-item { padding: 11px 13px 12px; border-radius: 11px;
+  background: rgba(255, 176, 67, 0.08); border: 1px dashed rgba(255, 176, 67, 0.4); }
+/* the one that just landed: solid, lit, and first in the list */
+.hl-item.fresh { border-style: solid; border-color: var(--amber); background: rgba(255, 140, 20, 0.16);
+  box-shadow: 0 0 0 1px rgba(255, 176, 67, 0.35), 0 0 22px rgba(255, 140, 20, 0.35); animation: rise 0.28s ease-out; }
+.hl-item-h { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.22em; color: var(--amber); }
+.hl-item-h .hl-cost { margin-left: auto; color: rgba(246, 226, 191, 0.65); white-space: nowrap; }
+.hl-new { padding: 1px 6px 2px; border-radius: 5px; background: var(--amber); color: #2a1a06; font-size: 8.5px; letter-spacing: 0.2em; }
+.hl-where { margin-top: 5px; font-size: 11px; color: rgba(246, 226, 191, 0.6); }
+.hl-body { margin: 7px 0 0; font-size: 13.5px; line-height: 1.6; color: rgba(246, 226, 191, 0.94); white-space: pre-line; }
+.hl-ref { margin-top: 7px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.1em; color: rgba(246, 226, 191, 0.38); }
 
 /* ------------------------------------------------ the standing, centred */
 /* MERCY moves the file every turn and that move IS the game, so the meter
@@ -770,10 +798,6 @@ button.hud-chip:disabled:hover { transform: none; box-shadow: 0 0 0 1px rgba(255
   text-shadow: 0 0 18px var(--amber-glow), 0 0 44px rgba(255, 140, 20, 0.4); }
 .ms-value .unit { font-size: 30px; opacity: 0.8; margin-left: 3px; }
 .ms-verdict { margin-top: 10px; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.26em; opacity: 0.85; }
-.ms-delta { flex: 0 0 auto; align-self: flex-start; margin-top: 26px; padding: 4px 11px 5px; border-radius: 10px;
-  border: 1px solid currentColor; background: rgba(20, 12, 4, 0.5);
-  font-family: var(--mono); font-size: 22px; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
-.ms-delta:empty { display: none; }
 /* DOWN is the accused gaining ground, so down is the green one; up is the
    file closing on them and has to read as the bad news it is */
 #meter-stage[data-dir="down"] #ms-card { --amber: #7be3a6; --amber-line: rgba(123, 227, 166, 0.9); --amber-glow: rgba(90, 220, 150, 0.5); }
@@ -922,7 +946,7 @@ button.hud-chip:disabled:hover { transform: none; box-shadow: 0 0 0 1px rgba(255
 @keyframes scan-sweep-back { from { transform: translateY(var(--sweep-h, 300px)); opacity: 0.55; } to { transform: translateY(-3px); opacity: 0.55; } }
 @keyframes pk-sweep { from { transform: translateY(-40px); opacity: 0.9; } to { transform: translateY(var(--sweep-h, 300px)); opacity: 0; } }
 @keyframes tile-lit { 0% { box-shadow: 0 0 0 rgba(255, 140, 20, 0); } 40% { box-shadow: 0 0 18px rgba(255, 140, 20, 0.65), inset 0 0 12px rgba(255, 140, 20, 0.3); } 100% { box-shadow: 0 0 10px rgba(255, 140, 20, 0.35), inset 0 0 8px rgba(255, 140, 20, 0.14); } }
-@keyframes delta-float { 0% { opacity: 0; transform: translateY(7px) scale(0.92); } 14% { opacity: 1; transform: none; } 68% { opacity: 1; transform: translateY(-6px); } 100% { opacity: 0; transform: translateY(-15px); } }
+@keyframes drawer-in { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
 @keyframes count-flicker { 0%, 100% { opacity: 1; } 30% { opacity: 0.25; } 60% { opacity: 0.9; } 80% { opacity: 0.4; } }
 @keyframes ms-bloom { 0% { filter: brightness(1); } 16% { filter: brightness(1.55) saturate(1.2); } 100% { filter: brightness(1); } }
 @keyframes ms-jolt { 0%, 100% { transform: none; } 10% { transform: translateX(-8px) rotate(-2.5deg); } 26% { transform: translateX(7px) rotate(2deg); } 44% { transform: translateX(-5px) rotate(-1deg); } 62% { transform: translateX(3px); } 80% { transform: translateX(-1px); } }
@@ -958,9 +982,9 @@ button.hud-chip:disabled:hover { transform: none; box-shadow: 0 0 0 1px rgba(255
   /* the hint cluster is in the tab bar now, where the tabs are already
      tight: the word goes and the icon carries the button */
   #hint-btn { padding: 0 10px; } #hint-btn .hb-word { display: none; }
-  #hint-toggle #points-value { font-size: 13px; }
-  .hint-note { max-width: 94%; }
-  #hint-flash { top: calc(var(--topbar-h) + 10px); right: 12px; }
+  #hint-toggle #hint-cost-value { font-size: 13px; }
+  #hint-flash, #hint-drawer { top: calc(var(--topbar-h) + 10px); right: 12px; }
+  #hint-drawer { bottom: 12px; }
   /* the centred meter has to fit the screen it is centred on */
   #meter-stage #ms-card { width: 300px; padding: 16px 18px; gap: 14px; }
   .ms-gauge { width: 68px; height: 68px; flex-basis: 68px; }
@@ -1007,18 +1031,16 @@ button.hud-chip:disabled:hover { transform: none; box-shadow: 0 0 0 1px rgba(255
   .hud-value .unit { font-size: 12px; }
   #cp-ticks { display: none; }
   #hud-evidence .hud-label { display: none; }
-  #hint-toggle .unit, #hint-step { display: none; } /* the purse alone; the depth is on the card */
-  #hint-btn, #hint-toggle { height: 30px; padding: 0 8px; }
+  #hint-toggle .unit, .hb-cost-label, #hint-step { display: none; } /* the number alone; the depth is on the card */
+  #hint-btn, #hint-log-btn, #hint-toggle { height: 30px; padding: 0 8px; }
   #victim-toggle .hud-body { display: none; } /* the icon carries it; the card is one tap away */
   #hint-popover { width: min(320px, calc(100vw - 24px)); }
 }
 @media (prefers-reduced-motion: reduce) {
   #picker, #picker-index, .pk-sec, .scan-tile, .st-count, #picker-sweep, .picker-row.pr-new, .idx-bar > i, .idx-line.active .idx-x::after, .pk-chip.pulse, #picker-scan, .ds-tile, .ds-tile img, .peek,
   #case-closed, .closed-card, .closed-title, .closed-line, .closed-hud, .closed-file, .closed-actions, #hud-clock, #leave-confirm, .confirm-card,
-  #hint-popover, .hint-note, #tour-hole, #tour-card, #hint-flash {
+  #hint-popover, #hint-drawer, .hl-item, #tour-hole, #tour-card, #hint-flash {
     animation: none !important; transition: none !important; }
-  /* the delta still has to be readable: it holds still and simply fades */
-  #guilt-delta.on { animation: scan-in 0.2s ease-out both !important; }
   /* The standing still takes the centre -- it is the turn's whole result --
      but it arrives there instead of flying, and nothing shakes. app.js
      drops the flight and shortens the count to match (REDUCED). */

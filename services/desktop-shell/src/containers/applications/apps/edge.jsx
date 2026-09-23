@@ -201,11 +201,13 @@ export const EdgeMenu = () => {
           <Icon src={wnapp.icon} width={14} margin="0 6px" />
           {tabs.map((t, i) => {
             const e = t.stack[t.idx];
+            // not prtclk: that class kills pointer events on every child, and
+            // the close X is a child -- the click would land on the tab itself
             return (
-              <div key={t.tabId} className={"btab prtclk" + (i === active ? " active" : "")} onClick={() => setActive(i)}>
+              <div key={t.tabId} className={"btab" + (i === active ? " active" : "")} onClick={() => setActive(i)}>
                 <img className="tabfav" src={faviconOf(e)} alt="" />
                 <div className="tabtitle">{titleOf(e, t.liveTitle)}</div>
-                <Icon fafa="faTimes" onClick={(ev) => closeTab(i, ev)} width={10} />
+                <Icon className="tabclose" fafa="faTimes" onClick={(ev) => closeTab(i, ev)} width={10} title="Close tab" />
               </div>
             );
           })}

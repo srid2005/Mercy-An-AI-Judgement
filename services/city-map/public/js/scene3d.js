@@ -1730,6 +1730,8 @@ outgoingLight = col; diffuseColor.a = alpha;
     }
     this.updateLabels();
     this.renderer.render(this.scene, this.camera);
+    // the first frame is the page's "ready": the loader comes down on it
+    if (!this.rendered) { this.rendered = true; this.hooks.onFirstFrame && this.hooks.onFirstFrame(); }
   }
 }
 

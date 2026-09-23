@@ -105,6 +105,12 @@
 .windowScreen {
   width: 100%;
   flex-grow: 1;
+  // index.css turns this into overflow: clip (an iframe focus must not scroll
+  // the window away). Unlike hidden, clip is not a scroll container, so the
+  // flex item's min-height: auto stops resolving to 0 and the screen grows to
+  // its content instead of the window -- nothing inside can ever scroll.
+  // The explicit 0 keeps the bound.
+  min-height: 0;
   overflow: hidden;
   border-radius: 0 0 6px 6px;
 }
@@ -143,6 +149,7 @@
   box-sizing: border-box;
   width: 100%;
   flex-grow: 1;
+  min-height: 0;
   scroll-behavior: smooth;
 }
 

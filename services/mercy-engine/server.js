@@ -371,7 +371,7 @@ async function reportOutcome(outcome) {
   if (!id) return console.error(`[mercy-engine] outcome ${outcome} not reported: no participant (single-player)`);
   const { rows } = await pool.query(
     `UPDATE case_state SET reported_at = now() WHERE id = 1 AND reported_at IS NULL
-     RETURNING guilt_percent, started_at, points, hints_used,
+     RETURNING guilt_percent, started_at, hint_cost, hints_used,
        GREATEST(0, EXTRACT(EPOCH FROM (LEAST(updated_at, COALESCE(deadline, updated_at)) - started_at)))::int AS elapsed_s`,
   );
   if (!rows.length) return;
@@ -381,9 +381,9 @@ async function reportOutcome(outcome) {
     outcome,
     guilt_percent: Number(rows[0].guilt_percent),
     checkpoints_hit: hit,
-    // what is left of the hint budget, and what it took: the leaderboard
-    // ranks solved files by the points still in hand, then by time
-    points: rows[0].points,
+    // what the hints came to, and how many there were: the leaderboard ranks
+    // solved files by the bill, lowest first, then by time
+    hint_cost: rows[0].hint_cost,
     hints_used: rows[0].hints_used,
     elapsed_s: rows[0].started_at ? rows[0].elapsed_s : null,
   };
@@ -470,7 +470,7 @@ app.get("/api/state", async (req, res) => {
     guilt_percent: Number(state.guilt_percent),
     concluded: state.concluded,
     outcome: state.outcome,
-    points: state.points,
+    hint_cost: state.hint_cost,
     hints_used: state.hints_used,
     // which beat a hint would be bought against right now. The console prices
     // a tier before it asks, so it needs this to tell "you already own this
@@ -648,25 +648,26 @@ app.post("/api/argue", async (req, res) => {
   // at the summary reads a finished file
   if (located) await reportOutcome("solved");
 
-  const fresh = (await pool.query("SELECT guilt_percent, concluded, points FROM case_state WHERE id = 1")).rows[0];
+  const fresh = (await pool.query("SELECT guilt_percent, concluded, hint_cost FROM case_state WHERE id = 1")).rows[0];
   res.json({
     reply,
     guilt_percent: Number(fresh.guilt_percent),
     delta: moved,
     verdict,
     accepted_ids: acceptedTurn,
-    points: fresh.points,
+    hint_cost: fresh.hint_cost,
     checkpoint_hit: checkpointHit,
     concluded: fresh.concluded,
   });
 });
 
 // ---------------------------------------------------------------------------
-// Hints. A hundred points per participant, priced by how much of the work
-// the hint does for them: tier 1 (5) names the app or the part of the city,
-// tier 2 (10) says what to look for once they are there, tier 3 (20) names
-// the piece and its id. What is left of the budget ranks the leaderboard
-// under 'solved', so the price is real.
+// Hints. Priced by how much of the work the hint does for them: tier 1 (5)
+// names the app or the part of the city, tier 2 (10) says what to look for
+// once they are there, tier 3 (20) names the piece and its id. There is no
+// budget and no refusal: every price goes on the bill (case_state.hint_cost),
+// and the bill ranks the leaderboard under 'solved', lowest first, so the
+// price is real without ever being a wall.
 //
 // The target is not the participant's to choose: it is wherever they are
 // actually stuck -- the next un-hit beat, minus the required ids the file
@@ -752,24 +753,21 @@ async function nextBeatTier(code) {
 // The charge, once, against whichever ledger keys these words. The same words
 // asked for twice are the same knowledge, and the second time they are free.
 // One transaction with the state row locked, so a double click cannot buy them
-// twice or overdraw the purse.
+// twice. Nothing is ever refused: the ledger row and the bill move together
+// or not at all, which is what keeps the bill equal to the ledgers' sum.
 async function chargeOnce(ledger, cost) {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    const cur = (await client.query("SELECT points FROM case_state WHERE id = 1 FOR UPDATE")).rows[0];
+    const cur = (await client.query("SELECT hint_cost FROM case_state WHERE id = 1 FOR UPDATE")).rows[0];
     if ((await client.query(ledger.select, ledger.key)).rows.length) {
       await client.query("COMMIT");
-      return { charged: 0, pointsLeft: cur.points };
-    }
-    if (cur.points < cost) {
-      await client.query("ROLLBACK");
-      return { short: true, pointsLeft: cur.points };
+      return { charged: 0, hintCost: cur.hint_cost };
     }
     await client.query(ledger.insert, [...ledger.key, cost]);
-    const left = (await client.query("UPDATE case_state SET points = GREATEST(0, points - $1), hints_used = hints_used + 1 WHERE id = 1 RETURNING points", [cost])).rows[0].points;
+    const bill = (await client.query("UPDATE case_state SET hint_cost = hint_cost + $1, hints_used = hints_used + 1 WHERE id = 1 RETURNING hint_cost", [cost])).rows[0].hint_cost;
     await client.query("COMMIT");
-    return { charged: cost, pointsLeft: left };
+    return { charged: cost, hintCost: bill };
   } catch (err) {
     await client.query("ROLLBACK").catch(() => {});
     throw err;
@@ -806,14 +804,16 @@ app.post("/api/hint", async (req, res) => {
       },
       HINT_COST[step.step],
     );
-    if (paid.short) return res.status(402).json({ error: "not enough points", points_left: paid.pointsLeft });
     return res.json({
       hint: step.body,
       // the console keys its own record of what this participant owns on
       // `tier`, and a step is what a tier is here
       tier: step.step,
       cost: paid.charged,
-      points_left: paid.pointsLeft,
+      hint_cost: paid.hintCost,
+      // the bill under the name the budget's remainder had, for one release:
+      // a console built against v4 still finds a number in the field it reads
+      points_left: paid.hintCost,
       target: `${chain.screen}${chain.detail ? ":" + chain.detail : ""}/step${step.step}`,
       step: step.step,
       steps_total: chain.steps.length,
@@ -838,12 +838,12 @@ app.post("/api/hint", async (req, res) => {
     },
     HINT_COST[tier],
   );
-  if (paid.short) return res.status(402).json({ error: "not enough points", points_left: paid.pointsLeft });
   res.json({
     hint,
     tier,
     cost: paid.charged,
-    points_left: paid.pointsLeft,
+    hint_cost: paid.hintCost,
+    points_left: paid.hintCost,
     target: `${stuck.code}/tier${tier}`,
     step: tier,
     steps_total: 3,
@@ -934,10 +934,10 @@ app.get("/api/case", async (req, res) => {
   // across an event reset (the templates re-seed to a new "last night")
   const record = await resolveEvidence("HAV-031");
   if (!record || !record.timestamp) return res.status(503).json({ error: "haven not reachable yet" });
-  // the hint budget rides along: the console draws the header before it has
-  // asked for the state, and the points counter is part of that header
+  // the hint bill rides along: the console draws the header before it has
+  // asked for the state, and the running cost is part of that header
   const state = await readState();
-  res.json({ missing_since: record.timestamp, points: state.points, hints_used: state.hints_used });
+  res.json({ missing_since: record.timestamp, hint_cost: state.hint_cost, hints_used: state.hints_used });
 });
 app.get("/api/health", (req, res) => res.json({ ok: true, service: "mercy-engine" }));
 
@@ -968,7 +968,7 @@ tenant.mount(app, {
       guilt_percent: Number(state.guilt_percent),
       concluded: state.concluded,
       outcome: state.outcome,
-      points: state.points,
+      hint_cost: state.hint_cost,
       hints_used: state.hints_used,
       ...clockOf(state),
       checkpoints_hit: beats.hit,

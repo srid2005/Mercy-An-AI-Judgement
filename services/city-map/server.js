@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const express = require('express');
+const compression = require('compression');
 const cors = require('cors');
 const { pool, rawPool } = require('./db');
 const tenant = require('./tenant');
@@ -24,6 +25,13 @@ app.set('x-service', 'city-map');
 // The console and the laptop call this origin from theirs, with the
 // participant's cookie: reflect the caller's origin and allow credentials.
 app.use(cors({ origin: true, credentials: true }));
+// Everything text-shaped leaves gzipped: the bundle (every tree and prop of
+// the city as JSON) and three.js itself are most of what the map waits for
+// on a first load over the event's uplink. The memo and the rescue footage
+// are streamed by sendFile with Range requests, and a compressed body has no
+// byte ranges, so those two routes are left alone; the drone frames are
+// JPEGs and skip themselves.
+app.use(compression({ filter: (req, res) => !/^\/(audio|video)\//.test(req.path) && compression.filter(req, res) }));
 // Every route registered below is wrapped so a rejected handler answers 500
 // for that one participant instead of taking the process down for all of them.
 tenant.guardApp(app);
@@ -57,7 +65,9 @@ app.get('/video/rescue', (req, res) => {
 });
 app.use(express.static(path.join(__dirname, 'public')));
 // Three.js is served from the installed package so the model works offline.
-app.use('/vendor/three', express.static(path.join(__dirname, 'node_modules', 'three')));
+// The package is pinned in package.json, so the browser may keep it: a
+// reload does not re-fetch (or even revalidate) the biggest file on the page.
+app.use('/vendor/three', express.static(path.join(__dirname, 'node_modules', 'three'), { maxAge: '1d' }));   // not immutable: the path carries no version, so a three.js bump must revalidate
 
 function requireMercyKey(req, res, next) {
   if (req.headers['x-mercy-key'] !== MERCY_API_KEY) {

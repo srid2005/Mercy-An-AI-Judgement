@@ -13,14 +13,27 @@ The console takes no environment at all. Every other origin is derived at
 load from `location.hostname` -- the engine on `:4010`, the laptop on
 `:3000`, the map on `:4011`, the lobby on `:3030` -- so a participant who
 opened `http://<host-ip>:3030/` is talking to the same host on every tab,
-and the exact-origin `postMessage` checks (the laptop's `mercy:gates?`, the
-map's `mercy:case-solved` / `mercy:return`) keep matching whatever that
-host is. The one thing that still says `localhost` is the evidence: the
+and the exact-origin `postMessage` checks (the laptop's `mercy:gates?` and
+`mercy:coords`, the map's `mercy:case-solved` / `mercy:return`) keep
+matching whatever that host is. The one thing that still says `localhost` is the evidence: the
 engine absolutises media URLs with `http://localhost:<port>/`, and the seeds
 carry laptop photos and PDFs that way. `rehost()` in `app.js` rewrites those
 to the current host at render time -- the evidence cards in the hearing, the
 index badges, the drone contact sheets, the peek preview, the band memo's
 audio, the "Open the document" links.
+
+## The loader
+
+`#boot` is static markup in `index.html`, styled from an inline `<style>` in
+the head, so it is painted before `style.css` or a byte of `app.js` has
+arrived and the chamber never shows half-built underneath it. It carries
+"OPENING THE FILE", then "CONNECTING TO MERCY..." while the engine is not
+answering, and `app.js` fades and removes it the moment the gate below
+lifts. `nginx.conf` sends the text assets gzipped (`app.js` and `style.css`
+are a fifth of a megabyte between them raw) and lets the browser keep the
+two pictures for a week -- their URLs carry a `?v=` that changes with them.
+Justice, the hearing's background, is `preload`ed from the head rather than
+discovered from the stylesheet.
 
 ## The gate
 
@@ -38,9 +51,9 @@ it asks `GET /api/me`:
 Per-participant browser state is namespaced by `me.id`, because fifty
 people may take turns on one machine: `mercy-ending-shown:<id>` (the ending
 has been dismissed), `mercy-tour-done:<id>` (the walkthrough has been taken)
-and `mercy-hints:<id>` (the hints this participant has paid for, so a reload
-reads them back and a tier already bought is shown as already known instead
-of being asked for again). `/reset.html` clears this origin's `localStorage`
+and `mercy-hints:<id>` (the hints this participant has bought, oldest
+first: the hint log is drawn from it, and a tier already bought is shown as
+already known instead of being asked for again). `/reset.html` clears this origin's `localStorage`
 and `sessionStorage` outright -- all three keys with it -- and posts
 `mercy:reset-done` to its parent; the lobby loads it in a hidden iframe at
 login.
@@ -76,9 +89,13 @@ only tell the story -- so the console has to make each turn's contribution
 legible rather than leaving a percentage that quietly slid:
 
 - the digits tween and the gauge sweeps to the new value, as before;
-- `#guilt-delta` floats the turn's signed `delta` once under the gauge,
-  green for down and red for up. Down is the accused gaining ground, which
-  is the opposite of the reflex, so it is never shown unlabelled;
+- `#meter-stage` takes the chip to the centre of the screen for the move:
+  it flies out of its corner, grows, counts from the old number to the new
+  one, plays the character of the verdict (a bloom for down, a jolt for up,
+  two for CONTRADICTED, a still dim for nothing moved) and flies back
+  already settled. Green for down and red for up -- down is the accused
+  gaining ground. No signed number rides on it: the needle, the count and
+  the colour are the whole cue;
 - MERCY's turn carries a `verdict` badge -- ADVANCED / PARTIAL / REJECTED /
   CONTRADICTED -- and the same signed number beside it. Both are read back
   from `/api/transcript`, which files them per row, so a reload replays the
@@ -93,25 +110,44 @@ legible rather than leaving a percentage that quietly slid:
 
 ## The hint desk
 
-`#hud-hint` in the left HUD: a chip carrying the points left (a hundred to
-start) and, behind it, the only place they are spent. Three tiers -- 5 for
-the app or area, 10 for what to look for, 20 for the piece itself -- each
-priced and described before it is bought, and each needing a second click on
-CONFIRM, because the leaderboard counts what is not spent. `POST /api/hint`
-with `{tier}`; the engine owns the purse and the wording, and its
-`points_left` overrides whatever the chip last read:
+`#hud-hint` in the tab bar, so it is one click from the laptop and the map
+as well: **HINT** (the progressive ask), the **log** button, and the running
+**HINT COST** with a caret that opens the three-depth desk. There is no
+purse and no refusal: every steer adds its price -- 5 for the app or area,
+10 for what to look for, 20 for the piece itself -- to `hint_cost`, which
+the engine owns, and among the files that find her the leaderboard ranks
+the lowest cost first. The price is still said before anything is bought,
+and every buy needs a second click (CONFIRM on the card, or on the tier),
+because a hint the participant did not want still counts against them.
 
-- **200** -- the hint goes into the hearing as a `.hint-note`: dashed, warm,
-  centred, plainly not one of MERCY's bubbles, with the cost and the
-  engine's `target` label on it.
-- **200, `cost: 0`** -- a tier already bought. Shown as already known, with
-  nothing spent. The console usually answers this one itself, from its own
-  store, without a request at all.
-- **402** -- "NOT ENOUGH POINTS · TIER n COSTS c, YOU HAVE k", with the
-  purse corrected from the body's `points_left`. A tier the console already
-  knows is out of reach says so without spending a request on it.
-- **409** -- the file is closed; there is nothing left to point at. The chip
-  is disabled and the desk shut whenever the case concludes anyway.
+`POST /api/hint` with `{context, detail}` from the nav button, or `{tier,
+context, detail}` from the desk. The engine's `hint_cost` in the reply
+overrides whatever the header last read (`points_left` is read as the same
+number for one release, and until either has arrived the local ledger's sum
+stands in); `/api/state` and `/api/case` carry it too.
+
+- **200** -- the hint goes into the **hint log** (`#hint-drawer`), never the
+  hearing: the transcript is MERCY and the participant only. The drawer
+  lists every hint bought this game, newest first -- SCREEN or BEAT, "HINT
+  2 OF 2", the cost, the screen it was asked for, the text, the engine's
+  `target` label -- opens itself when a hint lands with the new one lit, and
+  stays up while they work. The log button, the desk's own "SEE THE HINTS
+  TAKEN" line, the X and Escape open and close it.
+- **200, `cost: 0`** -- a step already bought. The console usually answers
+  this one itself, from its own store, by opening the log on that hint
+  without a request at all.
+- **409** -- the file is closed; there is nothing left to point at. The
+  buttons are disabled and the desk shut whenever the case concludes anyway.
+
+## Coordinates to the map
+
+PulseFit's SEND TO MAP posts `{type: "mercy:coords", lat, lng, label}` to
+`window.top`. The console, on receipt from the laptop's origin only,
+switches to the City Map tab and forwards a rebuilt copy of the same message
+to the map iframe at `MAP_URL`, waiting for the frame's `load` if the map
+has not been opened yet (anything posted at a frame between documents is
+lost). The map fills its own `#lat` / `#lng` and flashes them; the flight
+stays the participant's click, over there.
 
 ## The walkthrough
 

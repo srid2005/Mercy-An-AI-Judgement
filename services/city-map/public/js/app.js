@@ -2,13 +2,32 @@ import { makeGeo, KIND_LABEL } from './geo.js';
 import { BlueprintScene } from './scene3d.js';
 
 const $ = (s) => document.querySelector(s);
+// Registered before the bundle await below. The console posts SEND TO MAP
+// coordinates on this iframe's load event, which fires long before the model
+// is built -- so a fix sent before the map tab was ever opened used to land on
+// no listener at all and vanish. Anything that arrives early waits here.
+let pendingCoords = null;
+const earlyCoords = (ev) => { if (ev.data && ev.data.type === 'mercy:coords') pendingCoords = { origin: ev.origin, data: ev.data }; };
+window.addEventListener('message', earlyCoords);
+// the loader index.html put up before any of this ran: its caption steps as the
+// model comes in, and it goes on the first rendered frame (hooks.onFirstFrame)
+const loader = $('#loader'), loaderText = $('#ld-text');
+const loading = (text) => { if (loader && loader.dataset.state === 'loading') loaderText.textContent = text; };
 const data = await fetch('/api/map/bundle').then((r) => r.json());
 // no session (the cookie is gone, or was never set): the lobby is where one comes from
 if (!data || !data.config) {
-  if (data && data.login) location.replace(`http://${location.hostname}:3030/`);
-  else document.querySelector('#mission').textContent = (data && data.error) || 'The model could not be loaded.';
+  if (data && data.login) {
+    loading('No session -- back to the lobby…');
+    if (loader) loader.dataset.state = 'redirect';   // the throw below is not a failure to show
+    location.replace(`http://${location.hostname}:3030/`);
+  } else {
+    const msg = (data && data.error) || 'The model could not be loaded.';
+    document.querySelector('#mission').textContent = msg;
+    if (loader) { loader.dataset.state = 'failed'; loaderText.textContent = msg; }
+  }
   throw new Error('no bundle');
 }
+loading('Building the city…');
 const geo = makeGeo(data.config, data.mountains);
 
 const fmtTime = (t) => new Date(t).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
@@ -49,6 +68,16 @@ const hooks = {
   onSelect(f) { select(f, false); },
   onDegrade() { $('#props-toggle').checked = false; setStatus('busy', 'Slow frames: trees, props and traffic switched off. Tick "Trees & props" to bring them back.'); },
   onContextLost() { setStatus('error', 'The graphics context was lost. Reloading the model…'); setTimeout(() => location.reload(), 1500); },
+  // fires from inside the scene's constructor (its first animate() is
+  // synchronous), so nothing here may touch `scene`; the loader comes down
+  // once that frame has been painted, and the walkthrough offers itself to a
+  // participant who has not seen it
+  onFirstFrame() {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (loader) loader.remove();
+      if (!tourDone()) setTimeout(startTour, 700);
+    }));
+  },
   onSearchRequest(f) {
     if (f.type === 'building' || f.type === 'you') return launch(f.lat, f.lng, 'building', f);
     if (f.type === 'stop') return launch(f.lat, f.lng, 'building', { id: f.building_id, name: f.name });
@@ -1162,6 +1191,237 @@ $('#keys-toggle').onclick = () => { $('#keys').hidden = !$('#keys').hidden; };
 
 $('#city').textContent = `${data.config.city} · ${data.buildings.length.toLocaleString()} buildings · ${data.towers.length} towers · ${data.trees.length.toLocaleString()} trees · ${data.cctv.length} cameras`;
 
+// --- the tour ---------------------------------------------------------------------------
+// First run per participant, and the Tour button replays it -- the console's
+// walkthrough, on the map. Each step spotlights a real control (the stage
+// dims, a hole is cut over the thing being named) and the caption says what
+// it is FOR in the search. One step is a demonstration rather than a caption:
+// a hand glides to a building and right-clicks it, so the gesture that sends
+// the drones is seen before it is asked for. Next / Back / Skip, Escape and
+// the arrow keys anywhere. Done is remembered per participant, the way the
+// memo and the rescue are (key()).
+const TOUR = [
+  { at: '#view3d', title: 'THE MODEL', body: 'Meridian, every building of it, as MERCY sees it. Left-drag to orbit, right-drag to slide, scroll to zoom -- or WASD. Left-click anything for its card; double-click a spot to jump there.', place: 'center' },
+  { at: '.search-wrap', title: 'FINDING A PLACE', body: 'A name from her messages -- a district, a building, a tower, a camera -- typed here takes you to it on the model, with its coordinates on the card.', place: 'below' },
+  { at: '#drone-search', title: 'THE COORDINATES', body: 'A fix from her band, from a photo, from anywhere on the laptop: type it here (or send it across from PulseFit) and press Launch. Four drones lift off Police HQ and sweep 60 m around the point.', place: 'left' },
+  { at: '#view3d', title: 'RIGHT-CLICK TO SEARCH', body: 'No coordinates needed for a building you can see: right-click it and the drones go there. Watch -- the hand finds a building and clicks it with the right button. Nothing is launched from here; the replay is yours.', place: 'topright', demo: true },
+  { at: '#mission-row', title: 'THE FLIGHT AND THE REPORT', body: 'While the drones thread between the buildings this line follows them; what they find is written here, their frames land under it, and every flight stays in the log on the right. A report is evidence: MERCY can be told of it.', place: 'below' },
+  { at: '#jump-track', title: 'VEHICLE TRACKING', body: 'Locked. The drones have to bring back something to follow first. When they do, a name typed here puts a car on the model, live, and every place it stops at is listed for the drones.', place: 'below' },
+  { at: '#speed', title: 'THE SPEED', body: 'The world runs at ×3 so the drones and the cars do not keep you waiting. Press this to watch at real speed. Sweeps always run at normal speed, whatever this says.', place: 'below' },
+];
+const tourEl = $('#tour'), tourHole = $('#tour-hole'), tourCard = $('#tour-card'), tourReplay = $('#tour-replay');
+let tourStep = -1;   // -1 means the tour is not running
+const tourDone = () => store.get(key('mercy-map-tour-done')) === '1';
+function startTour() {
+  if (tourStep >= 0) return;
+  closeLightbox();
+  results.hidden = true;
+  tourEl.hidden = false;
+  // placed cold for the first step: the hole and the card have no position
+  // yet, and a transition from the corner reads as a bug
+  tourHole.style.transition = 'none';
+  tourCard.style.transition = 'none';
+  tourGo(1);
+  $('#tour-next').focus({ preventScroll: true });
+}
+function endTour() {
+  if (tourStep < 0) return;
+  store.set(key('mercy-map-tour-done'), '1');
+  stopDemo();
+  tourStep = -1;
+  tourEl.hidden = true;
+}
+function tourGo(dir) {
+  const next = tourStep + dir;
+  if (next < 0) return;
+  if (next >= TOUR.length) return endTour();
+  tourStep = next;
+  const step = TOUR[tourStep];
+  $('#tour-step').textContent = `STEP ${tourStep + 1} / ${TOUR.length}`;
+  $('#tour-title').textContent = step.title;
+  $('#tour-body').textContent = step.body;
+  $('#tour-back').disabled = tourStep === 0;
+  $('#tour-next').textContent = tourStep === TOUR.length - 1 ? 'DONE' : 'NEXT';
+  $('#tour-dots').innerHTML = TOUR.map((_, i) => `<i${i === tourStep ? ' class="on"' : ''}></i>`).join('');
+  tourReplay.hidden = !step.demo;
+  if (step.demo) startDemo(); else stopDemo();
+  requestAnimationFrame(tourPlace);   // the caption needs its own height first
+}
+// The hole is a fixed box with a viewport-sized shadow around it, so the dim
+// and the cut-out are the same element and can never drift apart. The card
+// sits beside the hole where there is room ('left' for the rail, 'right'),
+// else under or over it; 'center' and 'topright' put it inside a stage-sized
+// hole ('topright' keeps the demonstration's path clear).
+function tourPlace() {
+  if (tourStep < 0) return;
+  const step = TOUR[tourStep];
+  const target = $(step.at);
+  if (!target) return endTour();   // an element this build does not have
+  const r = target.getBoundingClientRect();
+  const pad = 8, W = window.innerWidth, H = window.innerHeight;
+  const x = Math.max(0, r.left - pad), y = Math.max(0, r.top - pad);
+  const w = Math.max(24, Math.min(W - x, r.width + pad * 2)), h = Math.max(24, Math.min(H - y, r.height + pad * 2));
+  tourHole.style.left = `${Math.round(x)}px`; tourHole.style.top = `${Math.round(y)}px`;
+  tourHole.style.width = `${Math.round(w)}px`; tourHole.style.height = `${Math.round(h)}px`;
+  const cw = tourCard.offsetWidth, ch = tourCard.offsetHeight, gap = 14;
+  let left, top;
+  if (step.place === 'center') { left = x + w / 2 - cw / 2; top = y + h / 2 - ch / 2; }
+  else if (step.place === 'topright') { left = x + w - cw - gap; top = y + gap; }
+  else if (step.place === 'right' && x + w + gap + cw < W - 12) { left = x + w + gap; top = y + h / 2 - ch / 2; }
+  else if (step.place === 'left' && x - gap - cw > 12) { left = x - gap - cw; top = y + Math.min(h / 2 - ch / 2, 40); }
+  else {
+    left = x;
+    const below = y + h + gap;
+    top = step.place === 'above' || below + ch > H - 12 ? y - ch - gap : below;
+    if (top < 12) top = below;   // no room above either: take what is below and clamp
+  }
+  tourCard.style.left = `${Math.round(Math.max(12, Math.min(left, W - cw - 12)))}px`;
+  tourCard.style.top = `${Math.round(Math.max(12, Math.min(top, H - ch - 12)))}px`;
+  if (tourHole.style.transition === 'none') requestAnimationFrame(() => { tourHole.style.transition = ''; tourCard.style.transition = ''; });
+}
+$('#tour-btn').onclick = startTour;
+$('#tour-next').onclick = () => tourGo(1);
+$('#tour-back').onclick = () => tourGo(-1);
+$('#tour-skip').onclick = endTour;
+tourReplay.onclick = startDemo;
+// the tour owns the keyboard while it is up, the way the lightbox does: the
+// model must not fly on WASD / arrows underneath it
+document.addEventListener('keydown', (e) => {
+  if (tourStep < 0 || e.key === 'Tab') return;
+  e.stopPropagation();
+  const go = { Escape: endTour, ArrowRight: () => tourGo(1), ArrowLeft: () => tourGo(-1) }[e.key];
+  if (!go) return;
+  e.preventDefault();
+  go();
+}, true);
+// the spotlight is measured from the live layout: anything that moves it has to move the hole too
+window.addEventListener('resize', tourPlace);
+
+// --- the demonstration --------------------------------------------------------------------
+// A pointing hand comes in from the corner of the stage, settles on a real
+// building, presses -- the right button of a small mouse lights up, a ring
+// bursts from the fingertip -- and the mission line it would have produced
+// appears under it, marked as a demonstration. The building is projected
+// through the live camera every frame, so the hand rides the model. None of
+// it goes near launch(): nothing is posted, nothing is drawn on the model,
+// and the layer is emptied when it ends or the step changes.
+const demoLayer = $('#tour-demo');
+const HAND = { w: 52, h: 62, tip: { x: 24, y: 7 } };   // where the fingertip sits inside the hand's box
+const HAND_SVG = '<svg viewBox="0 0 44 52" xmlns="http://www.w3.org/2000/svg"><path d="M16 6a4 4 0 0 1 8 0v18h2v-2a3.5 3.5 0 0 1 7 0v2h1v-1a3 3 0 0 1 6 0v15a12 12 0 0 1-12 12h-6a11 11 0 0 1-8.5-4L5 36a3 3 0 0 1 4.5-4l6.5 6z"/></svg>';
+const demo = { raf: 0, timers: [], gen: 0 };
+// a named building near the centre that is not a story place: City Hall in the seed
+function demoBuilding() {
+  const named = data.buildings.filter((b) => b.name && b.kind !== 'police');
+  return named.find((b) => b.kind === 'civic') || named[0] || data.buildings[0] || null;
+}
+function startDemo() {
+  stopDemo();
+  const b = demoBuilding();
+  if (!b || tourStep < 0) return;
+  const g = ++demo.gen;
+  // the camera goes to the building -- unless the drones or a followed car own
+  // it (flyTo would drop either); the hand still finds the building on screen
+  // the walkthrough borrows the camera; stopDemo() gives it back where it was
+  if (!scene.chase && !scene.follow) {
+    demo.camBefore = { pos: scene.camera.position.clone(), target: scene.controls.target.clone() };
+    scene.flyTo(b.lat, b.lng, 520);
+  }
+  demoLayer.hidden = false;
+  demoLayer.style.opacity = '';
+  const hand = document.createElement('div'); hand.className = 'demo-hand'; hand.innerHTML = HAND_SVG;
+  const ring = document.createElement('div'); ring.className = 'demo-ring';
+  const mouse = document.createElement('div'); mouse.className = 'demo-mouse';
+  const tag = document.createElement('div'); tag.className = 'demo-tag'; tag.textContent = 'RIGHT-CLICK';
+  const line = document.createElement('div'); line.className = 'demo-line';
+  line.innerHTML = '<b>DEMO</b> · Flight up from Police HQ → <span></span>. Threading between the buildings…';
+  line.querySelector('span').textContent = b.name;
+  demoLayer.append(ring, hand, mouse, tag, line);
+  const ease = (u) => u * u * (3 - 2 * u);
+  // the building's roof on screen, kept inside the stage so the hand is never lost off its edge
+  const where = () => {
+    const r = view3d.getBoundingClientRect();
+    const v = scene.pos(b.lat, b.lng, b.height_m + 4).project(scene.camera);
+    const m = 60;
+    let x = r.left + ((v.x + 1) / 2) * r.width, y = r.top + ((1 - v.y) / 2) * r.height;
+    if (v.z >= 1) { x = r.left + r.width / 2; y = r.top + r.height / 2; }
+    return { x: Math.max(r.left + m, Math.min(r.right - m, x)), y: Math.max(r.top + m + 40, Math.min(r.bottom - m - 90, y)), r };
+  };
+  const at = (ms, fn) => demo.timers.push(setTimeout(() => { if (demo.gen === g) fn(); }, ms));
+  const t0 = performance.now();
+  let pressed = 0;
+  const frame = (now) => {
+    if (demo.gen !== g) return;
+    const t = now - t0;
+    const p = where();
+    // 0-0.9 s the camera is still on its way; 0.9-2.4 s the hand glides in from the corner
+    const u = ease(Math.max(0, Math.min(1, (t - 900) / 1500)));
+    const sx = p.r.right + 80, sy = p.r.bottom + 80;
+    const x = sx + (p.x - sx) * u, y = sy + (p.y - sy) * u;
+    const press = pressed ? 0.9 + 0.1 * Math.min(1, (now - pressed) / 250) : 1;   // a dip on the click
+    hand.style.transform = `translate(${x - HAND.tip.x}px, ${y - HAND.tip.y}px) scale(${pressed && now - pressed < 250 ? 0.9 : press})`;
+    ring.style.transform = `translate(${p.x}px, ${p.y}px)`;
+    mouse.style.transform = `translate(${x + 40}px, ${y + 48}px)`;
+    tag.style.transform = `translate(${p.x}px, ${p.y - 30}px) translate(-50%, 0)`;
+    line.style.transform = `translate(${x}px, ${y + 92}px) translate(-50%, 0)`;
+    demo.raf = requestAnimationFrame(frame);
+  };
+  demo.raf = requestAnimationFrame(frame);
+  at(2000, () => mouse.classList.add('show'));
+  at(2700, () => { pressed = performance.now(); mouse.classList.add('press'); ring.classList.remove('go'); void ring.offsetWidth; ring.classList.add('go'); tag.classList.add('show'); });
+  at(3300, () => { mouse.classList.remove('press'); line.classList.add('show'); });
+  at(6200, () => { demoLayer.style.transition = 'opacity 0.6s'; demoLayer.style.opacity = '0'; });
+  at(6900, () => stopDemo());
+}
+function stopDemo() {
+  demo.gen++;
+  cancelAnimationFrame(demo.raf);
+  demo.timers.forEach(clearTimeout);
+  demo.timers = [];
+  demoLayer.replaceChildren();
+  demoLayer.hidden = true;
+  demoLayer.style.transition = '';
+  demoLayer.style.opacity = '';
+  // a tween still crossing the model under a closed tour, or a viewpoint the
+  // participant never chose: both are state the demonstration must not leave
+  if (scene.tween) scene.tween = null;
+  if (demo.camBefore) {
+    scene.camera.position.copy(demo.camBefore.pos);
+    scene.controls.target.copy(demo.camBefore.target);
+    if (scene.controls.update) scene.controls.update();
+    demo.camBefore = null;
+  }
+}
+
+// --- coordinates from Meera's laptop --------------------------------------------------------
+// PulseFit has SEND TO MAP on every alert: the laptop posts the fix to the
+// console, the console switches to this tab and forwards it here. Only the
+// console's origin is heard -- the exact-origin rule the console applies to
+// everything on this channel, from the other side. The boxes are filled and
+// lit and the launch button focused; the flight is the participant's click,
+// never this.
+const CONSOLE_URL = `http://${location.hostname}:3020`;
+function receiveCoords(origin, payload) {
+  const ev = { origin, data: payload };
+  if (ev.origin !== CONSOLE_URL || !ev.data || ev.data.type !== 'mercy:coords') return;
+  const lat = Number(ev.data.lat), lng = Number(ev.data.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+  if (tourStep >= 0) endTour();   // the boxes have to be seen: the walkthrough gives way
+  latIn.value = lat.toFixed(6); lngIn.value = lng.toFixed(6);
+  for (const el of [latIn, lngIn]) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+  const label = typeof ev.data.label === 'string' ? ev.data.label.trim().slice(0, 80) : '';
+  const b = data.config.bounds;
+  const inside = lat >= b.south && lat <= b.north && lng >= b.west && lng <= b.east;
+  // the drones' own line is not overwritten while they are out; the boxes say enough
+  if (!dronesOut()) setStatus(inside ? 'idle' : 'error', inside
+    ? `Coordinates from Meera's laptop${label ? ' (' + label + ')' : ''}: ${geo.fmt(lat, lng)}. Press Launch drones.`
+    : `Coordinates from Meera's laptop${label ? ' (' + label + ')' : ''} are outside the model.`);
+  latIn.scrollIntoView({ block: 'nearest' });
+  $('#launch').focus();
+}
+// the early catcher stands down; from here every message goes straight through
+window.removeEventListener('message', earlyCoords);
+window.addEventListener('message', (ev) => receiveCoords(ev.origin, ev.data));
+if (pendingCoords) { const p = pendingCoords; pendingCoords = null; receiveCoords(p.origin, p.data); }
 // --- story state on load ------------------------------------------------------------------
 // A reset game (docker compose down -v, reset_chase.sql) leaves last game's
 // keys in this browser: what the server says has not happened, has not.
