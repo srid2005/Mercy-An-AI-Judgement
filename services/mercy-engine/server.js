@@ -582,10 +582,15 @@ app.post("/api/argue", async (req, res) => {
   // the standing is -- context, not answers: the hidden truth is never in
   // the prompt. Without the accepted ids a participant ten turns in reads
   // to the model exactly like a participant on turn one.
-  const [history, established, acceptedIds] = await Promise.all([
+  // turningIds is for the stub alone: the pieces the un-hit beats still
+  // need, so that without a model it can tell a piece that turns the file
+  // from a detail. The model never sees it -- it is asked to weigh, not to
+  // recognise (llm/vertex.js).
+  const [history, established, acceptedIds, turningIds] = await Promise.all([
     pool.query("SELECT role, body, evidence_ids FROM transcript ORDER BY id DESC LIMIT 9").then((r) => r.rows.slice(1).reverse()),
     pool.query("SELECT label FROM checkpoints WHERE hit = true ORDER BY sort_order").then((r) => r.rows.map((c) => c.label)),
     pool.query("SELECT evidence_id FROM accepted_evidence ORDER BY accepted_at").then((r) => r.rows.map((a) => a.evidence_id)),
+    pool.query("SELECT required_ids FROM checkpoints WHERE hit = false").then((r) => [...new Set(r.rows.flatMap((c) => c.required_ids))]),
   ]);
   let { reply, verdict, delta, accepted_ids: acceptedNow } = await llm.generateReply({
     participantText: text || "",
@@ -594,6 +599,7 @@ app.post("/api/argue", async (req, res) => {
     history,
     established,
     acceptedIds,
+    turningIds,
   });
 
   // the model took its time: the clock may have run out, or the map may have
@@ -1005,7 +1011,15 @@ app.get("/api/case", async (req, res) => {
   const state = await readState();
   res.json({ missing_since: record.timestamp, hint_cost: state.hint_cost, hints_used: state.hints_used });
 });
-app.get("/api/health", (req, res) => res.json({ ok: true, service: "mercy-engine" }));
+// llm says which brain is answering: the provider chosen at startup, and
+// whether the model is speaking or its breaker has put the stub in
+// Port 4010 is public and /api/health is open: a participant may learn which
+// judge is answering, but not the quota wording of the last error or when the
+// next attempt is due -- that is the operator's, on the internal stats.
+app.get("/api/health", (req, res) => {
+  const s = llm.status();
+  res.json({ ok: true, service: "mercy-engine", llm: { provider: s.provider, mode: s.mode, open_since: s.open_since || null } });
+});
 
 // ---------------------------------------------------------------------------
 // The lobby's side: provision / drop / summarise a participant, reset the
@@ -1020,6 +1034,8 @@ tenant.mount(app, {
   pool: rawPool,
   sqlDir: path.join(__dirname, "db"),
   staticTables: [],
+  // the lobby's resources page reads this beside the database figures
+  stats: () => ({ llm: llm.status() }),
   // the admin panel's live row for one participant; runs as them, so the
   // deadline is applied here too -- a participant who walked away from the
   // console still times out, and the lobby still hears of it

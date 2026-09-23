@@ -152,8 +152,8 @@ Internal (`x-internal-key`; the lobby):
 ## MERCY's brain
 
 `MERCY_LLM_PROVIDER` picks the model behind the hearing: `stub` (default --
-canned replies, no key, deterministic) or `vertex` -- Gemini through Google
-Cloud Vertex AI (`llm/vertex.js`, `@google/genai`; `GOOGLE_CLOUD_PROJECT`,
+no model, no key, deterministic) or `vertex` -- Gemini through Google Cloud
+Vertex AI (`llm/vertex.js`, `@google/genai`; `GOOGLE_CLOUD_PROJECT`,
 `GOOGLE_CLOUD_LOCATION=global`, `VERTEX_MODEL=gemini-2.5-flash`; Application
 Default Credentials, i.e. the VM's service account or a mounted key file).
 Every turn the model gets MERCY's persona, the participant's words, the
@@ -162,6 +162,38 @@ where, when, in the city's own clock, and the text in full), where the
 standing stands, the last eight turns with what was attached to each, and the
 beats and evidence ids the file has already accepted -- never the hidden
 truth. It answers as JSON `{ reply, verdict, delta, accepted_ids, reason }`.
-A failure of any kind falls back to the stub, which returns the same shape
-with deltas of its own, so the hearing never stalls on the model. See
-/DEPLOY_GCP.md.
+See /DEPLOY_GCP.md.
+
+### When the model fails
+
+A failure of any kind -- no credentials, a quota error, an answer slower than
+`VERTEX_TIMEOUT_MS` (default 12000) -- falls back to the stub for that turn,
+logged as `vertex (...) failed, using the stub:`. Two failures in a row open a
+circuit breaker: every turn goes straight to the stub, with no call and no
+wait, for three minutes (five after a quota or rate error: HTTP 429,
+`RESOURCE_EXHAUSTED`, "quota"). Then one turn is let through as a probe; it
+either closes the breaker or re-opens it for another cooldown. The engine
+logs one line when the breaker opens and one when it closes, not one per
+turn. `GET /api/health` and `GET /api/internal/stats` carry `llm: {provider,
+mode, open_since, last_error, failures, next_attempt_at}`, where `mode` is
+`vertex` while the model is answering and `stub` while the breaker has it
+out; under `MERCY_LLM_PROVIDER=stub` it is `{provider: 'stub', mode: 'stub'}`.
+
+The stub (`llm/stub.js`) is not a placeholder: it scores by relevance, not by
+volume. `/api/argue` hands it the required ids of every beat the file has not
+yet hit, and a fresh piece among them is worth six (three for each further
+one in the same turn); any other fresh piece is a detail, worth one and
+capped at two a turn; a piece already accepted is worth nothing and is not
+accepted again; words alone are worth nothing; a turn with nothing to read
+costs one. A piece the participant wrote during the hearing (`content.source
+= 'player'`) is not evidence, and a turn made of nothing else is
+`contradicted` at +3. Its replies are MERCY's, templated from the piece
+itself -- the id, whose it is, which app it came from, whether it turned the
+file or filled a corner -- so a hearing that falls back still reads as one.
+Checkpoints fire under the stub exactly as under the model, from the same
+accepted set.
+
+The operator's manual switch is unchanged: set `MERCY_LLM_PROVIDER=stub` in
+`.env` and restart the engine (`docker compose up -d mercy-engine`); `bash
+setup.sh --stage=verify` reports the provider the engine booted with and how
+many turns fell back.

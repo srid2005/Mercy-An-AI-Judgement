@@ -170,13 +170,13 @@
   // MERCY's own words, when there is no story film to say them.
   const CARDS = () => [
     'You are Arjun Kapoor.',
-    'Your wife Meera disappeared last night at 21:40. The file says you did it: 96.8%.',
+    'Your wife Meera disappeared last night at 21:40. The file says it was you: 96.8%.',
     'I am MERCY. I decide.',
-    'You say you were at your mother’s house all evening, with your brother. I do not take your word for it. Show me.',
+    'You say you were at your brother’s house that night, with your mother there. I do not take your word for it. Show me.',
     'Her laptop is yours. In it: her messages on Wisp, the feed on Loop, her mail on Quill, her diary on Haven, her father’s case file, and the alerts from her band.',
     'Outside it: the city model. Four drones that will search any place you give them — and, when I allow it, a car to follow.',
     'Everything you open is filed as evidence. Attach it to what you say to me. Words with nothing attached are worth nothing.',
-    'Two roads clear you. Where you were that night. And whose night it really was: a fact that fits another man is a fact that no longer fits you.',
+    'Two roads lower the file against you. Where you were that night. And whose night it really was: a fact that fits another man is a fact that no longer fits you.',
     `You have ${minutes} minutes. Find her, and the file closes. Fail, and it stands.`,
     'You may leave the file at any time. It will stand where you left it.',
   ];

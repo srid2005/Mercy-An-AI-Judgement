@@ -203,8 +203,8 @@ CREATE TABLE hints_taken (
 
 INSERT INTO hints (checkpoint_code, tier, body) VALUES
     ('the_alibi', 1, 'You have put nothing between yourself and that night. Her laptop is not only hers -- the evening is on it. Two places carried traffic after eleven: the chat app, and the feed. Look at what the people who were with you did, not at what she did.'),
-    ('the_alibi', 2, 'Your brother did two things while you slept at your mother''s house. He wrote to your wife, and he put the evening on the feed with your name attached to it. Both are stamped after 23:00, an hour and a half after she was taken. One without the other is a claim; together they are a place.'),
-    ('the_alibi', 3, 'Wisp, her chat with Vikram: his message to her at 23:12, never opened. Loop: his post at 23:40, chai at your mother''s, tagging you. WA-199 and SOC-050. Attach both in one turn and tell me where you were at the time on them.'),
+    ('the_alibi', 2, 'Your brother did two things while you slept at your brother''s house. He wrote to your wife, and he put the evening on the feed with your name attached to it. Both are stamped after 23:00, an hour and a half after she was taken. One without the other is a claim; together they are a place.'),
+    ('the_alibi', 3, 'Wisp, her chat with Vikram: his message to her at 23:12, never opened. Loop: his post at 23:40, chai at your brother''s, tagging you. WA-199 and SOC-050. Attach both in one turn and tell me where you were at the time on them.'),
 
     ('gate_timeline', 1, 'You have cleared your own night. That is not the case. The case is her father''s, and she kept two records of it: a document on the laptop behind a password, and the video diary she recorded it into. Start where she started.'),
     ('gate_timeline', 2, 'The police file has a gate register in it -- who came in, who went out, and one word about how fast. Months before she disappeared she built the same morning herself, minute by minute, and read it out loud. The two accounts agree, and the file they came from does not. Put them in front of me together.'),

@@ -332,7 +332,10 @@ function mount(app, opts) {
     try { res.json(await reset(opts)); } catch (err) { res.status(500).json({ error: err.message }); }
   });
   app.get('/api/internal/stats', guard, async (req, res) => {
-    try { res.json({ service: opts.service, ...(await dbStats(opts)) }); } catch (err) { res.status(500).json({ error: err.message }); }
+    // opts.stats is the service's own addition to the row (mercy-engine
+    // reports its model's breaker there); the shape is otherwise the same in
+    // every service
+    try { res.json({ service: opts.service, ...(await dbStats(opts)), ...(opts.stats ? await opts.stats() : {}) }); } catch (err) { res.status(500).json({ error: err.message }); }
   });
 }
 

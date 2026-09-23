@@ -12,19 +12,37 @@
 // prompt, so MERCY cannot leak it -- she judges the argument on what is shown.
 //
 // Contract (same as ./stub): generateReply({ participantText, attachedEvidence,
-// guiltPercent, history, established, acceptedIds }) ->
-// { reply, verdict, delta, accepted_ids, reason }. The model sets the number
+// guiltPercent, history, established, acceptedIds, turningIds }) ->
+// { reply, verdict, delta, accepted_ids, reason }. turningIds is the stub's
+// (it says which pieces the story turns on) and is not shown to the model,
+// which is asked to weigh the evidence, not to recognise it. The model sets the number
 // now: delta is the change to the standing, negative when the accused has
 // gained ground. Every value it returns is advisory -- server.js clamps the
 // delta and holds the floor. Any failure -- no credentials, a quota error, a
 // slow answer -- falls back to the stub, which returns the same shape.
+//
+// The fallback is guarded by a circuit breaker, because in a timed game a
+// model that is slow is worse than a model that is off: with the quota gone,
+// every turn would otherwise sit through the whole timeout before the stub
+// answered it. Two failures in a row open the breaker and every turn goes
+// straight to the stub, no call made, until a cooldown has passed; then one
+// turn is allowed through as a probe, and it either closes the breaker or
+// re-opens it for another cooldown. status() reports which of the two brains
+// is answering right now, for /api/health and the lobby's resources page.
 const { GoogleGenAI, Type } = require("@google/genai");
 const stub = require("./stub");
 
 const MODEL = process.env.VERTEX_MODEL || "gemini-2.5-flash";
 const PROJECT = process.env.GOOGLE_CLOUD_PROJECT || "zinnia-mercy";
 const LOCATION = process.env.GOOGLE_CLOUD_LOCATION || "global";
-const TIMEOUT_MS = Number(process.env.VERTEX_TIMEOUT_MS || 20000);
+// twelve seconds is already a long silence in a hearing; a model that needs
+// more than that is not going to answer this turn
+const TIMEOUT_MS = Number(process.env.VERTEX_TIMEOUT_MS || 12000);
+// consecutive failures that open the breaker, and how long it stays open: a
+// quota error is not going to clear in three minutes, so it waits longer
+const OPEN_AFTER = 2;
+const COOLDOWN_MS = 3 * 60 * 1000;
+const QUOTA_COOLDOWN_MS = 5 * 60 * 1000;
 
 let client = null;
 function ai() {
@@ -257,17 +275,84 @@ function buildContents({ participantText, attachedEvidence, guiltPercent, histor
 // The model's answer, made safe to use: a verdict we know, a finite delta in
 // range, and accepted_ids that are actually ids from this turn. server.js
 // applies its own guards on top -- this is only about not handing it rubbish.
+// A reply that arrived but cannot be used -- empty (a safety block leaves no
+// parts), or not JSON. The model is demonstrably up, so it must not count
+// toward the breaker: two blocked candidates in a hearing about a killing
+// would otherwise park fifty participants on the stub for three minutes.
+function contentError(message) { const e = new Error(message); e.contentLevel = true; return e; }
+
 function normalize(parsed, attachedEvidence) {
   const attached = new Set((attachedEvidence || []).map((e) => e.evidence_id));
   const reply = String(parsed.reply || "").trim();
-  if (!reply) throw new Error("vertex: empty reply");
+  if (!reply) throw contentError("vertex: empty reply");
   const verdict = VERDICTS.includes(parsed.verdict) ? parsed.verdict : "rejected";
   const delta = Math.max(-12, Math.min(6, Number.isFinite(Number(parsed.delta)) ? Number(parsed.delta) : 0));
   const accepted_ids = Array.isArray(parsed.accepted_ids) ? parsed.accepted_ids.filter((id) => attached.has(id)) : [];
   return { reply: reply.slice(0, 900), verdict, delta, accepted_ids, reason: String(parsed.reason || "").slice(0, 200) };
 }
 
-async function generateReply(turn) {
+// ---------------------------------------------------------------------------
+// The breaker. One per process: fifty participants share this Node and one
+// exhausted quota is everyone's, so one failure count is the right count.
+// ---------------------------------------------------------------------------
+const breaker = { failures: 0, openSince: null, nextAttemptAt: null, lastError: null, probing: false };
+const isOpen = () => breaker.openSince !== null;
+
+// The SDK raises an ApiError with a numeric status on an HTTP failure and a
+// plain Error on everything else, so both the code and the words are read.
+function isQuotaError(err) {
+  const code = err && (err.status || err.code);
+  if (code === 429 || code === "RESOURCE_EXHAUSTED") return true;
+  return /\b429\b|RESOURCE_EXHAUSTED|quota|rate limit/i.test(String(err && err.message ? err.message : err));
+}
+
+function recordFailure(err, wasProbe) {
+  breaker.failures += 1;
+  breaker.lastError = String(err && err.message ? err.message : err).slice(0, 300);
+  if (breaker.failures < OPEN_AFTER) return;
+  // turns already in flight when the quota died all fail AFTER the open:
+  // they are counted, but they neither write another line nor push the next
+  // attempt further out -- only the opening failure and a failed probe do
+  if (isOpen() && !wasProbe) return;
+  const cooldown = isQuotaError(err) ? QUOTA_COOLDOWN_MS : COOLDOWN_MS;
+  const now = Date.now();
+  // a probe that failed re-opens for another cooldown: still one line per
+  // cooldown, not one per turn
+  if (!isOpen()) breaker.openSince = now;
+  breaker.nextAttemptAt = now + cooldown;
+  console.error(`[mercy-engine] vertex breaker open after ${breaker.failures} consecutive failure(s) (${isQuotaError(err) ? "quota" : "generic"}): every turn is on the stub until ${new Date(breaker.nextAttemptAt).toISOString()}`);
+}
+
+function recordSuccess() {
+  if (isOpen()) console.error(`[mercy-engine] vertex breaker closed: the model is answering again (open since ${new Date(breaker.openSince).toISOString()})`);
+  breaker.failures = 0;
+  breaker.openSince = null;
+  breaker.nextAttemptAt = null;
+  breaker.probing = false;
+}
+
+// Whether this turn may call the model. Closed: yes. Open and cooling: no.
+// Open and cooled: yes, once -- the first turn to arrive is the probe, and
+// the ones behind it take the stub until it has answered.
+function mayAttempt() {
+  if (!isOpen()) return true;
+  if (breaker.probing || Date.now() < breaker.nextAttemptAt) return false;
+  breaker.probing = true;
+  return true;
+}
+
+function status() {
+  return {
+    provider: "vertex",
+    mode: isOpen() ? "stub" : "vertex",
+    open_since: isOpen() ? new Date(breaker.openSince).toISOString() : null,
+    last_error: breaker.lastError,
+    failures: breaker.failures,
+    next_attempt_at: breaker.nextAttemptAt ? new Date(breaker.nextAttemptAt).toISOString() : null,
+  };
+}
+
+async function askModel(turn) {
   const contents = buildContents(turn);
   const call = ai().models.generateContent({
     model: MODEL,
@@ -287,16 +372,36 @@ async function generateReply(turn) {
   try {
     const res = await Promise.race([call, timeout]);
     const text = typeof res.text === "string" ? res.text : (res.candidates && res.candidates[0] && res.candidates[0].content && res.candidates[0].content.parts || []).map((p) => p.text || "").join("");
-    return normalize(JSON.parse(text), turn.attachedEvidence);
-  } catch (err) {
-    console.error(`[mercy-engine] vertex (${MODEL} @ ${PROJECT}/${LOCATION}) failed, using the stub:`, err && err.message ? err.message : err);
-    return stub.generateReply(turn);
+    let parsed;
+    try { parsed = JSON.parse(text); } catch (e) { throw contentError(`vertex: unparseable reply (${e.message})`); }
+    return normalize(parsed, turn.attachedEvidence);
   } finally {
     clearTimeout(timer);
   }
 }
 
-// tests hand in a fake client; nothing in the service calls this
-function _setClient(c) { client = c; }
+async function generateReply(turn) {
+  // the breaker is open and cooling: no call, no wait, no log line -- the
+  // line was written when it opened
+  if (!mayAttempt()) return stub.generateReply(turn);
+  try {
+    const out = await askModel(turn);
+    recordSuccess();
+    return out;
+  } catch (err) {
+    const wasProbe = breaker.probing;
+    breaker.probing = false;
+    // reachable but unusable this turn: the stub answers, the breaker is told
+    // the model is fine (a probe that gets this far closes it)
+    if (err && err.contentLevel) recordSuccess(); else recordFailure(err, wasProbe);
+    console.error(`[mercy-engine] vertex (${MODEL} @ ${PROJECT}/${LOCATION}) failed, using the stub:`, err && err.message ? err.message : err);
+    return stub.generateReply(turn);
+  }
+}
 
-module.exports = { generateReply, buildContents, describe, SYSTEM, SCHEMA, MODEL, PROJECT, LOCATION, _setClient };
+// tests hand in a fake client, and start from a closed breaker; nothing in
+// the service calls either
+function _setClient(c) { client = c; }
+function _resetBreaker() { Object.assign(breaker, { failures: 0, openSince: null, nextAttemptAt: null, lastError: null, probing: false }); }
+
+module.exports = { generateReply, status, buildContents, describe, SYSTEM, SCHEMA, MODEL, PROJECT, LOCATION, TIMEOUT_MS, _setClient, _resetBreaker };
