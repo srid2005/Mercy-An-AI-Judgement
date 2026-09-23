@@ -44,6 +44,7 @@
   let points = null; // hint points left, from the engine; null until it has said
   let hintsUsed = 0; // how many tiers have been bought, from the engine
   let lastState = null; // last /api/state response; its `gates` are pushed to the laptop (see pushGates)
+  let turnPending = false; // an /api/argue reply is in hand and will play the move itself
   const GAUGE_ARC = 0.75 * 2 * Math.PI * 19; // 270deg sweep of the r=19 arc in index.html
 
   // ------------------------------------------------------------------ api
@@ -99,6 +100,11 @@
     document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === tab));
     document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === `panel-${tab}`));
     tabDot(tab, false);
+    // the hint has to be aimed at what is actually on screen: this tab is
+    // the hearing and says so itself, the other two are whatever their app
+    // last reported (nothing yet, on a frame that has not loaded)
+    if (tab === "mercy") setContext("console-mercy");
+    else context = contextByTab[tab] || { screen: null, detail: null };
     const laptopFrame = el("laptop-frame");
     if (tab === "laptop" && !laptopFrame.src) {
       // the laptop iframe is lazy: replay the gates once it has actually loaded,
@@ -116,6 +122,99 @@
     } else {
       unmountPicker(); // discoveries made on the other tabs wait for the DELTA pass on return
     }
+  }
+
+  // --------------------------------------------------------- full screen
+  // The whole case plays full screen, not just the lobby's film. The tabs,
+  // the laptop and the map all live inside this document, so one request on
+  // the root element covers the game and survives every tab switch -- there
+  // is nothing to re-request when they move between them.
+  // The API only answers from inside a real gesture, so the first click or
+  // keypress of the game is what takes the screen. Escape is the
+  // participant's own decision and it is remembered per player: the chamber
+  // asks once, and never grabs the screen back from under them.
+  const FS_ROOT = document.documentElement;
+  const FS_REQ = FS_ROOT.requestFullscreen || FS_ROOT.webkitRequestFullscreen || null;
+  const FS_API = !!FS_REQ && document.fullscreenEnabled !== false;
+  let FS_KEY = null; // set by loadMe, namespaced per participant like the rest
+  const inFullScreen = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  function fsWanted() {
+    try {
+      return !FS_KEY || localStorage.getItem(FS_KEY) !== "0";
+    } catch (e) {
+      return true; // private mode: the first gesture still tries, nothing is remembered
+    }
+  }
+  function rememberFs(on) {
+    try {
+      if (FS_KEY) localStorage.setItem(FS_KEY, on ? "1" : "0");
+    } catch (e) {
+      /* private mode: it offers itself again next load, which is the lesser harm */
+    }
+  }
+  function goFullScreen() {
+    if (!FS_API || inFullScreen()) return;
+    try {
+      const p = FS_REQ.call(FS_ROOT, { navigationUI: "hide" });
+      if (p && p.catch) p.catch(() => {}); // refused (no gesture, or a policy): the button is the way in
+    } catch (e) {
+      /* an older prefixed signature that dislikes the options object: the button still works */
+    }
+  }
+  function initFullScreen() {
+    const btn = el("fs-btn");
+    if (!FS_API || !btn) return; // no API: the control never appears at all
+    const sync = () => (btn.hidden = inFullScreen());
+    sync();
+    btn.addEventListener("click", () => {
+      rememberFs(true);
+      goFullScreen();
+    });
+    ["fullscreenchange", "webkitfullscreenchange"].forEach((evt) =>
+      document.addEventListener(evt, () => {
+        rememberFs(inFullScreen()); // Escape means they want out, and it sticks
+        sync();
+      })
+    );
+    // the first gesture of the game takes the screen. Capture, because
+    // handlers below stop propagation; once, because asking twice is nagging.
+    const arm = () => {
+      if (fsWanted()) goFullScreen();
+    };
+    document.addEventListener("pointerdown", arm, { capture: true, once: true });
+    document.addEventListener("keydown", arm, { capture: true, once: true });
+  }
+
+  // ------------------------------------------------------- where they are
+  // A steer is only worth points if it is aimed: "use the password hint" is
+  // no use to someone already inside Quill, and "open Quill" is no use to
+  // someone still on the login screen. Every app on the laptop and the map
+  // posts the screen it is showing, on every change and once on load; this
+  // tab remembers the latest and sends it with every ask. The MERCY tab is
+  // this document's own, so it supplies that one itself.
+  // The vocabulary is fixed by the contract -- an unknown key is not a new
+  // screen, it is a bug somewhere, and it must not be sent to the engine as
+  // if it meant something.
+  const CONTEXT_LABEL = {
+    "console-mercy": "the hearing",
+    "laptop-boot": "the laptop, still booting",
+    "laptop-lock": "the laptop's login screen",
+    "laptop-desktop": "the laptop desktop",
+    "laptop-app": "the app you have open",
+    "map-idle": "the city map",
+    "map-search": "the search you have running",
+  };
+  let context = { screen: null, detail: null }; // the latest screen reported
+  const contextByTab = { laptop: null, map: null }; // replayed when that tab comes back
+  function setContext(screen, detail, tab) {
+    if (!Object.prototype.hasOwnProperty.call(CONTEXT_LABEL, String(screen))) return;
+    const rec = { screen: String(screen), detail: detail == null || detail === "" ? null : String(detail).slice(0, 64) };
+    if (tab) contextByTab[tab] = rec;
+    // only the tab on screen owns the aim: the laptop's apps keep posting
+    // while the map is open (both frames stay loaded), and a hint bought
+    // over the map must not be a steer about Quill
+    const active = document.querySelector(".tab-btn.active");
+    if (!tab || !active || active.dataset.tab === tab) context = rec;
   }
 
   // ---------------------------------------------------- discovery listener
@@ -142,6 +241,13 @@
     if (ev.data.type === "mercy:return" && ev.origin === MAP_URL) {
       switchTab("mercy");
       showEnding();
+      return;
+    }
+    // where they are standing, for the hint desk. Same exact-origin rule as
+    // everything else on this channel: only the two frames this tab built.
+    if (ev.data.type === "mercy:context") {
+      if (ev.origin === LAPTOP_URL) setContext(ev.data.screen, ev.data.detail, "laptop");
+      else if (ev.origin === MAP_URL) setContext(ev.data.screen, ev.data.detail, "map");
       return;
     }
     if (ev.data.type !== "mercy:evidence-seen" || !ev.data.evidence_id) return;
@@ -203,6 +309,7 @@
     el("gauge-needle").style.transform = `rotate(${225 + 270 * p}deg)`;
   }
   function renderState(state) {
+    const was = shownGuilt; // where the standing stood before this payload
     const changed = shownGuilt != null && shownGuilt !== state.guilt_percent;
     // the clock ran out: the file is as closed as a rescue would make it,
     // only the other way. Checked before `concluded`, because an engine that
@@ -233,6 +340,12 @@
       hud.classList.remove("bump");
       void hud.offsetWidth; // restart the flicker even when it's already run once
       hud.classList.add("bump");
+      // Every move of the standing goes to the middle, not only the ones
+      // argued from this tab: the rescue takes it to zero, and a poll can
+      // pick up a move made in another tab of the same session. A turn that
+      // is about to announce itself carries MERCY's verdict with it, so
+      // this one stands aside and lets that one play.
+      if (!turnPending) playStanding(was, state.guilt_percent, state.guilt_percent - was, null);
     }
 
     // Checkpoints are story beats now, not steps on the meter: MERCY moves
@@ -252,7 +365,11 @@
     if (Number.isFinite(Number(state.points))) setPoints(Number(state.points));
     else renderTiers(); // hints_used may have moved even where points did not
     el("hint-toggle").disabled = concluded;
-    if (concluded) closeHintDesk();
+    el("hint-btn").disabled = concluded;
+    if (concluded) {
+      closeHintDesk();
+      disarmNav();
+    }
     const textEl = el("composer-text");
     textEl.disabled = concluded;
     textEl.placeholder = timedOut ? "Time is up. The file stands." : state.concluded ? "The file is closed." : "Tell MERCY why the file is wrong...";
@@ -352,6 +469,7 @@
     // the same namespacing for everything this browser remembers about a
     // participant: fifty of them may share one machine at the event
     TOUR_KEY = "mercy-tour-done:" + me.id;
+    FS_KEY = "mercy-fullscreen:" + me.id;
     if (HINT_KEY !== "mercy-hints:" + me.id) {
       HINT_KEY = "mercy-hints:" + me.id;
       boughtHints = readHints();
@@ -1721,11 +1839,16 @@
       markAccepted(yours, res.accepted_ids);
       log.scrollTop = log.scrollHeight;
       if (Number.isFinite(Number(res.points))) setPoints(Number(res.points));
+      // where the standing was BEFORE the engine's new one lands, because
+      // that is what the centred meter counts away from
+      const before = shownGuilt;
+      turnPending = true; // this move is ours to play: renderState leaves it alone
       await loadState(); // the standing is the engine's, always -- the delta only says how far it moved
-      showDelta(res.delta);
+      announceTurn(res, before);
     } catch (e) {
       showToast(e.message || "MERCY did not respond.");
     } finally {
+      turnPending = false; // a turn that never landed must not silence the next move
       el("send-btn").disabled = concluded;
     }
   }
@@ -1997,6 +2120,124 @@
       node.classList.remove("on");
     }, 2600);
   }
+  // ----------------------------------------------- the standing, centred
+  // MERCY moves the file every turn and that move IS the game, so the meter
+  // does not just tick in the corner: it leaves its slot, flies to the
+  // middle, grows, plays the character of what was just decided, and goes
+  // back already settled on the new number.
+  //   - the DIRECTION is the whole point: down is the accused gaining
+  //     ground and reads green; up is the file closing on them and has to
+  //     land as bad news, so it recoils rather than blooms
+  //   - the MAGNITUDE decides how hard: a six-point drop gets the shockwave
+  //     and a second bloom, a half-point drop gets a nudge
+  //   - a VERDICT of contradicted is their own evidence turned around, so
+  //     it is struck twice
+  // The stage is its own element rather than the real chip, so a second
+  // turn landing mid-flight can simply take it over -- the corner is never
+  // left empty or half-scaled. It is pointer-events: none all the way down:
+  // the participant can keep typing straight through it.
+  const MS_STAGE = { fly: 520, dwell: 1500, back: 460, count: 1150 };
+  let msToken = 0; // the turn that owns the stage; an older one stops where it is
+  let msTimers = [];
+  function msStop() {
+    msTimers.forEach(clearTimeout);
+    msTimers = [];
+  }
+  const msLater = (fn, ms) => msTimers.push(setTimeout(fn, ms));
+  function msGauge(pct) {
+    const p = Math.max(0, Math.min(100, pct)) / 100;
+    const fill = el("ms-fill");
+    fill.style.strokeDasharray = String(GAUGE_ARC); // the same r=19 arc as the HUD chip
+    fill.style.strokeDashoffset = String(GAUGE_ARC * (1 - p));
+    el("ms-needle").style.transform = `rotate(${225 + 270 * p}deg)`;
+  }
+  function msCount(from, to, dur, token) {
+    const node = el("ms-percent");
+    const t0 = performance.now();
+    (function step(now) {
+      if (token !== msToken) return; // a newer turn owns the digits
+      const t = dur <= 0 ? 1 : Math.min(1, (now - t0) / dur);
+      const eased = 1 - Math.pow(1 - t, 3);
+      node.textContent = (from + (to - from) * eased).toFixed(1);
+      if (t < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+  // Where the card has to stand to be sitting exactly on top of the real
+  // chip. Recomputed for the flight home, because the layout may have moved
+  // under it (the clock widening at TIME'S UP, a resize, a tab switch).
+  function msChipTransform() {
+    const chip = el("meter-toggle");
+    const card = el("ms-card");
+    const r = chip ? chip.getBoundingClientRect() : null;
+    if (!r || !r.width || !card.offsetWidth) return null; // the chip is not on screen: no flight to fly
+    const dx = r.left + r.width / 2 - window.innerWidth / 2;
+    const dy = r.top + r.height / 2 - window.innerHeight * 0.46; // 46%: where the card sits in the CSS
+    return `translate(calc(-50% + ${Math.round(dx)}px), calc(-50% + ${Math.round(dy)}px)) scale(${(r.width / card.offsetWidth).toFixed(3)})`;
+  }
+  const CENTRE = "translate(-50%, -50%) scale(1)";
+  function playStanding(from, to, delta, verdict) {
+    const stage = el("meter-stage");
+    const card = el("ms-card");
+    if (!stage || !card || !Number.isFinite(Number(to))) return false;
+    const target = Number(to);
+    const start = Number.isFinite(Number(from)) ? Number(from) : target;
+    const d = Number.isFinite(Number(delta)) ? Number(delta) : target - start;
+    const token = ++msToken;
+    msStop();
+
+    const size = Math.abs(d);
+    stage.dataset.dir = d <= -0.05 ? "down" : d >= 0.05 ? "up" : "flat";
+    stage.dataset.force = size >= 6 ? "hard" : size >= 2 ? "firm" : "soft";
+    stage.dataset.verdict = VERDICT[verdict] ? verdict : "";
+    el("ms-verdict").textContent = VERDICT[verdict] ? VERDICT[verdict][0] : "";
+    el("ms-delta").textContent = size >= 0.05 ? `${d > 0 ? "+" : "-"}${size.toFixed(1)}` : "";
+    el("ms-percent").textContent = start.toFixed(1);
+    stage.classList.remove("hold", "going");
+    msGauge(start); // set while the stage is still display:none, so nothing tweens into place
+
+    // the flight needs the card measured, which needs it laid out: show it
+    // first, transparent, and only then work out where the chip is
+    stage.hidden = false;
+    const home = REDUCED ? null : msChipTransform();
+    stage.classList.add("instant");
+    card.style.transform = home || CENTRE; // no chip to fly from: it simply arrives in the middle
+    void card.offsetWidth; // the flight starts in the corner, not in the middle
+    stage.classList.remove("instant");
+
+    const fly = home ? MS_STAGE.fly : 0;
+    const dwell = REDUCED ? 900 : MS_STAGE.dwell;
+    requestAnimationFrame(() => {
+      if (token !== msToken) return;
+      stage.classList.add("lit");
+      card.style.transform = CENTRE;
+      el("hud-guilt").classList.add("flown"); // the corner stands down while its card is away
+      msGauge(target);
+      msCount(start, target, REDUCED ? 500 : MS_STAGE.count, token);
+    });
+    // the character lands as it arrives, not while it is still crossing
+    msLater(() => token === msToken && stage.classList.add("hold"), Math.round(fly * 0.55));
+    msLater(() => {
+      if (token !== msToken) return;
+      stage.classList.remove("hold", "lit"); // the scrim lifts; `going` keeps the card visible
+      stage.classList.add("going");
+      if (home) card.style.transform = msChipTransform() || home;
+      el("hud-guilt").classList.remove("flown"); // already tweened onto the new number by loadState
+      showDelta(d); // and the corner marks the move as its card lands back on it
+      msLater(() => {
+        if (token !== msToken) return;
+        stage.classList.remove("going");
+        stage.hidden = true;
+      }, home ? MS_STAGE.back : 220);
+    }, fly + dwell);
+    return true;
+  }
+  // The turn's result. The standing itself is the engine's and loadState has
+  // already tweened the corner onto it; this plays what the turn DID.
+  function announceTurn(res, before) {
+    const to = Number.isFinite(Number(res.guilt_percent)) ? Number(res.guilt_percent) : shownGuilt;
+    if (!playStanding(before, to, res.delta, res.verdict)) showDelta(res.delta); // no stage: the corner float still says what moved
+  }
+
   // Which of the attached ids MERCY actually leaned on. Applied to the
   // participant's own turn after the reply lands, because that turn is drawn
   // the moment they hit Submit -- before there is anything to say about it.
@@ -2024,8 +2265,12 @@
     { tier: 2, cost: 10, title: "WHAT TO LOOK FOR", blurb: "what kind of thing it is, and what makes it matter to the file" },
     { tier: 3, cost: 20, title: "THE PIECE ITSELF", blurb: "names the exact record -- what it is and where it is" },
   ];
+  // What a step costs, by step, exactly as the engine prices them. This
+  // side only ever uses it to say what the NEXT press will cost before it
+  // is pressed -- the receipt afterwards is always the engine's own `cost`.
+  const STEP_COST = [5, 10, 20];
   let HINT_KEY = null; // set by loadMe; null means nothing to read or write
-  let boughtHints = []; // {tier, cost, hint, target}, this participant's own
+  let boughtHints = []; // {tier, step, steps_total, cost, hint, target, context}, this participant's own
   let hintTarget = null; // the beat /api/state says a hint would be bought against
   // The engine's own label for a purchase, "<beat>/tier<n>". Null until the
   // state has been read -- and an unknown target is never counted as owned, so
@@ -2037,7 +2282,9 @@
     try {
       const raw = HINT_KEY && localStorage.getItem(HINT_KEY);
       const list = raw ? JSON.parse(raw) : [];
-      return Array.isArray(list) ? list.filter((h) => h && Number.isFinite(Number(h.tier)) && typeof h.hint === "string") : [];
+      // a record is either a tier bought at the desk or a step bought from
+      // the nav button; the older builds only ever wrote the first kind
+      return Array.isArray(list) ? list.filter((h) => h && typeof h.hint === "string" && (Number.isFinite(Number(h.tier)) || Number.isFinite(Number(h.step)))) : [];
     } catch (e) {
       return []; // private mode, or a key written by an older build
     }
@@ -2097,6 +2344,14 @@
       used.hidden = !hintsUsed;
     }
   }
+  // How a bought hint names itself. The desk sells depths and says so; the
+  // nav button walks a chain and says how far along it is.
+  function hintKicker(h) {
+    const step = Number(h.step);
+    const total = Number(h.steps_total);
+    if (Number.isFinite(step) && Number.isFinite(total) && total > 0) return `HINT ${step} OF ${total}`;
+    return `HINT · TIER ${Number(h.tier) || 1}`;
+  }
   // The hint in the record: it sits in the transcript because that is where
   // the participant is looking, but it is not a bubble and it is not MERCY.
   function hintNode(h) {
@@ -2104,7 +2359,7 @@
     wrap.className = "hint-note";
     const head = document.createElement("div");
     head.className = "hint-note-h";
-    head.innerHTML = `<span class="hn-kicker">HINT &middot; TIER ${escapeHtml(h.tier)}</span><span class="hn-cost">${Number(h.cost) > 0 ? `-${Number(h.cost)} PTS` : "NOTHING SPENT"}</span>`;
+    head.innerHTML = `<span class="hn-kicker">${escapeHtml(hintKicker(h))}</span><span class="hn-cost">${Number(h.cost) > 0 ? `-${Number(h.cost)} PTS` : "NOTHING SPENT"}</span>`;
     wrap.appendChild(head);
     const body = document.createElement("p");
     body.className = "hint-note-b";
@@ -2125,43 +2380,243 @@
     log.appendChild(hintNode(h));
     log.scrollTop = log.scrollHeight;
   }
-  async function buyHint(tier) {
-    if (buying) return;
-    const t = HINT_TIERS.find((x) => x.tier === tier);
-    if (!t) return;
+  // The one place anything is spent. The desk and the nav button send
+  // different bodies and report back in different places -- `say` is
+  // whichever of the two is on screen -- but the purse, the ledger and the
+  // record are the same for both. Returns the record, or null if the engine
+  // refused, having already said why where the caller asked for it.
+  async function postHint(body, say) {
+    if (buying) return null;
     buying = true;
-    armedTier = null;
-    hintMsg("ASKING\u2026", "wait");
+    el("hud-hint").classList.add("busy");
+    say("ASKING\u2026", "warn");
     renderTiers();
     let res;
     try {
-      res = await api("/api/hint", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tier }) });
+      res = await api("/api/hint", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     } catch (e) {
       // the engine's own number wins wherever it sends one: the purse may
       // have moved since this desk last read it
       const left = e.body ? Number(e.body.points_left) : NaN;
       if (Number.isFinite(left)) setPoints(left);
       buying = false;
-      if (e.status === 402) hintMsg(`NOT ENOUGH POINTS \u00b7 TIER ${tier} COSTS ${t.cost}, YOU HAVE ${Number.isFinite(left) ? left : points}`, "bad");
-      else if (e.status === 409) hintMsg(String((e.body && e.body.error) || "the file is closed").toUpperCase(), "bad");
-      else hintMsg((e.message || "THE HINT DESK DID NOT ANSWER").toUpperCase(), "bad");
+      el("hud-hint").classList.remove("busy");
+      if (e.status === 402) say(`NOT ENOUGH POINTS \u00b7 YOU HAVE ${Number.isFinite(left) ? left : points}`, "bad");
+      else if (e.status === 409) say(String((e.body && e.body.error) || "the file is closed").toUpperCase(), "bad");
+      else say((e.message || "THE HINT DESK DID NOT ANSWER").toUpperCase(), "bad");
       renderTiers();
-      return;
+      return null;
     }
     buying = false;
-    const rec = { tier: Number(res.tier) || tier, cost: Number(res.cost) || 0, hint: String(res.hint || ""), target: res.target || "" };
-    if (!boughtHints.some((h) => Number(h.tier) === rec.tier && h.target === rec.target)) {
+    el("hud-hint").classList.remove("busy");
+    const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
+    const rec = {
+      tier: num(res.tier),
+      step: num(res.step),
+      steps_total: num(res.steps_total),
+      cost: Number(res.cost) || 0,
+      hint: String(res.hint || ""),
+      target: res.target || "",
+      context: body.context || null,
+    };
+    // filed against the engine's own target, so the same step is never
+    // written (or read back as owned) twice. Nulls are normalised because a
+    // record written by an older build has no step at all.
+    const same = (a, b) => a.target === b.target && (a.tier || null) === (b.tier || null) && (a.step || null) === (b.step || null);
+    if (!boughtHints.some((h) => same(h, rec))) {
       boughtHints.push(rec);
       writeHints();
     }
     if (Number.isFinite(Number(res.points_left))) setPoints(Number(res.points_left));
-    appendHint(rec);
-    hintMsg(rec.cost > 0 ? `TIER ${rec.tier} BOUGHT \u00b7 ${rec.cost} POINTS SPENT` : `TIER ${rec.tier} WAS ALREADY YOURS \u00b7 NOTHING SPENT`, "ok");
+    appendHint(rec); // the hearing keeps the record whichever tab they are on
     renderTiers();
     loadState(); // hints_used, and a standing that may have moved while this was open
+    return { rec, res };
   }
+  async function buyHint(tier) {
+    const t = HINT_TIERS.find((x) => x.tier === tier);
+    if (!t || buying) return;
+    armedTier = null;
+    // the context rides along on every ask, as the contract says; a tier
+    // named explicitly is still v2 and still buys exactly that depth
+    const out = await postHint({ tier, context: context.screen || undefined, detail: context.detail || undefined }, hintMsg);
+    if (!out) return;
+    const rec = out.rec;
+    hintMsg(rec.cost > 0 ? `TIER ${tier} BOUGHT \u00b7 ${rec.cost} POINTS SPENT` : `TIER ${tier} WAS ALREADY YOURS \u00b7 NOTHING SPENT`, "ok");
+    setStepBadge(rec);
+    if (out.res.goto) revealGoto(out.res.goto);
+  }
+
+  // ------------------------------------------------- the progressive ask
+  // The nav button is the whole hint desk for someone who is simply stuck:
+  // one press asks for the next step of help FOR THE SCREEN THEY ARE ON,
+  // pressing again escalates, and a later step may take them to the thing
+  // that answers it. It spends points, so it arms first and buys second.
+  let navArmed = false;
+  let navTimer = null;
+  // What the next press will cost, from this participant's own ledger: the
+  // engine prices by step and hands its step number back with every hint,
+  // so the highest step already bought against this screen plus one is the
+  // next one. It is a quote, not a charge -- the receipt is the engine's.
+  function nextStep() {
+    const key = context.screen || null;
+    let n = 0;
+    boughtHints.forEach((h) => {
+      if ((h.context || null) === key && Number.isFinite(Number(h.step))) n = Math.max(n, Number(h.step));
+    });
+    return n + 1;
+  }
+  const stepCost = (step) => STEP_COST[Math.max(0, Math.min(STEP_COST.length, step) - 1)];
+  function setStepBadge(rec) {
+    const badge = el("hint-step");
+    if (!badge) return;
+    const step = Number(rec && rec.step);
+    const total = Number(rec && rec.steps_total);
+    badge.hidden = !(Number.isFinite(step) && Number.isFinite(total) && total > 0);
+    if (!badge.hidden) badge.textContent = `${step} OF ${total}`;
+  }
+  function armNav() {
+    const step = nextStep();
+    const cost = stepCost(step);
+    const short = points != null && points < cost;
+    navArmed = true;
+    el("hud-hint").classList.add("armed");
+    const where = CONTEXT_LABEL[context.screen] || "the file";
+    flash({
+      kicker: step > 1 ? `HINT \u00b7 STEP ${step}` : "HINT",
+      body: `The next steer for ${where}${context.detail ? ` \u2014 ${context.detail}` : ""}.`,
+      note: short ? `THIS SPENDS ${cost} POINTS \u00b7 YOU HAVE ${points}` : `THIS SPENDS ${cost} POINTS${points == null ? "" : ` \u00b7 ${points} LEFT`}`,
+      noteKind: short ? "bad" : "warn",
+      confirm: true,
+      armed: true,
+    });
+    clearTimeout(navTimer);
+    navTimer = setTimeout(disarmNav, 12000); // an ask that was not meant never stays one stray click from spending
+  }
+  // `keepCard` is the confirm itself: the ask becomes the answer in place,
+  // so the card stays up and says ASKING where the price used to be.
+  function disarmNav(keepCard) {
+    clearTimeout(navTimer);
+    if (!navArmed) return;
+    navArmed = false;
+    el("hud-hint").classList.remove("armed");
+    const card = el("hint-flash");
+    if (!card) return;
+    card.classList.remove("armed");
+    el("hf-go").hidden = true;
+    if (!keepCard && !card.hidden) closeFlash(); // it was only ever the question
+  }
+  async function askNextHint() {
+    if (buying || concluded) return;
+    if (!navArmed) return armNav(); // one press asks, the next one pays
+    disarmNav(true);
+    const out = await postHint({ context: context.screen || undefined, detail: context.detail || undefined }, flashNote);
+    if (!out) return;
+    const rec = out.rec;
+    setStepBadge(rec);
+    const sent = out.res.goto ? revealGoto(out.res.goto) : null;
+    flash({
+      kicker: hintKicker(rec),
+      body: rec.hint,
+      note:
+        (rec.cost > 0 ? `-${rec.cost} PTS` : "NOTHING SPENT") +
+        (points == null ? "" : ` \u00b7 ${points} LEFT`) +
+        (sent ? ` \u00b7 TAKING YOU TO ${sent}` : ""),
+      noteKind: "ok",
+    });
+  }
+
+  // ------------------------------------------------------- the hint card
+  // The steer has to be readable over the laptop and the map, which are
+  // other origins: it is a card in this document rather than a line in the
+  // hearing. The hearing gets its own copy for the record either way.
+  function flash(o) {
+    const card = el("hint-flash");
+    if (!card) return;
+    el("hf-kicker").textContent = o.kicker || "HINT";
+    el("hf-body").textContent = o.body || "";
+    flashNote(o.note || "", o.noteKind);
+    el("hf-go").hidden = !o.confirm;
+    card.classList.toggle("armed", !!o.armed);
+    card.hidden = false;
+  }
+  function flashNote(text, kind) {
+    const node = el("hf-note");
+    if (!node) return;
+    node.textContent = text || "";
+    node.className = kind ? `is-${kind}` : "";
+  }
+  function closeFlash() {
+    const card = el("hint-flash");
+    if (!card) return;
+    card.hidden = true;
+    card.classList.remove("armed");
+  }
+
+  // Where a steer sends them. The engine names a tab and, sometimes, the
+  // thing on it that answers the question -- a hint that says "her
+  // particulars are in the console" and leaves them on the laptop has not
+  // actually helped. Aliases, because the engine writes about the game and
+  // this side knows what the game's elements are called. Returns the name
+  // of the tab they were sent to, for the card, or null if it went nowhere.
+  const TAB_LABEL = { mercy: "MERCY", laptop: "MEERA'S LAPTOP", map: "THE CITY MAP" };
+  const GOTO_ALIAS = {
+    victim: "victim-toggle", "victim-info": "victim-toggle", "victim-card": "victim-toggle", "victim-popover": "victim-toggle",
+    guilt: "meter-toggle", meter: "meter-toggle", standing: "meter-toggle",
+    evidence: "picker", index: "picker", "evidence-index": "picker", "evidence-panel": "picker",
+    argue: "composer-text", composer: "composer-text", hearing: "composer-text", chat: "composer-text",
+    clock: "hud-clock", hint: "hud-hint", hints: "hud-hint",
+  };
+  function revealGoto(go) {
+    if (!go || !go.tab) return null;
+    const tab = String(go.tab);
+    const tabBtn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
+    if (!tabBtn) return null; // a tab this build does not have
+    switchTab(tab);
+    // one HUD panel at a time, the same rule the chips themselves keep
+    ["hint-popover", "victim-popover", "meter-popover"].forEach((p) => (el(p).hidden = true));
+    const raw = go.focus == null ? "" : String(go.focus).trim().toLowerCase();
+    const id = GOTO_ALIAS[raw] || (go.focus ? String(go.focus) : "");
+    let node = id ? el(id) : null;
+    // the named panels only exist once they are open, and a ring around a
+    // closed one teaches nothing
+    if (node && node.id === "victim-toggle") el("victim-popover").hidden = false;
+    else if (node && node.id === "meter-toggle") el("meter-popover").hidden = false;
+    else if (node && node.id === "composer-text") node.focus({ preventScroll: true });
+    else if (node && node.id === "picker") {
+      openPicker(); // the index draws the eye to itself on open; a second ring over its own is noise
+      return TAB_LABEL[tab] || tab.toUpperCase();
+    }
+    // inside the laptop and the map it is their frame and their origin: the
+    // most this side can do is put them on the right tab and ring the tab
+    if (!node) node = tabBtn;
+    node.classList.remove("goto-flash");
+    void node.offsetWidth; // restart the ring even when the last steer lit the same thing
+    node.classList.add("goto-flash");
+    clearTimeout(node._gotoTimer);
+    node._gotoTimer = setTimeout(() => node.classList.remove("goto-flash"), 3600);
+    return TAB_LABEL[tab] || tab.toUpperCase();
+  }
+
   function initHints() {
     renderTiers();
+    el("hint-btn").addEventListener("click", (e) => {
+      e.stopPropagation(); // the desk's outside-click handler must not read this as a click away
+      askNextHint();
+    });
+    el("hf-go").addEventListener("click", (e) => {
+      e.stopPropagation();
+      askNextHint();
+    });
+    el("hf-close").addEventListener("click", () => {
+      disarmNav();
+      closeFlash();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      disarmNav();
+      closeFlash();
+    });
     el("hint-tiers").addEventListener("click", (e) => {
       const btn = e.target.closest(".hint-tier");
       if (!btn || btn.disabled) return;
@@ -2211,7 +2666,7 @@
     { at: "evidence-btn", title: "ATTACHING IT", body: "Click a row in the index to stage it. Staged pieces sit as chips just above this box and travel with your next message -- MERCY weighs nothing you have not attached.", place: "above" },
     { at: "composer-text", title: "THE ARGUMENT", body: "Say why the file is wrong. Evidence on its own proves nothing: MERCY judges the claim you make about it, and tells you each turn whether the claim landed.", place: "above" },
     { at: "hud-guilt", title: "THE STANDING", body: "The file starts at 96.8% against you. Every turn moves it now -- down when the argument lands, up when it does not. Only finding her takes it to zero.", place: "below" },
-    { at: "hud-hint", title: "THE HINT DESK", body: "A hundred points. A steer costs 5, 10 or 20 depending on how much it gives away, and the leaderboard counts what you have left. Asking is never free.", place: "below" },
+    { at: "hud-hint", title: "THE HINT", body: "Stuck anywhere -- here, the laptop, the map -- press HINT and it steers you on the screen you are actually looking at. Press it again for a deeper one. A hundred points; a steer costs 5, 10 or 20, and the leaderboard counts what you have left.", place: "below" },
     { at: "hud-clock", title: "THE CLOCK", body: "Sixty minutes on the file. When it runs out, whatever the standing is at that second is the verdict -- so spend the time on what moves it.", place: "below" },
   ];
   let TOUR_KEY = null; // set by loadMe, namespaced like the ending's key
@@ -2350,6 +2805,8 @@
     delete document.body.dataset.gated;
     tickClock();
     initTabs();
+    initFullScreen();
+    setContext("console-mercy"); // the hearing is what is on screen at the gate
     initMeter();
     initEnding();
     initLeave();

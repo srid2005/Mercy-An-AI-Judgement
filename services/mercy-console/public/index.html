@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/style.css?v=11" />
+    <link rel="stylesheet" href="/css/style.css?v=13" />
   </head>
   <body data-gated="gate">
     <div id="gate-note" aria-live="polite">CONNECTING TO MERCY…</div>
@@ -26,12 +26,47 @@
         <button class="tab-btn active" data-tab="mercy">MERCY AI Judge</button>
         <button class="tab-btn" data-tab="laptop">Meera's Laptop<span class="tab-dot" hidden></span></button>
         <button class="tab-btn" data-tab="map">City Map<span class="tab-dot" hidden></span></button>
+
+        <!-- The hint desk rides in the tab bar, because being stuck happens
+             on the laptop and the map far more often than it happens here,
+             and a steer that costs three clicks to reach is a steer nobody
+             asks for. HINT is the progressive ask: the engine is told which
+             screen they are standing on and hands back the next step of help
+             for it. The purse sits beside it so the price is never hidden,
+             and the caret still opens the three-depth desk underneath. -->
+        <div id="hud-hint">
+          <button id="hint-btn" type="button" title="The next steer for wherever you are">
+            <svg class="hb-ico" viewBox="0 0 48 48" aria-hidden="true">
+              <circle cx="24" cy="20" r="9" fill="none" stroke="currentColor" stroke-width="3" />
+              <path d="M20 32h8M21.5 37h5" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+              <path d="M24 4v4M42 20h-4M10 20H6M35.3 8.7 32.5 11.5M12.7 8.7l2.8 2.8" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".55" />
+            </svg>
+            <span class="hb-word">HINT</span>
+            <span id="hint-step" class="hb-step" hidden></span>
+          </button>
+          <button id="hint-toggle" type="button" title="The hint desk: the three depths, priced">
+            <span id="points-value">100</span><span class="unit">pts</span>
+            <svg class="hb-caret" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4.5 6 8.5 10 4.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </button>
+
+          <div id="hint-popover" hidden>
+            <div class="pop-head"><span>ASK FOR A STEER</span><span id="hint-left">100 PTS LEFT</span></div>
+            <div class="pop-sub">a hundred points to start; the leaderboard counts what you have not spent</div>
+            <div id="hint-tiers"></div>
+            <div id="hint-used" hidden></div>
+            <div id="hint-msg" hidden></div>
+          </div>
+        </div>
       </nav>
       <!-- the clock: 60 minutes from the lobby's "Accept & continue", driven
            by the engine's deadline (app.js tickClock); red under five minutes -->
       <div id="topbar-right">
         <span id="case-no">FILE UDR 0412/2018</span>
         <span id="hud-clock" title="Time left on the file" aria-live="off">--:--</span>
+        <!-- the way back into full screen after Escape, and the way in on a
+             browser that refused the first gesture. Hidden while full screen
+             is on, and hidden for good where the API does not exist. -->
+        <button id="fs-btn" type="button" title="Play the case full screen" hidden>FULL SCREEN</button>
         <button id="tour-btn" type="button" title="Replay the walkthrough">TOUR</button>
         <button id="leave-btn" type="button" data-mode="leave">LEAVE THE CASE</button>
       </div>
@@ -106,30 +141,8 @@
             </div>
           </div>
 
-          <!-- The hint desk. A hundred points per participant, spent in
-               three depths; the chip carries what is left so the price of
-               asking is never hidden, and the popover is where it is spent. -->
-          <div id="hud-hint">
-            <button id="hint-toggle" class="hud-chip" type="button" title="Spend points on a steer">
-              <svg class="hud-icon" viewBox="0 0 48 48" aria-hidden="true">
-                <circle cx="24" cy="20" r="9" fill="none" stroke="currentColor" stroke-width="2.2" />
-                <path d="M20 32h8M21.5 37h5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
-                <path d="M24 4v4M42 20h-4M10 20H6M35.3 8.7 32.5 11.5M12.7 8.7l2.8 2.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".55" />
-              </svg>
-              <div class="hud-body">
-                <div class="hud-label">HINT</div>
-                <div class="hud-value"><span id="points-value">100</span><span class="unit">pts</span></div>
-              </div>
-            </button>
-
-            <div id="hint-popover" hidden>
-              <div class="pop-head"><span>ASK FOR A STEER</span><span id="hint-left">100 PTS LEFT</span></div>
-              <div class="pop-sub">a hundred points to start; the leaderboard counts what you have not spent</div>
-              <div id="hint-tiers"></div>
-              <div id="hint-used" hidden></div>
-              <div id="hint-msg" hidden></div>
-            </div>
-          </div>
+          <!-- the hint desk used to stand here; it lives in the tab bar now,
+               where it is one click from the laptop and the map as well -->
         </div>
 
         <!-- HUD: guilt (right) -->
@@ -228,6 +241,48 @@
       </section>
     </main>
 
+    <!-- The steer, where they are standing. It has to be readable over the
+         laptop and the map, so it is a card in this document rather than a
+         line in the hearing -- the hearing gets its own copy for the record.
+         Nothing here is modal: only the card itself takes clicks. -->
+    <div id="hint-flash" hidden>
+      <div class="hf-head">
+        <span id="hf-kicker">HINT</span>
+        <button id="hf-close" type="button" aria-label="Close">&times;</button>
+      </div>
+      <p id="hf-body"></p>
+      <div class="hf-foot">
+        <span id="hf-note"></span>
+        <button id="hf-go" type="button" hidden>CONFIRM</button>
+      </div>
+    </div>
+
+    <!-- The standing, centre stage. MERCY moves the file every turn and that
+         move IS the game, so the meter leaves its corner for it: it flies to
+         the middle, grows, plays the character of what was just decided, and
+         goes back already settled on the new number. Its own element rather
+         than the real chip, so a second turn landing mid-flight can restart
+         it without ever leaving the corner empty or half-scaled. Purely
+         decorative and purely pointer-transparent: the participant can keep
+         typing straight through it. -->
+    <div id="meter-stage" aria-hidden="true" hidden>
+      <div class="ms-scrim"></div>
+      <div id="ms-card">
+        <svg class="ms-gauge" viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M10.6 37.4 A19 19 0 1 1 37.4 37.4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".28" />
+          <path id="ms-fill" d="M10.6 37.4 A19 19 0 1 1 37.4 37.4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+          <line id="ms-needle" x1="24" y1="24" x2="24" y2="9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+          <circle cx="24" cy="24" r="2.6" fill="currentColor" />
+        </svg>
+        <div class="ms-body">
+          <div class="ms-label">GUILT</div>
+          <div class="ms-value"><span id="ms-percent">96.8</span><span class="unit">%</span></div>
+          <div id="ms-verdict" class="ms-verdict"></div>
+        </div>
+        <div id="ms-delta" class="ms-delta"></div>
+      </div>
+    </div>
+
     <div id="toast" hidden></div>
 
     <!-- The ending. Raised by app.js over everything including the map and
@@ -304,6 +359,6 @@
       </div>
     </div>
 
-    <script src="/js/app.js?v=11"></script>
+    <script src="/js/app.js?v=13"></script>
   </body>
 </html>

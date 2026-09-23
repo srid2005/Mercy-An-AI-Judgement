@@ -122,6 +122,14 @@ export const EdgeMenu = () => {
     }
   }, [wnapp.url]);
 
+  // park the active tab's site where the shell-wide context reporter can see
+  // it: the hint desk asks about Loop or Haven, which have no window of their
+  // own, and this local tab state is the only place that knows.
+  const siteKey = entry && entry.kind === "site" ? entry.site : null;
+  useEffect(() => {
+    dispatch({ type: "ORBITSITE", payload: siteKey });
+  }, [siteKey]);
+
   // the active tab's site tells us where it is
   useEffect(() => {
     const onMsg = (ev) => {

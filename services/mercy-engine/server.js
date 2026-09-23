@@ -674,6 +674,15 @@ app.post("/api/argue", async (req, res) => {
 // outranks one they have found and not argued, because those are two
 // different kinds of stuck and only one of them is answered by being told
 // where to look; the other is told so in the body.
+//
+// That is one of two questions the desk answers. The other is where the
+// participant is standing right now: the console reports the screen they are
+// on (mercy:context) and sends it with every press of its Hint button, and a
+// screen with a chain written for it (context_hints) answers that screen
+// instead -- the next unbought step of it, so pressing again escalates rather
+// than repeats. The two are priced the same, charged apart, and ordered:
+// screen first, beat second, and a chain that has been spent falls through to
+// the beat, because a hint button that can say nothing is a dead end.
 // ---------------------------------------------------------------------------
 const HINT_COST = { 1: 5, 2: 10, 3: 20 };
 const ARGUE_IT =
@@ -693,52 +702,150 @@ async function stuckOn() {
   return { code: next.code, missing, allDiscovered: seen.length === missing.length };
 }
 
-app.post("/api/hint", async (req, res) => {
-  const tier = Number((req.body || {}).tier);
-  if (!HINT_COST[tier]) return res.status(400).json({ error: "tier must be 1, 2 or 3" });
+// Where the participant is standing, as the console reports it: a fixed
+// vocabulary of screen keys, with `detail` naming the app inside 'laptop-app'
+// or what is in flight over the map. Nothing here trusts the strings -- a
+// screen nobody wrote a chain for simply has no chain, and the press becomes
+// an ordinary beat request.
+function contextOf(body) {
+  const clean = (v, max) => (typeof v === "string" ? v.trim().toLowerCase().slice(0, max) : "");
+  return { screen: clean(body.context, 40), detail: clean(body.detail, 80) };
+}
 
-  await expireIfDue();
-  const state = await readState();
-  if (state.outcome === "timeout") return res.status(409).json({ error: "time is up" });
-  if (state.concluded) return res.status(409).json({ error: "the case is closed" });
+// The chain for a screen: the exact screen-and-detail pair when one is
+// written, otherwise the screen's own. A detail nobody has words for -- a
+// coordinate string under 'map-search', Settings under 'laptop-app' -- is
+// still a participant standing on a screen we do have.
+async function chainFor(screen, detail) {
+  if (!screen) return null;
+  const rows = (
+    await pool.query(
+      "SELECT detail, step, body, goto_tab, goto_focus FROM context_hints WHERE screen = $1 AND detail IN ($2, '') ORDER BY step",
+      [screen, detail],
+    )
+  ).rows;
+  const exact = detail ? rows.filter((r) => r.detail === detail) : [];
+  const steps = exact.length ? exact : rows.filter((r) => r.detail === "");
+  if (!steps.length) return null;
+  // what has already been bought against this exact chain: a press escalates
+  // to the next step they do not own, never re-sells the one they do
+  const taken = (await pool.query("SELECT step FROM context_hints_taken WHERE screen = $1 AND detail = $2", [screen, steps[0].detail])).rows.map((r) => r.step);
+  return { screen, detail: steps[0].detail, steps, next: steps.find((s) => !taken.includes(s.step)) || null };
+}
 
-  const stuck = await stuckOn();
-  if (!stuck) return res.status(409).json({ error: "there is nothing left to point you at" });
-  // read the words before taking the money: a tier with no row is a seeding
-  // fault, and nobody pays for it
-  const row = (await pool.query("SELECT body FROM hints WHERE checkpoint_code = $1 AND tier = $2", [stuck.code, tier])).rows[0];
-  if (!row) return res.status(409).json({ error: "no hint at that tier" });
-  const hint = stuck.allDiscovered ? `${row.body}\n\n${ARGUE_IT}` : row.body;
+// The cheapest tier of this beat the participant does not already own. The nav
+// button sends no tier and still has to be answered; once all three are bought
+// the last one comes back again for nothing, because the button is never
+// allowed to be a dead end.
+async function nextBeatTier(code) {
+  const taken = (await pool.query("SELECT tier FROM hints_taken WHERE checkpoint_code = $1", [code])).rows.map((r) => r.tier);
+  return [1, 2, 3].find((t) => !taken.includes(t)) || 3;
+}
 
-  // The charge, once. The same tier of the same beat asked for twice is the
-  // same knowledge; the second time it is free. One transaction with the
-  // state row locked, so a double click cannot buy it twice or overdraw.
-  const cost = HINT_COST[tier];
+// The charge, once, against whichever ledger keys these words. The same words
+// asked for twice are the same knowledge, and the second time they are free.
+// One transaction with the state row locked, so a double click cannot buy them
+// twice or overdraw the purse.
+async function chargeOnce(ledger, cost) {
   const client = await pool.connect();
-  let charged = 0;
-  let pointsLeft = state.points;
   try {
     await client.query("BEGIN");
     const cur = (await client.query("SELECT points FROM case_state WHERE id = 1 FOR UPDATE")).rows[0];
-    const taken = (await client.query("SELECT cost FROM hints_taken WHERE checkpoint_code = $1 AND tier = $2", [stuck.code, tier])).rows[0];
-    pointsLeft = cur.points;
-    if (!taken) {
-      if (cur.points < cost) {
-        await client.query("ROLLBACK");
-        return res.status(402).json({ error: "not enough points", points_left: cur.points });
-      }
-      await client.query("INSERT INTO hints_taken (checkpoint_code, tier, cost) VALUES ($1, $2, $3)", [stuck.code, tier, cost]);
-      pointsLeft = (await client.query("UPDATE case_state SET points = GREATEST(0, points - $1), hints_used = hints_used + 1 WHERE id = 1 RETURNING points", [cost])).rows[0].points;
-      charged = cost;
+    if ((await client.query(ledger.select, ledger.key)).rows.length) {
+      await client.query("COMMIT");
+      return { charged: 0, pointsLeft: cur.points };
     }
+    if (cur.points < cost) {
+      await client.query("ROLLBACK");
+      return { short: true, pointsLeft: cur.points };
+    }
+    await client.query(ledger.insert, [...ledger.key, cost]);
+    const left = (await client.query("UPDATE case_state SET points = GREATEST(0, points - $1), hints_used = hints_used + 1 WHERE id = 1 RETURNING points", [cost])).rows[0].points;
     await client.query("COMMIT");
+    return { charged: cost, pointsLeft: left };
   } catch (err) {
     await client.query("ROLLBACK").catch(() => {});
     throw err;
   } finally {
     client.release();
   }
-  res.json({ hint, tier, cost: charged, points_left: pointsLeft, target: `${stuck.code}/tier${tier}` });
+}
+
+app.post("/api/hint", async (req, res) => {
+  const body = req.body || {};
+  // tier is optional now: the nav button sends none and lets the desk pick the
+  // next step itself. Sent explicitly it means exactly what it meant in v2 --
+  // that tier of the beat they are stuck on, context or no context -- because
+  // the three priced buttons in the hint desk still ask for it by name.
+  const asked = body.tier === undefined || body.tier === null || body.tier === "" ? null : Number(body.tier);
+  if (asked !== null && !HINT_COST[asked]) return res.status(400).json({ error: "tier must be 1, 2 or 3" });
+  const { screen, detail } = contextOf(body);
+
+  await expireIfDue();
+  const state = await readState();
+  if (state.outcome === "timeout") return res.status(409).json({ error: "time is up" });
+  if (state.concluded) return res.status(409).json({ error: "the case is closed" });
+
+  // The screen first. A chain with a step left answers where they are
+  // standing; a chain they have spent falls past this and the beat answers.
+  const chain = asked === null ? await chainFor(screen, detail) : null;
+  if (chain && chain.next) {
+    const step = chain.next;
+    const paid = await chargeOnce(
+      {
+        select: "SELECT 1 FROM context_hints_taken WHERE screen = $1 AND detail = $2 AND step = $3",
+        insert: "INSERT INTO context_hints_taken (screen, detail, step, cost) VALUES ($1, $2, $3, $4)",
+        key: [chain.screen, chain.detail, step.step],
+      },
+      HINT_COST[step.step],
+    );
+    if (paid.short) return res.status(402).json({ error: "not enough points", points_left: paid.pointsLeft });
+    return res.json({
+      hint: step.body,
+      // the console keys its own record of what this participant owns on
+      // `tier`, and a step is what a tier is here
+      tier: step.step,
+      cost: paid.charged,
+      points_left: paid.pointsLeft,
+      target: `${chain.screen}${chain.detail ? ":" + chain.detail : ""}/step${step.step}`,
+      step: step.step,
+      steps_total: chain.steps.length,
+      kind: "context",
+      goto: step.goto_tab ? { tab: step.goto_tab, ...(step.goto_focus ? { focus: step.goto_focus } : {}) } : null,
+    });
+  }
+
+  const stuck = await stuckOn();
+  if (!stuck) return res.status(409).json({ error: "there is nothing left to point you at" });
+  const tier = asked === null ? await nextBeatTier(stuck.code) : asked;
+  // read the words before taking the money: a tier with no row is a seeding
+  // fault, and nobody pays for it
+  const row = (await pool.query("SELECT body FROM hints WHERE checkpoint_code = $1 AND tier = $2", [stuck.code, tier])).rows[0];
+  if (!row) return res.status(409).json({ error: "no hint at that tier" });
+  const hint = stuck.allDiscovered ? `${row.body}\n\n${ARGUE_IT}` : row.body;
+
+  const paid = await chargeOnce(
+    {
+      select: "SELECT 1 FROM hints_taken WHERE checkpoint_code = $1 AND tier = $2",
+      insert: "INSERT INTO hints_taken (checkpoint_code, tier, cost) VALUES ($1, $2, $3)",
+      key: [stuck.code, tier],
+    },
+    HINT_COST[tier],
+  );
+  if (paid.short) return res.status(402).json({ error: "not enough points", points_left: paid.pointsLeft });
+  res.json({
+    hint,
+    tier,
+    cost: paid.charged,
+    points_left: paid.pointsLeft,
+    target: `${stuck.code}/tier${tier}`,
+    step: tier,
+    steps_total: 3,
+    kind: "beat",
+    // a beat hint points at evidence, not at a place on a screen: going and
+    // finding it is the part they are paying for
+    goto: null,
+  });
 });
 
 // ---------------------------------------------------------------------------

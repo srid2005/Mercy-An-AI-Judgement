@@ -10,6 +10,7 @@ import { SosToast } from "./components/shared/SosToast";
 import { Background, BootScreen, LockScreen } from "./containers/background";
 
 import { loadSettings } from "./actions";
+import { useMercyContext } from "./utils/context";
 import * as Applications from "./containers/applications";
 import * as Drafts from "./containers/applications/draft";
 
@@ -30,6 +31,9 @@ function App() {
   const apps = useSelector((state) => state.apps);
   const wall = useSelector((state) => state.wallpaper);
   const dispatch = useDispatch();
+
+  // tells the console's hint desk which screen of the laptop is showing
+  useMercyContext();
 
   const afterMath = (event) => {
     var ess = [

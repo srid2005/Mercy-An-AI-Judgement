@@ -25,6 +25,15 @@ player, and issues the final verdict.
   the part of the city, 10 for what to look for there, 20 for the piece by
   name. The target is where the participant is actually stuck, not their
   choice, and a tier already paid for comes back free.
+- The desk answers two questions. Without a `context` it answers the beat, as
+  above. With one -- a screen key the console reports from the laptop and the
+  map (`laptop-lock`, `laptop-app` + the app's name, `map-search`, ...) -- it
+  answers that screen instead, from `context_hints`: the next step of that
+  chain the participant does not already own, so pressing the button again
+  escalates. Steps are priced like the tiers (5/10/20) and charged in their
+  own half of the ledger (`context_hints_taken`), and a step may carry a
+  `goto` telling the console where to take them. A chain that has been spent
+  falls through to the beat, so the button never runs out of things to say.
 - The end of the game is not an argument but a rescue. `POST /api/rescue
   {evidence_id: 'MAP-<id>'}` -- called by the console when the map posts
   `mercy:case-solved` after the rescue footage -- concludes the case:
@@ -77,11 +86,18 @@ Participant (cookie), CORS with credentials for the console:
   was attached that carried the claim, and only that subset joins the
   accepted set. 409 `time is up` past the deadline, 409 `the case is closed`
   once concluded. The `located` beat sets `outcome = 'solved'` at 0.0.
-- `POST /api/hint {tier: 1|2|3}` -> `{hint, tier, cost, points_left, target}`
-  -- `target` is a console label like `the_alibi/tier2`, and `cost` is 0 when
-  that tier of that beat has already been bought. 402 `{error: "not enough
-  points", points_left}` when the tier costs more than is left; 409 once the
-  file is closed or the clock has run out; 400 on any other tier.
+- `POST /api/hint {context?, detail?, tier?}` -> `{hint, tier, cost,
+  points_left, target, step, steps_total, kind, goto}`. `kind` is `context`
+  when a chain for `context`/`detail` answered and `beat` otherwise; `step` of
+  `steps_total` is where in that chain the words came from; `goto` is `null`
+  or `{tab, focus?}`. `target` is a console label -- `the_alibi/tier2` for a
+  beat, `laptop-app:wisp/step2` for a chain -- and `cost` is 0 when those words
+  have already been bought. `tier` is optional: sent, it means exactly what it
+  meant before (that tier of that beat, context ignored); left out, the desk
+  picks the next unbought step itself, which is what the nav button does. 402
+  `{error: "not enough points", points_left}` when it costs more than is left;
+  409 once the file is closed or the clock has run out; 400 on a `tier` that
+  is not 1, 2 or 3.
 - `GET /api/case` -- plus `points` and `hints_used`.
 - `POST /api/rescue` -- as before, and sets `outcome = 'solved'`.
 - `GET /api/transcript`, `GET /api/discovered`, `POST /api/discovered`,

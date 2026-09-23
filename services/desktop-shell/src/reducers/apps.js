@@ -25,7 +25,13 @@ defState.hz = 2;
 
 const appReducer = (state = defState, action) => {
   var tmpState = { ...state };
-  if (action.type == "EDGELINK") {
+  if (action.type == "ORBITSITE") {
+    // Which of the four websites Orbit is showing, so the hint desk can be
+    // told "wisp" rather than "the browser". The tab stack itself stays in
+    // the browser's own state; only the answer to that one question is here.
+    tmpState["orbit"] = { ...tmpState["orbit"], site: action.payload || null };
+    return tmpState;
+  } else if (action.type == "EDGELINK") {
     // open something in Orbit: a typed address, a story URL, or a file entry
     // object from Explorer. No payload just clears the pending link.
     var obj = { ...tmpState["orbit"] };

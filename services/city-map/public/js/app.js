@@ -97,6 +97,7 @@ const hooks = {
     // stop moves the chase on: the server says where the car goes next.
     if (outcome === 'found' && scene.tracked) scene.stopTracking();
     if (vehicle && r.spot_slug && r.spot_slug.startsWith('stop-')) refreshVehicle();
+    reportContext();
     addLog({ ...r, outcome, lat: m.lat, lng: m.lng, source: m.meta.source || 'coords', building_name: m.meta.building ? m.meta.building.name : null, searched_at: r.searched_at || new Date().toISOString() });
     // MERCY comes in once the frames have landed in the strip: at the cave it
     // pulls the memo off the band; at the place she is found it sends the units
@@ -115,6 +116,31 @@ function requestSearch(m) {
   if (m.meta.building && Number.isInteger(m.meta.building.id)) body.building_id = m.meta.building.id;
   if (vehicle) body.vehicle = vehicle.slug;   // whose stops answer first
   return fetch('/api/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then((x) => x.json());
+}
+// --- telling the console where the participant is ------------------------------------
+// The console keeps the last screen it was told about and sends it with every
+// hint request, so the hint desk answers the place they are standing in rather
+// than the story at large. Same channel and same shape as the evidence
+// emitter. The map has two screens: the model sitting idle, and something in
+// flight over it -- the drones on a search, or a car being followed.
+let lastContext = '';
+function reportContext() {
+  const m = scene.mission, t = scene.tracked;
+  let screen = 'map-idle', detail = '';
+  if (dronesOut()) {
+    const b = m.meta && m.meta.building;
+    screen = 'map-search';
+    detail = b && b.name ? b.name.toLowerCase() : geo.fmt(m.lat, m.lng);
+  } else if (t && !t.frozen) {
+    // frozen is the end of the chase (she has been found): nothing is being followed then
+    screen = 'map-search';
+    detail = `${(t.v.owner || 'the driver').toLowerCase()}'s car`;
+  }
+  // the tracking tick calls this every second: the same screen goes out once
+  const sig = `${screen}|${detail}`;
+  if (sig === lastContext) return;
+  lastContext = sig;
+  try { window.top.postMessage({ type: 'mercy:context', screen, detail }, '*'); } catch (e) {}
 }
 const scene = new BlueprintScene($('#view3d'), data, geo, hooks);
 window.mercyScene = scene;   // for the console: the live model
@@ -202,6 +228,7 @@ function launch(lat, lng, source, building) {
   latIn.value = lat.toFixed(6); lngIn.value = lng.toFixed(6);
   setStatus('flying', `Flight up from Police HQ → ${geo.fmt(lat, lng)}${building && building.name ? ' (' + building.name + ')' : ''}. Threading between the buildings…`);
   info.hidden = true;
+  reportContext();
 }
 $('#launch').onclick = () => {
   const lat = Number(latIn.value), lng = Number(lngIn.value);
@@ -543,6 +570,7 @@ function shownStops() {
 let tick = null;
 function tickTracking() {
   syncFollow();
+  reportContext();
   const el = $('#car-live'), live = liveVehicleFeature();
   if (el && live) el.textContent = carWhere(live);
   const where = $('#veh-where');
@@ -633,6 +661,7 @@ function renderTracking() {
     : '<li class="none">Following. Every place it stops at is listed here.</li>';
   bindStopRows(stopsEl, shown);
   syncFollow();
+  reportContext();
 }
 
 // The button beside the camera presets. The server unlocks tracking at the
@@ -1155,3 +1184,5 @@ if (data.config.vehicle_tracking) {
 // she has been found: the footage can be watched again, but it never plays itself
 const foundSearch = (data.searches || []).find((s) => outcomeOf(s) === 'found');
 if (foundSearch) revealRescue(foundSearch, foundSearch.building_name || 'the location');
+// the console is told where this tab stands the moment it is ready to be used
+reportContext();
