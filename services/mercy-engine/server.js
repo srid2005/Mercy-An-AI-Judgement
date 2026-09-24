@@ -691,6 +691,17 @@ app.post("/api/argue", async (req, res) => {
 //   C. an app whose gate is provably still shut (Quill, Loop, Haven, the Dad
 //      folder via File Explorer / Notes, with nothing yet discovered from
 //      behind it)                                       -> that app's gate chain
+//   D0. inside an app that is open to them and still holds a piece that ANY
+//      un-hit beat needs and has not been argued  -> that app's INSIDE chain
+//      (inside_hints): what is here, in story order, why each item matters,
+//      then the ids and the claims, started past the advice they have
+//      already followed (insideStart). Spent, the beat ladder answers for
+//      the earliest open beat with a piece here. An app no beat reads
+//      (Quill, Notes, Photos) has one honest step and then falls to
+//      DISCOVER; an app whose every piece is argued has nothing left and
+//      DISCOVER answers at once; PulseFit while the band's alerts are still
+//      sealed gets the one step that says why, then the confession beat
+//      (insideOf)
 //   B. anywhere else that is not where the beat's piece is read (the hearing,
 //      the desktop, Orbit on no site, the wrong app)   -> a DISCOVER chain for
 //      the app that holds the piece: step 1 says the app exists and exactly how
@@ -759,18 +770,40 @@ const TIER_APPS = {
   located: { 1: ["map"], 2: ["map"], 3: ["map"] },
 };
 
-async function stuckOn() {
-  const next = (await pool.query("SELECT code, required_ids FROM checkpoints WHERE hit = false ORDER BY sort_order LIMIT 1")).rows[0];
-  if (!next) return null;
+// Every un-hit beat, in story order, each with what it still lacks: the
+// required ids not in the accepted set (`missing`) and, of those, the ones
+// the participant has at least opened (`seen`). The first is where they are
+// stuck (stuckOn); the rest matter to the INSIDE stage, because beats fire
+// out of order and an app they are standing in may hold a piece of a later
+// beat that is worth more right now than the next beat's app.
+async function openBeats() {
+  const open = (await pool.query("SELECT code, required_ids FROM checkpoints WHERE hit = false ORDER BY sort_order")).rows;
+  if (!open.length) return [];
   const accepted = (await pool.query("SELECT evidence_id FROM accepted_evidence")).rows.map((r) => r.evidence_id);
   const set = await acceptedSetFor(accepted);
-  const missing = next.required_ids.filter((id) => !set.has(id));
-  if (!missing.length) return { code: next.code, missing, seen: [], allDiscovered: false, anyDiscovered: false };
   // MAP-FOUND is not a record anyone can open, so it is never discovered --
   // which is right: a participant who has not found her is stuck on finding
   // her, not on arguing her.
-  const seen = (await pool.query("SELECT evidence_id FROM discovered_evidence WHERE evidence_id = ANY($1)", [missing])).rows.map((r) => r.evidence_id);
-  return { code: next.code, missing, seen, allDiscovered: seen.length === missing.length, anyDiscovered: seen.length > 0 };
+  const discovered = (await pool.query("SELECT evidence_id FROM discovered_evidence")).rows.map((r) => r.evidence_id);
+  return open.map((beat) => {
+    const missing = beat.required_ids.filter((id) => !set.has(id));
+    const seen = missing.filter((id) => discovered.includes(id));
+    return { code: beat.code, missing, seen, allDiscovered: missing.length > 0 && seen.length === missing.length, anyDiscovered: seen.length > 0 };
+  });
+}
+
+async function stuckOn() {
+  return (await openBeats())[0] || null;
+}
+
+// Where one piece of evidence is read, by the prefix of its id. The band's
+// memo (SW-06) is the one piece with two places: its trail starts in
+// PulseFit and ends on the map, and the first of the two is the one to send
+// a DISCOVER chain for -- the alerts before they have been seen, the map
+// after.
+async function appsOfId(id) {
+  if (id === "SW-06") return (await beenInside("pulsefit")) ? ["map", "pulsefit"] : ["pulsefit", "map"];
+  return [APP_OF_PREFIX[prefixOf(id)] || "console"];
 }
 
 // The places a beat is worked in. `target` is the piece the desk points at:
@@ -780,17 +813,95 @@ async function stuckOn() {
 // served for; `inside` is every app the beat's pieces are read in, and a
 // participant standing in any of them is inside, not lost.
 async function placesOf(stuck) {
-  const appsOf = async (id) => {
-    // the memo's trail: the five alerts in PulseFit first, the sweep on the
-    // map once the alerts have been seen
-    if (id === "SW-06") return (await beenInside("pulsefit")) ? ["map", "pulsefit"] : ["pulsefit", "map"];
-    return [APP_OF_PREFIX[prefixOf(id)] || "console"];
-  };
   const undiscovered = stuck.missing.filter((id) => !stuck.seen.includes(id));
   const target = (undiscovered.length ? undiscovered : stuck.missing)[0] || null;
   const inside = new Set();
-  for (const id of stuck.missing) (await appsOf(id)).forEach((a) => inside.add(a));
-  return { target, targetApp: target ? (await appsOf(target))[0] : null, inside };
+  for (const id of stuck.missing) (await appsOfId(id)).forEach((a) => inside.add(a));
+  return { target, targetApp: target ? (await appsOfId(target))[0] : null, inside };
+}
+
+// The INSIDE stage: what the app the participant is standing in holds, and
+// why. Answers only for an app that has an INSIDE chain (inside_hints is the
+// list of apps a participant can be inside; the hearing, the lock screen,
+// the bare desktop and Orbit on no site are not apps) and whose gate is open
+// or absent -- while the gate is provably shut, the gate chain has already
+// answered above, or fallen through to DISCOVER.
+//
+// What counts is every piece of every un-hit beat that is read here and not
+// yet in the accepted set: ANY beat, not only the next, because the beats
+// fire out of order and a participant who has just signed in to Haven holds
+// three pieces for three open beats. The band's pieces (SW-, MAP-) are not
+// in PulseFit or on the map until the confession beat has released them, so
+// until then they are not here to be pointed at.
+//
+// Returns the chain and the beat the ladder should answer for once the
+// chain is spent: the earliest open beat with a piece here. An app that no
+// beat reads (Quill, Notes, Photos) has a one-step chain and no beat, so its
+// spent chain falls to DISCOVER; an app whose every piece is argued has
+// nothing left here and returns null, so DISCOVER answers at once.
+async function insideOf(here) {
+  if (here === "console" || here === "laptop") return null;
+  const all = (await pool.query("SELECT step, body FROM inside_hints WHERE app = $1 ORDER BY step", [here])).rows;
+  if (!all.length) return null;
+  if (GATE_APPS.includes(here) && !(await beenInside(here))) return null;
+  const beats = await openBeats();
+  const released = !beats.some((b) => b.code === "the_confession");
+  const reachable = (id) => released || !(id.startsWith("SW-") || id.startsWith("MAP-"));
+  let beat = null;
+  for (const b of beats) {
+    for (const id of b.missing) if (!beat && reachable(id) && (await appsOfId(id)).includes(here)) beat = b;
+  }
+  let steps = all;
+  let start = 1;
+  if (here === "pulsefit" && !released) {
+    // the band's alerts are still sealed and PulseFit says so on screen
+    // ("No alerts on this device."): the one step written for that state --
+    // why they are sealed and what unseals them -- is the thing to sell,
+    // and spent it falls to the confession beat, which is the way to unseal
+    // them, rather than to whichever beat happens to be next
+    beat = beats.find((b) => b.code === "the_confession") || null;
+    steps = all.slice(0, 1);
+  } else {
+    // nothing left here for any open beat: an app some beat reads (hit or
+    // not) is then empty and DISCOVER answers; an app no beat ever reads
+    // still gets its one honest step before DISCOVER
+    if (!beat) {
+      const ever = (await pool.query("SELECT required_ids FROM checkpoints")).rows.flatMap((r) => r.required_ids);
+      for (const id of ever) if ((await appsOfId(id)).includes(here)) return null;
+    }
+    start = await insideStart(here);
+  }
+  const taken = (await pool.query("SELECT step FROM context_hints_taken WHERE screen = 'inside' AND detail = $1", [here])).rows.map((r) => r.step);
+  const next = steps.filter((s) => s.step >= start).find((s) => !taken.includes(s.step)) || null;
+  return { beat, chain: { kind: "context", label: `inside:${here}`, steps, start, next, key: (s) => ["inside", here, s.step] } };
+}
+
+// The first INSIDE step whose advice the participant has not already
+// followed, read from what they have argued and flown. Haven's first step
+// is the last recording, and once it is in the accepted set the chain
+// begins at the two older entries; Loop's first step is the alibi post,
+// followed once SOC-050 is argued; the map's first step is the five
+// sweeps, done once four searches have flown, and its second is the cave,
+// done once the memo is argued; PulseFit's first step is the alerts
+// themselves, followed once four of them have been flown. The last step of
+// a chain is never the start: it names the ids and the claims, and nothing
+// short of buying it earns that. step/steps_total count from here, as the
+// DISCOVER chains do with beenInside, so the badge reads true.
+async function insideStart(app) {
+  const argued = async (id) => (await pool.query("SELECT 1 FROM accepted_evidence WHERE evidence_id = $1", [id])).rows.length > 0;
+  if (app === "haven") return (await argued("HAV-031")) ? 2 : 1;
+  if (app === "loop") return (await argued("SOC-050")) ? 2 : 1;
+  if (app === "map") return (await argued("SW-06")) ? 3 : (await sweepsFlown()) >= 4 ? 2 : 1;
+  if (app === "pulsefit") return (await sweepsFlown()) >= 4 ? 2 : 1;
+  return 1;
+}
+
+// How many drone searches have been flown. Every search on the
+// participant's screen is discovered, so the count is the sweeps.
+async function sweepsFlown() {
+  return (
+    await pool.query("SELECT count(*)::int AS n FROM evidence_cache c JOIN discovered_evidence d ON d.evidence_id = c.evidence_id WHERE c.service = 'city-map'")
+  ).rows[0].n;
 }
 
 // Where the participant is standing, in the vocabulary the targets use. The
@@ -817,12 +928,7 @@ function hereOf(screen, detail) {
 // names the piece, and nothing short of buying it earns that.
 async function ladderStart(stuck) {
   if (stuck.anyDiscovered) return 2;
-  if (stuck.code === "the_cave") {
-    const swept = (
-      await pool.query("SELECT count(*)::int AS n FROM evidence_cache c JOIN discovered_evidence d ON d.evidence_id = c.evidence_id WHERE c.service = 'city-map'")
-    ).rows[0].n;
-    if (swept >= 5) return 2;
-  }
+  if (stuck.code === "the_cave" && (await sweepsFlown()) >= 5) return 2;
   if (stuck.code === "located") {
     const memo = await pool.query("SELECT 1 FROM accepted_evidence WHERE evidence_id = 'SW-06'");
     if (memo.rows.length) return 2;
@@ -1012,15 +1118,25 @@ app.post("/api/hint", async (req, res) => {
     if (chain && (chain.next || screen !== "laptop-app")) return serveChain(res, chain);
   }
 
-  const stuck = await stuckOn();
-  if (!stuck) return res.status(409).json({ error: "there is nothing left to point you at" });
   const here = hereOf(screen, detail);
+
+  // D0: inside an app that still holds a piece some open beat needs -- say
+  // what is here and why, before anything about another app. Spent, the
+  // ladder below answers for the earliest open beat with a piece here (so a
+  // participant in Haven is never sent to Wisp while Haven has work left);
+  // an app no beat reads has one step and then falls to DISCOVER as before.
+  const local = asked === null ? await insideOf(here) : null;
+  if (local && local.chain.next) return serveChain(res, local.chain);
+
+  const stuck = (local && local.beat) || (await stuckOn());
+  if (!stuck) return res.status(409).json({ error: "there is nothing left to point you at" });
 
   if (asked === null && !stuck.allDiscovered) {
     const places = await placesOf(stuck);
     // B: not where the piece is read -- say the app exists, how to open it,
     // and what it holds. Once every piece is discovered the place to be is
-    // the hearing, and the ladder below answers from anywhere.
+    // the hearing, and the ladder below answers from anywhere. A beat chosen
+    // by D0 has a piece here by construction, so `here` is inside it.
     if (!places.inside.has(here)) {
       const chain = await discoverChain(places.targetApp, stuck.code);
       if (chain) return serveChain(res, chain);

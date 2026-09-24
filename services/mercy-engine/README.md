@@ -35,7 +35,23 @@ player, and issues the final verdict.
   chain before they are in the laptop; an app's gate chain while they are
   provably held at it (`laptop-app` quill / loop / haven / files / notes with
   nothing from behind that gate -- an `EML-` / `SOC-` / `HAV-` / `CASE-` id --
-  discovered); a DISCOVER chain (`discover_hints`) when they are anywhere
+  discovered); an INSIDE chain (`inside_hints`, `server.js:insideOf`) when
+  they are in an app that is open to them and still holds a piece that ANY
+  un-hit beat needs and has not been argued -- not only the next beat,
+  because beats fire out of order and a participant who has just signed in
+  to Haven holds three pieces for three open beats: the steps say what is in
+  this app in story order and why each item matters, then the ids and the
+  claims (`target` `inside:haven/step1`, charged under screen `inside`,
+  detail the app), started past the advice they have already followed
+  (`insideStart`: Haven begins at its second step once the last recording
+  is argued, the map at its third once the memo is); spent, the beat ladder
+  answers for the earliest open beat with a piece in that app, so nobody
+  standing in Haven is sent to Wisp while Haven has work left. Quill, Notes
+  and Photos, which no beat reads, get one honest INSIDE step saying so and
+  then the DISCOVER chain; an app whose every piece is argued has nothing
+  left and gets the DISCOVER chain at once; PulseFit while the band's alerts
+  are still sealed gets the one step that says why and what unseals them,
+  then the confession beat. Then a DISCOVER chain (`discover_hints`) when they are anywhere
   that is not where the beat's next piece is read (the hearing, the desktop,
   Orbit on no site, the wrong app) -- step 1 says the app exists and exactly
   how to open it, step 2 what it holds for this beat; the map's own chain
@@ -120,7 +136,8 @@ Participant (cookie), CORS with credentials for the console:
   `steps_total` is where in that chain the words came from. The response
   carries words and a price and nothing the console is meant to act on.
   `target` is a console label -- `the_alibi/tier2` for a
-  beat, `laptop-app:wisp/step2` for a screen chain,
+  beat, `laptop-app:wisp/step2` for a screen chain, `inside:haven/step1` for
+  an INSIDE chain (the app they are standing in),
   `discover:haven/the_motive/step2` for a DISCOVER chain (the app, then the
   beat it was served for) -- and `cost` is 0 when those words have already
   been bought, in which case `repeat` is `true` and the console shows them

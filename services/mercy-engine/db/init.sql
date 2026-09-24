@@ -207,16 +207,16 @@ INSERT INTO hints (checkpoint_code, tier, body) VALUES
     ('the_alibi', 3, 'In the MERCY AI Judge tab attach WA-199 and SOC-050 in one turn. WA-199 is Vikram''s 23:12 message to Meera in Wisp. SOC-050 is his 23:40 chai post on Loop that tags you. Then tell me plainly: you were at your brother Vikram''s house with your mother from 22:20 that night, and these two records prove it.'),
 
     ('gate_timeline', 1, 'Your own night is cleared. The case is now her father''s death. Meera kept two records of it. One is the police case file, a PDF in File Explorer under Documents, in the locked folder called Dad. The other is her video diary in Haven, opened through Orbit. Open both and look for the morning he died.'),
-    ('gate_timeline', 2, 'In File Explorer open Documents, then Dad, then FATHER_DEATH_CASE.pdf, and go to page 3. It shows the forest gate register: a scooter in at 06:05, out at 07:35, marked fast. Then open Haven and find the entry called Timelines, recorded 10 August. In it she says a jogger heard two men on the rock at 07:10. Open both, then attach both.'),
+    ('gate_timeline', 2, 'In File Explorer open Documents, then Dad, then FATHER_DEATH_CASE.pdf, and go to page 3. It shows the forest gate register: a scooter in at 06:05, out at 07:35, marked fast. Then open Haven and find the entry called Timelines, recorded about three weeks before she was taken. In it she says a jogger heard two men on the rock at 07:10. Open both, then attach both.'),
     ('gate_timeline', 3, 'Attach CASE-GATE, page 3 of FATHER_DEATH_CASE.pdf in Documents, then Dad, together with HAV-021, the Haven entry called Timelines. Then tell me: the report says her father fell alone at 07:15, but the gate register shows a scooter in at 06:05 and out at 07:35, and a jogger heard two men arguing on the rock at 07:10. He was not alone.'),
 
     ('the_object', 1, 'The timeline puts a second man on the rock but does not name him. The same object is in two places. One is the photograph of her father''s effects in FATHER_DEATH_CASE.pdf, in Documents, then Dad. The other is Loop, in the trekking posts of the people around her. Look for a climbing clip with a tag on it.'),
-    ('the_object', 2, 'Open FATHER_DEATH_CASE.pdf at page 2, exhibit 4. The effects found with him include a blue carabiner with a tag reading TD 2018, and it was not his. Then open Loop and find Rahul Nair''s post from 12 May at Turahalli. His caption says same rock, same carabiner, still on my 2018 batch tag. Open both, then attach both.'),
-    ('the_object', 3, 'Attach CASE-EFFECTS, page 2 exhibit 4 of the case file, together with SOC-025, Rahul Nair''s 12 May post on Loop. Then tell me: the blue carabiner tagged TD 2018 found with her father was not his. It is a Trail Diaries 2018 batch tag, and Rahul Nair posted himself wearing that same tag at that same rock.'),
+    ('the_object', 2, 'Open FATHER_DEATH_CASE.pdf at page 2, exhibit 4. The effects found with him include a blue carabiner with a tag reading TD 2018, and it was not his. Then open Loop and find Rahul Nair''s post from Turahalli, months before she was taken. His caption says same rock, same carabiner, still on my 2018 batch tag. Open both, then attach both.'),
+    ('the_object', 3, 'Attach CASE-EFFECTS, page 2 exhibit 4 of the case file, together with SOC-025, Rahul Nair''s Turahalli post on Loop. Then tell me: the blue carabiner tagged TD 2018 found with her father was not his. It is a Trail Diaries 2018 batch tag, and Rahul Nair posted himself wearing that same tag at that same rock.'),
 
     ('the_motive', 1, 'Her reason is in Haven, her video diary, opened through Orbit. Open Haven and read the newest entries, the ones from the last two weeks before she disappeared, not the old ones. Look for the entry where she says she is close.'),
-    ('the_motive', 2, 'In Haven open the entry called Close, recorded 30 August. She says the jogger, S. Iyer, heard the older man say I told you to stay away from her, and then saw a young man run down the trail with blood on his knuckles. She also says her father''s diary says Warned him off about a man called R, three times. Open it, then attach it.'),
-    ('the_motive', 3, 'Attach HAV-029, the Haven entry called Close from 30 August. Then tell me: the motive is not yours. Her father warned a man called R to stay away from Meera, three times in his own diary, and the jogger heard him say it on the rock the morning he died. The man he warned off is the one with a reason.'),
+    ('the_motive', 2, 'In Haven open the entry called Close, recorded three days before she was taken. She says the jogger, S. Iyer, heard the older man say I told you to stay away from her, and then saw a young man run down the trail with blood on his knuckles. She also says her father''s diary says Warned him off about a man called R, three times. Open it, then attach it.'),
+    ('the_motive', 3, 'Attach HAV-029, the Haven entry called Close, recorded three days before she was taken. Then tell me: the motive is not yours. Her father warned a man called R to stay away from Meera, three times in his own diary, and the jogger heard him say it on the rock the morning he died. The man he warned off is the one with a reason.'),
 
     ('the_confession', 1, 'You have a reason and an initial. You need the name. Meera recorded one last Haven entry on the evening she was taken, after every other entry on the account. Open Haven through Orbit and open the newest entry, the one dated the night she disappeared.'),
     ('the_confession', 2, 'In Haven open the entry called If something happens, recorded at 21:52 on the night she was taken. She says the man''s name out loud. She says his carabiner is in every trek photo since 2017, that his number is the 5:48 call in her father''s phone, and that he is R. Open it, attach it, and say the name she says.'),
@@ -428,7 +428,7 @@ INSERT INTO discover_hints (app, checkpoint_code, step, body) VALUES
     ('loop', 'the_alibi', 2,
      'Loop holds the other half of your alibi. Once you are in, find Vikram Kapoor''s post from the night she was taken, stamped 23:40. It is about late-night chai and it tags you. Open the post so it lands in your evidence index. Together with his message to Meera in Wisp it proves where you were.'),
     ('loop', 'the_object', 2,
-     'Loop holds the photo that matches the object in the case file. Once you are in, find Rahul Nair''s posts and open the one from 12 May at Turahalli, a climbing photo. Read the caption about his carabiner and its batch tag. Open it so it lands in your evidence index.'),
+     'Loop holds the photo that matches the object in the case file. Once you are in, find Rahul Nair''s posts and open the one from Turahalli, months before she was taken, a climbing photo. Read the caption about his carabiner and its batch tag. Open it so it lands in your evidence index.'),
 
     -- Quill: a password gate. No beat needs its mail; Haven's code lands here.
     ('quill', '', 1,
@@ -440,9 +440,9 @@ INSERT INTO discover_hints (app, checkpoint_code, step, body) VALUES
     ('haven', '', 1,
      'There is a video diary called Haven with thirty-one recordings Meera made, each with a transcript. It is a website. On Meera''s Laptop open Orbit, the browser, and press Haven on the bookmarks bar under the address box. Haven signs you in with a code it emails to Quill and four security questions. Press Hint again from Haven''s sign-in screen and I will walk you through it.'),
     ('haven', 'gate_timeline', 2,
-     'Haven holds her own account of the morning her father died. Once you are in, scroll to August 2024 and open the entry recorded on 10 August, the one whose title is about timelines. In it she repeats what a jogger heard on the rock that morning. Open it so it lands in your evidence index.'),
+     'Haven holds her own account of the morning her father died. Once you are in, scroll up to about three weeks before she was taken and open the entry called Timelines. In it she repeats what a jogger heard on the rock that morning. Open it so it lands in your evidence index.'),
     ('haven', 'the_motive', 2,
-     'Haven holds her reason. Once you are in, open the newest entries, the ones from the last two weeks before she disappeared. The entry recorded on 30 August, the one where she says she is close, names what the jogger heard her father say and what her father wrote in his diary. Open it so it lands in your evidence index.'),
+     'Haven holds her reason. Once you are in, open the newest entries, the ones from the last two weeks before she disappeared. The entry called Close, recorded three days before she was taken, the one where she says she is close, names what the jogger heard her father say and what her father wrote in his diary. Open it so it lands in your evidence index.'),
     ('haven', 'the_confession', 2,
      'Haven holds her last recording, made at 21:52 on the night she was taken, after every other entry on the account. Once you are in, scroll to the newest entry. In it she says the man''s name out loud. Open it so it lands in your evidence index, then attach it and say the name she says.'),
 
@@ -479,6 +479,95 @@ INSERT INTO discover_hints (app, checkpoint_code, step, body) VALUES
      'The map is where the band''s five alerts are searched. Each alert in PulseFit on the laptop has a Send to map button that fills the Drone search boxes here. Press Launch drones for each, in the order they were sent. The fifth fix is 300 metres off, so its pin is not the place. Once the first four are swept, type Kettle into the search box at the top of the map and send the drones to the cave on Kettle Hill.'),
     ('map', 'located', 2,
      'The map is where his car is followed. At the top of the City Map press Vehicle tracking. It unlocked when the drones brought back her band''s memo. Type the name she says in the memo and the model follows his car. Every place it stops is listed. Press Send drones on each stop in turn and wait for the report. She is alive at one of them.');
+
+-- ---------------------------------------------------------------------------
+-- The INSIDE chains. The hint desk's question for a participant who is
+-- standing in an app that is open to them: not "which app should you be in"
+-- but "what is in THIS one, and why does it matter". POST /api/hint serves
+-- these before a DISCOVER chain, for any app whose gate is open (or that has
+-- none) while at least one un-hit beat -- any beat, not only the next --
+-- still needs a piece that is read here and has not been argued
+-- (server.js:insideOf). The desk used to answer a participant who had just
+-- signed in to Haven with "there is a chat app called Wisp", because the NEXT
+-- beat lived in Wisp; Haven holds three pieces for three open beats, and the
+-- newest of them releases the band's alerts, so the app they are in answers
+-- first. Once every piece read here is argued, nothing is left here, and the
+-- DISCOVER chain for the next beat's app answers as before.
+--
+-- Two or three steps per app, in the order that serves the story, and each
+-- says in a few words WHY the item matters: step 1 the first item to open,
+-- step 2 the rest, the last step the ids, what to attach with what and the
+-- claim to make. Quill, Notes and Photos, which no beat reads, get one honest
+-- step saying so and what they are for, so a participant standing in them is
+-- told plainly before being sent on. Spent, the chain falls to the beat
+-- ladder for the earliest open beat with a piece here; for the three empty
+-- apps, to the DISCOVER chain.
+--
+-- Charged against context_hints_taken under screen 'inside', detail the app,
+-- once per (app, step). Same rules as every chain: plain sentences, the names
+-- on screen, no gate secret. No absolute calendar dates: every service's t()
+-- re-anchors the story to "yesterday" at seed time, so a date on screen moves
+-- from event to event while a title, a time of day and "three days before"
+-- do not.
+CREATE TABLE inside_hints (
+    app    TEXT NOT NULL,
+    step   INTEGER NOT NULL CHECK (step IN (1, 2, 3)),
+    body   TEXT NOT NULL,
+    PRIMARY KEY (app, step)
+);
+
+INSERT INTO inside_hints (app, step, body) VALUES
+    -- Haven: three recordings, the newest first, because arguing it releases
+    -- the band's alerts and the rest of the trail.
+    ('haven', 1,
+     'Haven holds three recordings this case needs. Start with the newest one, which is the last card at the bottom of the list, so scroll all the way down: If something happens, recorded at 21:52 on the night she was taken. It is the last thing she recorded. In it she names the man she was afraid of and says he killed her father. Open it and read the transcript so it lands in your evidence index. Once you argue it in the MERCY AI Judge tab I release her band''s SOS alerts to the laptop, and they are the trail to where she is.'),
+    ('haven', 2,
+     'Then two older entries, higher up the list. Scroll up about three weeks to Timelines. She lays out the morning her father died: a scooter in at 6:05, a jogger who heard two men arguing on the rock at 7:10, and a 5:48 call from a contact saved as R. It proves he was not alone. Then Close, recorded three days before she was taken: the jogger heard her father say I told you to stay away from her, and his diary says he warned R off three times. It proves the motive was not yours. Open both so they land in your evidence index.'),
+    ('haven', 3,
+     'The ids and the claims. HAV-031 is If something happens: attach it on its own and tell me the name she says, Rahul Nair, that his number is the 5:48 call in her father''s phone and that the TD 2018 carabiner is his. HAV-021 is Timelines: attach it together with CASE-GATE, page 3 of the case file in Documents, then Dad, and tell me her father was not alone on the rock. HAV-029 is Close: attach it on its own and tell me her father warned a man called R away from her three times, so the motive is his, not yours.'),
+
+    -- Wisp: one piece, half of the alibi.
+    ('wisp', 1,
+     'Wisp holds one piece this case needs, and it is half of your alibi. In the list of chats on the left open Vikram Kapoor, your brother, and scroll to the bottom, to the night she was taken. His message to Meera at 23:12 says you were staying over at his house and that your mother fed you. It proves where you were when she was taken. Open it so it lands in your evidence index. Nothing else in Wisp is needed by any beat.'),
+    ('wisp', 2,
+     'The id is WA-199, Vikram''s 23:12 message to Meera. On its own it is not enough: I want both halves of the alibi in one turn. The other half is on Loop, Vikram''s post at 23:40 about late-night chai that tags you. In the MERCY AI Judge tab attach WA-199 and SOC-050 together and tell me you were at your brother Vikram''s house with your mother that night, and these two records prove it.'),
+
+    -- Loop: the alibi's other half, the carabiner, and the cave for later.
+    ('loop', 1,
+     'Loop holds three pieces this case needs. First, the other half of your alibi: find Vikram Kapoor''s post from the night she was taken, stamped 23:40, about late-night chai with his little brother. It tags you. With his 23:12 message to Meera in Wisp it proves you were at his house. Open it so it lands in your evidence index.'),
+    ('loop', 2,
+     'Second, the carabiner: find Rahul Nair''s post from Turahalli at dawn, a climbing photo captioned same rock, same carabiner, still on my 2018 batch tag. The case file''s photo of her father''s effects shows a blue carabiner tagged TD 2018 that was not his. This post puts that tag on Rahul. Third, for later: Meera''s childhood photo captioned Our secret kingdom, a cave, tagged to Rahul. Its geotag is the cave on Kettle Hill where her band''s last alert leads. Open both so they land in your evidence index.'),
+    ('loop', 3,
+     'The ids and the claims. SOC-050 is Vikram''s 23:40 chai post: attach it with WA-199, his 23:12 message in Wisp, and tell me you were at your brother''s house with your mother that night. SOC-025 is Rahul''s Turahalli post: attach it with CASE-EFFECTS, page 2 exhibit 4 of the case file in Documents, then Dad, and tell me the TD 2018 carabiner found with her father is Rahul Nair''s. SOC-006 is the cave photo: no beat needs it attached, but its location is where to send the drones once the first four alerts are swept.'),
+
+    -- File Explorer: two pages of the case file.
+    ('files', 1,
+     'The Dad folder holds FATHER_DEATH_CASE.pdf, the police file on her father''s death, and two of its pages are pieces this case needs. Page 3, exhibit 5, is the forest gate register: a scooter logged in at 06:05 and out at 07:35, marked fast, on a morning the report says he was alone. Page 2, exhibit 4, is the photograph of his effects: a blue carabiner with a tag reading TD 2018, and it was not his. Open the file and read both pages so they land in your evidence index.'),
+    ('files', 2,
+     'The ids and the claims. CASE-GATE is page 3: attach it with HAV-021, the Haven entry called Timelines, and tell me the register shows a scooter in at 06:05 and out at 07:35 and a jogger heard two men on the rock at 07:10, so her father was not alone. CASE-EFFECTS is page 2 exhibit 4: attach it with SOC-025, Rahul Nair''s Turahalli post on Loop, and tell me the TD 2018 carabiner was not her father''s and Rahul wears that tag. Nothing else in this folder is needed by any beat.'),
+
+    -- PulseFit: the five alerts and why the order matters.
+    ('pulsefit', 1,
+     'PulseFit shows the SOS alerts her band sent after she left the flat. If it says No alerts on this device, they are still under evidence seal: in the MERCY AI Judge tab attach her last Haven recording, If something happens, and name the man she says killed her father. The alerts appear here the moment that is argued. There are five, from 22:41 to 02:14, and each has a Send to map button. They are the route she was taken on.'),
+    ('pulsefit', 2,
+     'Send them to the City Map one at a time, in the order they were sent, and press Launch drones on the map for each one. Wait for each report before sending the next. The first four are places she passed. The fifth, 02:14, is 300 metres off because the band was under rock: its pin is scree on the north face of Kettle Hill, and the place is the one cave on that face. Once the first four are swept, search the cave. The drones bring back her jacket and her band, and the band holds a voice memo that names the man who took her.'),
+
+    -- The map: the sweeps, the cave, then the car.
+    ('map', 1,
+     'The map is where her band''s five alerts are searched. Each alert in PulseFit on Meera''s Laptop has a Send to map button that fills the Drone search boxes on the right. Press Launch drones for each one, in the order they were sent, 22:41 first, and wait for the report before the next. Every report is evidence you can attach. The first four are the route she was taken on. The fifth is 300 metres off and its pin is not the place.'),
+    ('map', 2,
+     'The place is a cave on the north face of Kettle Hill, the cave from her childhood Loop photo captioned Our secret kingdom. Once the first four alerts are swept, type Kettle into the search box at the top of the map and pick Cave, Kettle Hill (north face), or right-click it on the model. The drones bring back her folded jacket and her band, and the band holds a two-minute voice memo. Play it. It is SW-06: attach it in the MERCY AI Judge tab and tell me the name she says took her. It is not Rahul.'),
+    ('map', 3,
+     'The memo opens Vehicle tracking, the button at the top of the City Map. Type the name from the memo and the model follows his car through the cameras that read its plate. Every place it stops is listed. Press Send drones on each stop in turn and wait for the report; the car waits until the search is done. One report will say Meera located, and that ends the file.'),
+
+    -- Quill, Notes, Photos: no beat reads here. One honest step each, so a
+    -- participant standing in them is not sold the wrong app first.
+    ('quill', 1,
+     'Nothing any beat needs is in Quill''s mail itself. Quill matters for one thing: Haven, her video diary, signs you in by emailing a six-digit code to this inbox. Keep Quill open, open Haven in Orbit from the bookmarks bar, press Email me a sign-in code, then come back here and open the new mail. The three recordings the case needs are in Haven.'),
+    ('notes', 1,
+     'Nothing in Notes is evidence by itself. It is where she kept her passwords. The yellow note whose title starts with logins lists them, and its second line is the password for the locked Dad folder in File Explorer, under Documents, where the police case file is. Read it here, type it there. Nothing else in Notes is needed by any beat.'),
+    ('photos', 1,
+     'Nothing in Photos is needed by any beat of this hearing. It holds her Camera Roll, wedding pictures and screenshots. The photographs that decide the case are elsewhere: the police file in File Explorer under Documents, then Dad, and the posts on Loop. Close Photos and press Hint again, and I will point you at the app that matters now.');
 
 -- Evidence with no live service to fetch it from: the case file's own
 -- photographs. Served by this container from public/case-photos/.

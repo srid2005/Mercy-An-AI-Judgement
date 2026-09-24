@@ -2392,7 +2392,11 @@
     const step = Number(h.step);
     const total = Number(h.steps_total);
     const app = discoverApp(h);
-    const chain = app ? `FIND ${DISCOVER_NAME[app] || app.toUpperCase()}` : hintKind(h) === "context" ? "SCREEN" : "BEAT";
+    // "inside:<app>/step<n>": the steer for the app they are standing in --
+    // what it holds for the case -- as opposed to FIND, which sends them to it
+    const im = /^inside:([a-z0-9_-]+)\//i.exec(String(h.target || ""));
+    const inside = im ? im[1].toLowerCase() : null;
+    const chain = inside ? `IN ${DISCOVER_NAME[inside] || inside.toUpperCase()}` : app ? `FIND ${DISCOVER_NAME[app] || app.toUpperCase()}` : hintKind(h) === "context" ? "SCREEN" : "BEAT";
     if (Number.isFinite(step) && Number.isFinite(total) && total > 0) return `${chain} \u00b7 HINT ${step} OF ${total}`;
     return `${chain} \u00b7 TIER ${Number(h.tier) || 1}`;
   }
